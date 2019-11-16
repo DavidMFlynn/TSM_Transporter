@@ -4,19 +4,24 @@
 // Filename: TSM_SpanBolster.scad
 // By: David M. Flynn
 // Created: 10/5/2019
-// Revision: 0.9.2 11/8/2019
+// Revision: 0.9.3 11/14/2019
 // Units: mm
 // *************************************************
 //  ***** History ******
+// 0.9.3 11/14/2019 Fixes to BolsterMount.
 // 0.9.2 11/8/2019 Added SpanBolsterMount.
 // 0.9.1 10/12/2019 Wider RockerArm. Longer.
 // 0.9.0 10/5/2019 First code.
 // *************************************************
 //  ***** for STL output *****
-// Sprocket9Hub(Back_h=5);
-// RockerArm(Len=104,Angle=30);
-// CenterSpan(Span_l=182);
-// SpanBolsterMount();
+// TrackSprocket(); // 10 teeth, print 8
+// BolsterMount(); // print 2
+// RockerArm(Len=110,Angle=30); // for 10 tooth sprockets
+//
+// Sprocket9Hub(Back_h=5); // not used
+// RockerArm(Len=104,Angle=30); // not used
+// CenterSpan(Span_l=182); // not used
+// SpanBolsterMount();  // not used
 // *************************************************
 //  ***** for Viewing *****
 // ShowIdleHub();
@@ -86,6 +91,231 @@ module ShowCompleteBolster(){
 
 //ShowCompleteBolster();
 
+module TrackRturnIdlerMount(){
+	nBolts=6;
+	Base_h=8;
+	
+	difference(){
+		union(){
+			cylinder(d=50,h=Base_h);
+			translate([0,0,Base_h-Overlap]) cylinder(d1=30,d2=16,h=10);
+		} // union		
+		
+		translate([0,0,-Overlap]) cylinder(d=6.35,h=30);
+	
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([20,0,Base_h]) Bolt4Hole();
+	} // difference
+	
+} // TrackRturnIdlerMount
+
+// TrackRturnIdlerMount();
+
+module RockerArm(Len=85,Angle=30){
+	BearingPushOut=4.1;
+	HalfWidth=ToothSpacing/2-SP10_Inset-0.5-BearingPushOut;
+	Center_w=AxilLen/2-7;
+	CenterShaft_d=6.35;
+	
+
+	module BearingHole(){
+		translate([0,0,-Overlap]) cylinder(d=12.7,h=13+Overlap*2);
+		translate([0,0,13]) cylinder(d1=12.7,d2=10.7,h=2+Overlap);
+		translate([0,0,15]) cylinder(d=10.7,h=HalfWidth);
+		translate([0,0,HalfWidth-Bearing_w+BearingPushOut]) cylinder(d=Bearing_d,h=Bearing_w+Overlap*2);
+	} // BearingHole
+	
+	translate([0,0,-HalfWidth]) 
+	difference(){
+		union(){
+			hull(){
+				cylinder(d=Bearing_d+5,h=HalfWidth);
+				rotate([0,0,-Angle]) translate([-Len/2,0,0])
+					cylinder(d=Bearing_d+5,h=HalfWidth);
+			}
+			
+			
+			hull(){
+				rotate([0,0,-Angle]) translate([-Len/2,0,0]){
+					cylinder(d=Bearing_d+5,h=HalfWidth);
+					
+					rotate([0,0,Angle*2]) translate([-Len/2,0,0])
+						cylinder(d=Bearing_d+5,h=HalfWidth);
+			}
+			}
+			
+			rotate([0,0,-Angle]) translate([-Len/2,0,0])
+					cylinder(d=CenterShaft_d+4,h=Center_w);
+		} // union
+		
+		// Right Bearing hole
+		BearingHole();
+		
+		// Lightening cuts, slots
+		rotate([0,0,-Angle])
+		hull(){
+			translate([-Bearing_d/2-4,0,-Overlap]) cylinder(d=4,h=HalfWidth+Overlap*2);
+			translate([-Len/2+Bearing_d/2+4,0,-Overlap]) cylinder(d=4,h=HalfWidth+Overlap*2);	
+			}
+			
+		rotate([0,0,-Angle]) translate([-Len/2,0,0]) rotate([0,0,Angle*2])
+		hull(){
+			translate([-Bearing_d/2-4,0,-Overlap]) cylinder(d=4,h=HalfWidth+Overlap*2);
+			translate([-Len/2+Bearing_d/2+4,0,-Overlap]) cylinder(d=4,h=HalfWidth+Overlap*2);	
+			}
+			
+		// Lightening cuts, thinning
+		rotate([0,0,-Angle]) translate([-Len/4,0,Len/4+HalfWidth/2]) rotate([90,0,0])
+			cylinder(d=Len/2,h=Bearing_d+5+Overlap*2,center=true);
+		
+		rotate([0,0,-Angle]) translate([-Len/2,0,0]) rotate([0,0,Angle*2])
+			translate([-Len/4,0,Len/4+HalfWidth/2]) rotate([90,0,0])
+			cylinder(d=Len/2,h=Bearing_d+5+Overlap*2,center=true);
+			
+		// center pivot
+		rotate([0,0,-Angle]) translate([-Len/2,0,0]){
+			translate([0,0,-Overlap]) cylinder(d=CenterShaft_d,h=Center_w+Overlap*2);
+			
+			rotate([0,0,Angle*2]) translate([-Len/2,0,0])
+				// Left Bearing hole
+				BearingHole();
+			
+		} // center pivot, left bearing
+		
+	} // difference
+	
+	// Bearing holders
+	translate([0,0,-HalfWidth])
+	difference(){
+		union(){
+			cylinder(d=Bearing_d+4,h=HalfWidth+BearingPushOut);
+			
+			rotate([0,0,-Angle]) translate([-Len/2,0,0])
+				rotate([0,0,Angle*2]) translate([-Len/2,0,0])
+					cylinder(d=Bearing_d+4,h=HalfWidth+BearingPushOut);
+		} // union
+		
+		// Bearing hole
+		BearingHole();
+		
+		rotate([0,0,-Angle]) translate([-Len/2,0,0])
+			rotate([0,0,Angle*2]) translate([-Len/2,0,0]){
+				// Left bearing
+				// Bearing hole
+				BearingHole();
+			}
+		
+	} // difference
+		
+} // RockerArm
+
+//RockerArm(Len=110,Angle=30);
+
+module BolsterMount(){
+	kSpanBOffset=26;
+	kSpanBThickness=31+8;
+	kPlate_w=16;
+	
+	difference(){
+		union(){
+			cylinder(d=44,h=8);
+			//cylinder(d=25,h=kSpanBOffset-2);
+			
+			cylinder(d=16,h=kSpanBOffset);
+			
+			hull(){
+				rotate([0,0,-30]) translate([12.7,20*3-10,0]) cylinder(d=10,h=8);
+				rotate([0,0,-30]) translate([12.7,0,0]) cylinder(d=18,h=8);
+				//cylinder(d=36,h=8);
+			} // hull
+			hull(){
+				rotate([0,0,30]) translate([-12.7,20*3-10,0]) cylinder(d=10,h=8);
+				rotate([0,0,30]) translate([-12.7,0,0]) cylinder(d=18,h=8);
+				//cylinder(d=36,h=8);
+			} // hull
+			
+			//*
+			
+			// left arm
+			hull(){
+				rotate([0,0,30]) translate([-12.7,20*3-10,0]) cylinder(d=10,h=8);
+				rotate([0,0,30]) translate([-12.7,20*3-16,0]) cylinder(d=10,h=8);
+				
+				translate([-kPlate_w/2+4,24,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
+				translate([-kPlate_w/2+4,30,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
+			} // hull
+			/**/
+			
+			// Right arm
+			hull(){
+				rotate([0,0,-30]) translate([12.7,20*3-10,0]) cylinder(d=10,h=8);
+				rotate([0,0,-30]) translate([12.7,20*3-16,0]) cylinder(d=10,h=8);
+				
+				translate([kPlate_w/2-4,24,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
+				translate([kPlate_w/2-4,30,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
+			} // hull
+			
+			translate([0,0,kSpanBOffset-2+kSpanBThickness-8])
+			hull(){
+				translate([-kPlate_w/2+4,24,0]) cylinder(d=10,h=8);
+				translate([-kPlate_w/2+4,30,0]) cylinder(d=10,h=8);
+				translate([kPlate_w/2-4,24,0]) cylinder(d=10,h=8);
+				translate([kPlate_w/2-4,30,0]) cylinder(d=10,h=8);
+			} // hull
+		} // union
+		
+		//translate([0,0,kSpanBOffset-2+kSpanBThickness-10]) rotate([-90,0,0]) cylinder(d=14.5,h=50);
+		
+		
+		translate([0,0,kSpanBOffset-2+kSpanBThickness])
+			{
+				translate([-kPlate_w/2+4,24,0]) Bolt4Hole(depth=8);
+				translate([-kPlate_w/2+4,30,0]) Bolt4Hole(depth=8);
+				translate([kPlate_w/2-4,24,0]) Bolt4Hole(depth=8);
+				translate([kPlate_w/2-4,30,0]) Bolt4Hole(depth=8);
+			}
+			
+		for (j=[0:3]){
+			rotate([0,0,-30]) translate([12.7,20*j-10,0]) rotate([0,180,0]) Bolt4Hole();
+			rotate([0,0,30]) translate([-12.7,20*j-10,0]) rotate([0,180,0]) Bolt4Hole();}
+			
+			
+		translate([0,0,-Overlap]) cylinder(d=10,h=kSpanBOffset-6+Overlap*2);
+		translate([0,0,kSpanBOffset-6]) cylinder(d1=10,d2=6.35,h=1+Overlap*2);
+		translate([0,0,kSpanBOffset-6]) cylinder(d=6.35,h=10);
+	} // difference
+
+} // BolsterMount
+
+//BolsterMount();
+
+module RockerEndSupport(){
+	kPlate_w=16;
+	
+	difference(){
+			
+		hull(){
+			cylinder(d=16,h=6);
+			translate([-kPlate_w/2+4,24,0]) cylinder(d=10,h=6);
+			translate([-kPlate_w/2+4,30,0]) cylinder(d=10,h=6);
+			translate([kPlate_w/2-4,24,0]) cylinder(d=10,h=6);
+			translate([kPlate_w/2-4,30,0]) cylinder(d=10,h=6);
+		} // hull
+		
+		translate([0,0,6]){
+				translate([-kPlate_w/2+4,24,0]) Bolt4ButtonHeadHole(depth=8);
+				translate([-kPlate_w/2+4,30,0]) Bolt4ButtonHeadHole(depth=8);
+				translate([kPlate_w/2-4,24,0]) Bolt4ButtonHeadHole(depth=8);
+				translate([kPlate_w/2-4,30,0]) Bolt4ButtonHeadHole(depth=8);
+			}
+			
+		translate([0,0,-Overlap]) cylinder(d=6.35,h=10);
+	} // difference
+
+} // RockerEndSupport
+
+//RockerEndSupport();
+
+// old code
 module SpanBolsterMount(){
 	kSpanBOffset=20;
 	kSpanBThickness=46;
@@ -155,83 +385,6 @@ module SpanBolsterMount(){
 
 //SpanBolsterMount();
 
-module BolsterMount(){
-	kSpanBOffset=26;
-	kSpanBThickness=31;
-	kPlate_w=16;
-	
-	difference(){
-		union(){
-			cylinder(d=44,h=8);
-			//cylinder(d=25,h=kSpanBOffset-2);
-			
-			cylinder(d=16,h=kSpanBOffset);
-			
-			hull(){
-				rotate([0,0,-30]) translate([12.7,20*3-10,0]) cylinder(d=10,h=8);
-				rotate([0,0,-30]) translate([12.7,0,0]) cylinder(d=18,h=8);
-				//cylinder(d=36,h=8);
-			} // hull
-			hull(){
-				rotate([0,0,30]) translate([-12.7,20*3-10,0]) cylinder(d=10,h=8);
-				rotate([0,0,30]) translate([-12.7,0,0]) cylinder(d=18,h=8);
-				//cylinder(d=36,h=8);
-			} // hull
-			
-			//*
-			
-			// left arm
-			hull(){
-				rotate([0,0,30]) translate([-12.7,20*3-10,0]) cylinder(d=10,h=8);
-				rotate([0,0,30]) translate([-12.7,20*3-16,0]) cylinder(d=10,h=8);
-				
-				translate([-kPlate_w/2+4,24,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
-				translate([-kPlate_w/2+4,30,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
-			} // hull
-			/**/
-			
-			// Right arm
-			hull(){
-				rotate([0,0,-30]) translate([12.7,20*3-10,0]) cylinder(d=10,h=8);
-				rotate([0,0,-30]) translate([12.7,20*3-16,0]) cylinder(d=10,h=8);
-				
-				translate([kPlate_w/2-4,24,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
-				translate([kPlate_w/2-4,30,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
-			} // hull
-			
-			translate([0,0,kSpanBOffset-2+kSpanBThickness-8])
-			hull(){
-				translate([-kPlate_w/2+4,24,0]) cylinder(d=10,h=8);
-				translate([-kPlate_w/2+4,30,0]) cylinder(d=10,h=8);
-				translate([kPlate_w/2-4,24,0]) cylinder(d=10,h=8);
-				translate([kPlate_w/2-4,30,0]) cylinder(d=10,h=8);
-			} // hull
-		} // union
-		
-		//translate([0,0,kSpanBOffset-2+kSpanBThickness-10]) rotate([-90,0,0]) cylinder(d=14.5,h=50);
-		
-		
-		translate([0,0,kSpanBOffset-2+kSpanBThickness])
-			{
-				translate([-kPlate_w/2+4,24,0]) Bolt4Hole(depth=8);
-				translate([-kPlate_w/2+4,30,0]) Bolt4Hole(depth=8);
-				translate([kPlate_w/2-4,24,0]) Bolt4Hole(depth=8);
-				translate([kPlate_w/2-4,30,0]) Bolt4Hole(depth=8);
-			}
-			
-		for (j=[0:3]){
-			rotate([0,0,-30]) translate([12.7,20*j-10,0]) rotate([0,180,0]) Bolt4Hole();
-			rotate([0,0,30]) translate([-12.7,20*j-10,0]) rotate([0,180,0]) Bolt4Hole();}
-			
-			
-		translate([0,0,-Overlap]) cylinder(d=10,h=kSpanBOffset-5);
-		translate([0,0,kSpanBOffset-6]) cylinder(d=6.35,h=10);
-	} // difference
-
-} // BolsterMount
-
-//BolsterMount();
-
 module Spocket9(){
 	nBolts=4;
 	BC_d=16;
@@ -291,7 +444,7 @@ module TrackSprocket(ShowTeeth=$preview){
 	} // difference
 } // TrackSprocket
 
-TrackSprocket();
+//TrackSprocket();
 
 module ShowRocker(){
 translate([0,ToothSpacing/2,0]) rotate([-90,0,0]) TrackSprocket();
@@ -299,104 +452,6 @@ translate([0,-ToothSpacing/2,0]) rotate([90,0,0]) TrackSprocket();
 translate([0,-ToothSpacing/2+SP10_Inset+0.5+4.1,0]) rotate([90,0,0]) RockerArm(Len=110,Angle=30);
 translate([-95.2,ToothSpacing/2-SP10_Inset-0.5-4.1,0]) rotate([0,0,180]) rotate([90,0,0]) RockerArm(Len=110,Angle=30);
 }
-
-module RockerArm(Len=85,Angle=30){
-	BearingPushOut=4.1;
-	HalfWidth=ToothSpacing/2-SP10_Inset-0.5-BearingPushOut;
-	Center_w=AxilLen/2-7;
-	CenterShaft_d=6.35;
-	
-
-	translate([0,0,-HalfWidth]) 
-	difference(){
-		union(){
-			hull(){
-				cylinder(d=Bearing_d+5,h=HalfWidth);
-				rotate([0,0,-Angle]) translate([-Len/2,0,0])
-					cylinder(d=Bearing_d+5,h=HalfWidth);
-			}
-			
-			
-			hull(){
-				rotate([0,0,-Angle]) translate([-Len/2,0,0]){
-					cylinder(d=Bearing_d+5,h=HalfWidth);
-					
-					rotate([0,0,Angle*2]) translate([-Len/2,0,0])
-						cylinder(d=Bearing_d+5,h=HalfWidth);
-			}
-			}
-			
-			rotate([0,0,-Angle]) translate([-Len/2,0,0])
-					cylinder(d=CenterShaft_d+4,h=Center_w);
-		} // union
-		
-		// Right Bearing hole
-		translate([0,0,-Overlap]) cylinder(d=Bearing_d-1,h=HalfWidth-Bearing_w+BearingPushOut+Overlap*2);
-		translate([0,0,HalfWidth-Bearing_w+BearingPushOut]) cylinder(d=Bearing_d,h=Bearing_w+Overlap*2);
-		
-		// Lightening cuts, slots
-		rotate([0,0,-Angle])
-		hull(){
-			translate([-Bearing_d/2-4,0,-Overlap]) cylinder(d=4,h=HalfWidth+Overlap*2);
-			translate([-Len/2+Bearing_d/2+4,0,-Overlap]) cylinder(d=4,h=HalfWidth+Overlap*2);	
-			}
-			
-		rotate([0,0,-Angle]) translate([-Len/2,0,0]) rotate([0,0,Angle*2])
-		hull(){
-			translate([-Bearing_d/2-4,0,-Overlap]) cylinder(d=4,h=HalfWidth+Overlap*2);
-			translate([-Len/2+Bearing_d/2+4,0,-Overlap]) cylinder(d=4,h=HalfWidth+Overlap*2);	
-			}
-			
-		// Lightening cuts, thinning
-		rotate([0,0,-Angle]) translate([-Len/4,0,Len/4+HalfWidth/2]) rotate([90,0,0])
-			cylinder(d=Len/2,h=Bearing_d+5+Overlap*2,center=true);
-		
-		rotate([0,0,-Angle]) translate([-Len/2,0,0]) rotate([0,0,Angle*2])
-			translate([-Len/4,0,Len/4+HalfWidth/2]) rotate([90,0,0])
-			cylinder(d=Len/2,h=Bearing_d+5+Overlap*2,center=true);
-			
-			
-		// center pivot
-		rotate([0,0,-Angle]) translate([-Len/2,0,0]){
-			translate([0,0,-Overlap]) cylinder(d=CenterShaft_d,h=Center_w+Overlap*2);
-			
-			rotate([0,0,Angle*2]) translate([-Len/2,0,0]){
-				// Left Bearing hole
-				translate([0,0,-Overlap]) cylinder(d=Bearing_d-1,h=HalfWidth-Bearing_w+BearingPushOut+Overlap*2);
-				translate([0,0,HalfWidth-Bearing_w+BearingPushOut]) cylinder(d=Bearing_d,h=Bearing_w+Overlap*2);
-			}
-		
-		}
-	} // difference
-	
-	// Bearing holders
-	translate([0,0,-HalfWidth])
-	difference(){
-		union(){
-			cylinder(d=Bearing_d+4,h=HalfWidth+BearingPushOut);
-			
-			rotate([0,0,-Angle]) translate([-Len/2,0,0])
-				rotate([0,0,Angle*2]) translate([-Len/2,0,0])
-					cylinder(d=Bearing_d+4,h=HalfWidth+BearingPushOut);
-		} // union
-		
-		// Bearing hole
-		translate([0,0,-Overlap]) cylinder(d=Bearing_d-1,h=HalfWidth-Bearing_w+BearingPushOut+Overlap*2);
-		translate([0,0,HalfWidth-Bearing_w+BearingPushOut]) cylinder(d=Bearing_d,h=Bearing_w+Overlap*2);
-		
-		rotate([0,0,-Angle]) translate([-Len/2,0,0])
-			rotate([0,0,Angle*2]) translate([-Len/2,0,0]){
-				// Left bearing
-				// Bearing hole
-				translate([0,0,-Overlap]) cylinder(d=Bearing_d-1,h=HalfWidth-Bearing_w+BearingPushOut+Overlap*2);
-				translate([0,0,HalfWidth-Bearing_w+BearingPushOut]) cylinder(d=Bearing_d,h=Bearing_w+Overlap*2);
-			}
-		
-	} // difference
-		
-} // RockerArm
-
-//RockerArm(Len=110,Angle=30);
 
 module CenterSpan(Span_l=182){
 	

@@ -59,6 +59,16 @@ module SpanBolsterMount(){
 
 //SpanBolsterMount();
 
+module BolsterMount(){
+	
+	
+	for (j=[0:3]){
+		rotate([0,0,-30]) translate([12.7,20*j-10,0]) circle(d=3);
+		rotate([0,0,30]) translate([-12.7,20*j-10,0]) circle(d=3);
+	}
+	
+} // BolsterMount
+
 module TrackRturnIdlerMount(){
 	nBolts=6;
 	circle(d=12.7);
@@ -91,22 +101,43 @@ module RingABearingHoles(){
 module TrackPlate(){
 	Drive_X=220;
 	Drive_Y=0;
-	SpanBolster_Y=-80;
+	//SpanBolster_Y=-80;
+	Bolster_Y=-110;
+	Bolster_X=100;
 	
 	difference(){
 		hull(){
 			circle(d=140);
 			
-			translate([0,SpanBolster_Y,0]) circle(d=50);
+			translate([Bolster_X,Bolster_Y,0]) circle(d=50);
+			translate([-Bolster_X,Bolster_Y,0]) circle(d=50);
 			translate([Drive_X,Drive_Y,0]) circle(d=140);
 			translate([-80,44,0]) circle(d=50);
+			translate([-220,0,0]) circle(d=50);
 		} // hull
 		
 		RingABearingHoles();
-		translate([0,SpanBolster_Y,0]) SpanBolsterMount();
+		translate([Bolster_X,Bolster_Y,0]) BolsterMount();
+		translate([-Bolster_X,Bolster_Y,0]) BolsterMount();
 		translate([Drive_X,Drive_Y,0]) DriveMountHoles();
 		translate([80,44,0]) TrackRturnIdlerMount(); 
 		translate([-80,44,0]) TrackRturnIdlerMount(); 
+		translate([-220,0,0]) TrackRturnIdlerMount(); 
+		
+		//Stiffenner slots
+		translate([-75,0,0]) square([25,6],center=true);
+		translate([-165,0,0]) square([25,6],center=true);
+		translate([75,0,0]) square([25,6],center=true);
+		translate([130,0,0]) square([25,6],center=true);
+		
+		//wire path
+		translate([Drive_X,Drive_Y+15,0]) hull(){
+			circle(d=6);
+			translate([0,20,0]) circle(d=6);
+		}
+		translate([0,-90,0]) text("<<-- Front <<--",size=6,halign="center");
+		translate([0,-100,0]) text("TSM-T1, DMFE 2019",size=6,halign="center");
+		
 	} // difference
 } // TrackPlate
 
