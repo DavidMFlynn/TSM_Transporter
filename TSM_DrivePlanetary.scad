@@ -4,10 +4,11 @@
 // Filename: TSM_DrivePlanetary.scad
 // By: David M. Flynn
 // Created: 10/1/2019
-// Revision: 0.9.8 11/8/2019
+// Revision: 0.9.9 11/16/2019
 // Units: mm
 // *************************************************
 //  ***** History ******
+// 0.9.9 11/16/2019 Encoder mount.
 // 0.9.8 11/8/2019 Added RingB spacer and encoder mount. Added 5mm and Enc to RingB.
 // 0.9.7 10/9/2019 Updated mounting plate.
 // 0.9.6 10/7/2019 Added InnerSprocketMountSpacer.
@@ -28,6 +29,7 @@
 //
 // RingBSpacer(); // add to RingB
 // RingB(); // Stator
+// EncoderMount();
 // rotate([180,0,0]) RingA();
 //
 // OuterTrackSprocket();
@@ -111,14 +113,16 @@ nTrackTeeth=20;
 
 module ShowPlanetCarrier(){
 	
-	translate([0,0,-10]) rotate([0,0,180/RingBTeeth]) RingB();
+	translate([0,0,-10]) rotate([0,0,180/RingBTeeth]){
+		RingB();
+		translate([0,0,-10+BSkirt_h-7.75-5]) rotate([0,0,15]) EncoderMount();}
 	
 	//translate([0,0,-31]) RingA();
 	
 	translate([0,0,5+Overlap*2]) EncoderDisc();
-	translate([0,0,Overlap]) InnerPlanetCarrier();
-	translate([0,0,-Sleeve_l]) rotate([0,0,180/nPlanets]) MotorSleeve();
-	translate([0,0,-Overlap]) mirror([0,0,1]) translate([0,0,1.625*25.4]) PlanetCarrier();
+	//translate([0,0,Overlap]) InnerPlanetCarrier();
+	//translate([0,0,-Sleeve_l]) rotate([0,0,180/nPlanets]) MotorSleeve();
+	//translate([0,0,-Overlap]) mirror([0,0,1]) translate([0,0,1.625*25.4]) PlanetCarrier();
 	
 	//for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j]) translate([-PC_BC_d/2,0,-1.625*25.4+10]) rotate([0,0,180/PlanetBTeeth]) Planet();
 
@@ -126,14 +130,14 @@ module ShowPlanetCarrier(){
 	
 	//translate([0,0,-31-10-5]) rotate([180,0,0]) OuterTrackSprocket();
 	
-	//translate([0,0,-10]) InnerSprocketMount();
-	//translate([0,0,-31+ToothSpacing-5-10]) InnerTrackSprocket();
+	translate([0,0,-10]) InnerSprocketMount();
+	translate([0,0,-31+ToothSpacing-5-10]) InnerTrackSprocket();
 	
-	translate([0,0,29.5]) rotate([0,0,180/RingBTeeth]) rotate([180,0,0])  MountingPlate();
+	//translate([0,0,29.5]) rotate([0,0,180/RingBTeeth]) rotate([180,0,0])  MountingPlate();
 	
 } // ShowPlanetCarrier
 
-  //ShowPlanetCarrier();
+ // ShowPlanetCarrier();
 
 module ShowPlanetCarrierExp(){
 	
@@ -326,7 +330,7 @@ module EncoderMount(){
 		// trim outside
 		difference(){
 			translate([0,0,-Overlap]) cylinder(d=BSkirt_OD+10,h=RingBlock_h+Overlap*2);
-			translate([0,0,-Overlap*2]) cylinder(d=BSkirt_OD,h=RingBlock_h+Overlap*4);
+			translate([0,0,-Overlap*2]) cylinder(d=BSkirt_OD-5,h=RingBlock_h+Overlap*4);
 		} // differencecylinder(d=BSkirt_OD,h=BSkirt_h);
 		
 		
@@ -343,11 +347,55 @@ module EncoderMount(){
 
 	} // difference
 		
+	// mounting ears
 	
+	difference(){
+		translate([0,0,-6])
+		union(){
+			hull(){
+				rotate([0,0,360/nEncoderPulses*2.5+10])
+					translate([0,(BSkirt_OD-5)/2-6,0]) 
+						rotate([-90,0,0]) cylinder(d=8,h=8);
+				rotate([0,0,360/nEncoderPulses*2.5+7])
+					translate([0,(BSkirt_OD-5)/2-6,-7.5])
+					cube([Overlap,6,15]);
+				} // hull
+				
+			hull(){
+				rotate([0,0,-10])
+					translate([0,(BSkirt_OD-5)/2-6,0]) 
+						rotate([-90,0,0]) cylinder(d=8,h=8);
+				rotate([0,0,-7])
+					translate([0,(BSkirt_OD-5)/2-6,-7.5])
+					cube([Overlap,6,15]);
+				} // hull
+
+		} // union
+			
+		EncoderMountHoles() Bolt4Hole();
+			
+	// trim outside
+		translate([0,0,-8])
+		difference(){
+			translate([0,0,-6-Overlap]) cylinder(d=BSkirt_OD+10,h=RingBlock_h+Overlap*2);
+			translate([0,0,-6-Overlap*2]) cylinder(d=BSkirt_OD-5,h=RingBlock_h+Overlap*4);
+		} // differencecylinder(d=BSkirt_OD,h=BSkirt_h);
+		
+	} // difference
 } // EncoderMount
 
 //EncoderMount();
 
+module EncoderMountHoles(){
+	translate([0,0,-6]){
+		rotate([0,0,360/nEncoderPulses*2.5+10])
+			translate([0,(BSkirt_OD-5)/2-7,0]) rotate([90,0,0]) children();
+		rotate([0,0,-10])
+			translate([0,(BSkirt_OD-5)/2-7,0]) rotate([90,0,0]) children();
+	}
+} // EncoderMountHoles
+
+EncoderMountHoles();
 
 Sleeve_l=1.625*25.4;
 module MotorSleeve(){
@@ -643,9 +691,13 @@ module RingB(){
 		// Bolts
 		for (j=[0:nRingBSkirtBolts-1]) rotate([0,0,360/nRingBSkirtBolts*j]) 
 				translate([BSkirtBC_d/2,0,BSkirt_h]) Bolt4Hole();
+		
+		translate([0,0,BSkirt_h-7.75-5])
+			rotate([0,0,15]) EncoderMountHoles() rotate([180,0,0])
+				translate([0,0,10]) Bolt4ButtonHeadHole();
 	} // difference
 	
-	translate([0,0,-10+BSkirt_h-7.75-5]) rotate([0,0,15]) EncoderMount();
+	//translate([0,0,-10+BSkirt_h-7.75-5]) rotate([0,0,15]) EncoderMount();
 	
 	translate([0,0,-10])
 	OnePieceInnerRace(BallCircle_d=RingB_Bering_BallCircle,	Race_ID=RingB_Bering_ID,	

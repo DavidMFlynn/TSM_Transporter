@@ -91,6 +91,45 @@ module ShowCompleteBolster(){
 
 //ShowCompleteBolster();
 
+module TrackRturnIdlerHub(IsOuter=true){
+	// Assy: Sprocket9Hub2,
+	//			Bearing, 
+	// 				1/2" tubing spacer,
+	//			shaft collar,
+	// 			bearing, 
+	// Sprocket9Hub2
+	
+	nBolts=4;
+	BC_d=16;
+	HalfWidth=35;
+	
+	//Bearing_d=12.7; // inp 6x13x5
+	//Bearing_w=4.7;
+
+	difference(){
+		union(){
+			cylinder(d=22,h=HalfWidth);
+			cylinder(d=38,h=6);
+		} // union
+		
+		if (IsOuter==true){
+			for (j=[0:3]) rotate([0,0,90*j+45])
+				translate([15,0,6]) Bolt4Hole();
+		} else {
+			for (j=[0:3]) rotate([0,0,90*j+45])
+				translate([15,0,6]) Bolt4ClearHole();
+		}
+		translate([0,0,-Overlap]) cylinder(d=12.7,h=HalfWidth-15+Overlap*2);
+		translate([0,0,HalfWidth-15]) cylinder(d1=12.7,d2=7,h=2);
+		cylinder(d=7,h=HalfWidth+Overlap);
+		
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) 
+			translate([BC_d/2,0,HalfWidth]) Bolt4Hole();
+	} // difference
+} // TrackRturnIdlerHub
+
+TrackRturnIdlerHub();
+
 module TrackRturnIdlerMount(){
 	nBolts=6;
 	Base_h=8;
@@ -695,7 +734,6 @@ module MainBearing(){
 } // MainBearing
 
 //translate([50,18+37.5,60+70]) MainBearing();
-
 
 
 module Sprocket9Hub(Back_h=6){
