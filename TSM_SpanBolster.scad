@@ -4,10 +4,11 @@
 // Filename: TSM_SpanBolster.scad
 // By: David M. Flynn
 // Created: 10/5/2019
-// Revision: 0.9.3 11/14/2019
+// Revision: 0.9.4 11/17/2019
 // Units: mm
 // *************************************************
 //  ***** History ******
+// 0.9.4 11/17/2019 Track return idler 5mm taller.
 // 0.9.3 11/14/2019 Fixes to BolsterMount.
 // 0.9.2 11/8/2019 Added SpanBolsterMount.
 // 0.9.1 10/12/2019 Wider RockerArm. Longer.
@@ -17,6 +18,10 @@
 // TrackSprocket(); // 10 teeth, print 8
 // BolsterMount(); // print 2
 // RockerArm(Len=110,Angle=30); // for 10 tooth sprockets
+//
+// TrackRturnIdlerHub(IsOuter=true); // FC1
+// TrackRturnIdlerHub(IsOuter=false);
+// TrackRturnIdlerMount();
 //
 // Sprocket9Hub(Back_h=5); // not used
 // RockerArm(Len=104,Angle=30); // not used
@@ -101,10 +106,11 @@ module TrackRturnIdlerHub(IsOuter=true){
 	
 	nBolts=4;
 	BC_d=16;
-	HalfWidth=35;
+	HalfWidth=ToothSpacing/2-9;
+	Shaft_d=6.35+IDXtra;
 	
-	//Bearing_d=12.7; // inp 6x13x5
-	//Bearing_w=4.7;
+	Bearing_d=13;  //12.7; // inp 6x13x5
+	Bearing_w=5; //4.7;
 
 	difference(){
 		union(){
@@ -119,35 +125,39 @@ module TrackRturnIdlerHub(IsOuter=true){
 			for (j=[0:3]) rotate([0,0,90*j+45])
 				translate([15,0,6]) Bolt4ClearHole();
 		}
-		translate([0,0,-Overlap]) cylinder(d=12.7,h=HalfWidth-15+Overlap*2);
-		translate([0,0,HalfWidth-15]) cylinder(d1=12.7,d2=7,h=2);
-		cylinder(d=7,h=HalfWidth+Overlap);
+		translate([0,0,-Overlap]) cylinder(d=12.7,h=HalfWidth-11+Overlap*2);
+		translate([0,0,HalfWidth-11]) cylinder(d1=12.7,d2=Shaft_d,h=2);
+		cylinder(d=Shaft_d,h=HalfWidth+Overlap);
 		
 		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) 
-			translate([BC_d/2,0,HalfWidth]) Bolt4Hole();
+			translate([BC_d/2,0,HalfWidth]) Bolt4Hole(depth=8);
 	} // difference
 } // TrackRturnIdlerHub
 
-TrackRturnIdlerHub();
+//TrackRturnIdlerHub(IsOuter=true);
+//TrackRturnIdlerHub(IsOuter=false);
+
 
 module TrackRturnIdlerMount(){
 	nBolts=6;
 	Base_h=8;
+	BackPlateToWheel=23;
 	
 	difference(){
 		union(){
 			cylinder(d=50,h=Base_h);
-			translate([0,0,Base_h-Overlap]) cylinder(d1=30,d2=16,h=10);
+			translate([0,0,Base_h-Overlap]) cylinder(d1=30,d2=16,h=BackPlateToWheel-Base_h-3);
+			cylinder(d=11,h=BackPlateToWheel);
 		} // union		
 		
-		translate([0,0,-Overlap]) cylinder(d=6.35,h=30);
+		translate([0,0,-Overlap]) cylinder(d=6.35,h=BackPlateToWheel+Overlap*2);
 	
 		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([20,0,Base_h]) Bolt4Hole();
 	} // difference
 	
 } // TrackRturnIdlerMount
 
-// TrackRturnIdlerMount();
+//  TrackRturnIdlerMount();
 
 module RockerArm(Len=85,Angle=30){
 	BearingPushOut=4.1;
