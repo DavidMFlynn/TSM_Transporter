@@ -28,7 +28,7 @@
 // rotate([180,0,0]) EncoderDisc();
 //
 // RingBSpacer(); // add to RingB
-// RingB(); // Stator
+// RingB(); // Stator, FC1
 // EncoderMount();
 // rotate([180,0,0]) RingA();
 //
@@ -693,8 +693,14 @@ module RingB(){
 				translate([BSkirtBC_d/2,0,BSkirt_h]) Bolt4Hole();
 		
 		translate([0,0,BSkirt_h-7.75-5])
-			rotate([0,0,15]) EncoderMountHoles() rotate([180,0,0])
+			rotate([0,0,16]) EncoderMountHoles() rotate([180,0,0])
 				translate([0,0,10]) Bolt4ButtonHeadHole();
+		
+		// wire path
+		rotate([0,0,-16]) translate([0,0,BSkirt_h-4]) hull(){
+			rotate([-90,0,0]) cylinder(d=6,h=100);
+			translate([0,0,10]) rotate([-90,0,0]) cylinder(d=6,h=100);
+		}
 	} // difference
 	
 	//translate([0,0,-10+BSkirt_h-7.75-5]) rotate([0,0,15]) EncoderMount();
