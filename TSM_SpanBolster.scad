@@ -259,6 +259,132 @@ module RockerArm(Len=85,Angle=30){
 
 //RockerArm(Len=110,Angle=30);
 
+
+module TrackTensionerArm(Len=50){
+	BearingPushOut=4.1;
+	HalfWidth=ToothSpacing/2-SP10_Inset-0.5-BearingPushOut;
+	Shank_w=25;
+	Shank_h=16;
+	Spring_d=5/16*25.4;
+
+	module BearingHole(){
+		translate([0,0,-Overlap]) cylinder(d=12.7,h=13+Overlap*2);
+		translate([0,0,13]) cylinder(d1=12.7,d2=10.7,h=2+Overlap);
+		translate([0,0,15]) cylinder(d=10.7,h=HalfWidth);
+		translate([0,0,HalfWidth-Bearing_w+BearingPushOut]) cylinder(d=Bearing_d,h=Bearing_w+Overlap*2);
+	} // BearingHole
+	
+	translate([0,0,-HalfWidth]) 
+	difference(){
+		union(){
+			cylinder(d=Bearing_d+4,h=HalfWidth+BearingPushOut);
+			cylinder(d=Bearing_d+5,h=HalfWidth);
+			
+			translate([-Len,-Shank_h/2,0])
+					cube([Len,Shank_h,Shank_w/2]);
+			
+		} // union
+		
+		// Right Bearing hole
+		BearingHole();
+		
+		// Lightening cuts, slots
+		
+		hull(){
+			translate([-Bearing_d/2-5,0,-Overlap]) cylinder(d=4,h=HalfWidth+Overlap*2);
+			translate([-Len+6,0,-Overlap]) cylinder(d=4,h=HalfWidth+Overlap*2);	
+			}
+		
+		// sping guides
+		translate([-Len-Overlap,0,Shank_w/4]) rotate([0,90,0]) cylinder(d1=Spring_d+1,d2=Spring_d,h=1);
+	} // difference
+	
+} // TrackTensionerArm
+
+/*
+translate([10,0,0]){
+translate([0,0,16+44]) TrackTensionerArm();
+translate([0,0,-16+44]) rotate([180,0,0]) TrackTensionerArm();}
+/**/
+
+module TrackTensionerMount(){
+	Spring_d=5/16*25.4;
+	
+	Shank_w=25+IDXtra;
+	Shank_h=16+IDXtra;
+	Wall_t=2.5;
+	Slide_L=60;
+	
+	kSpanBOffset=26;
+	kSpanBThickness=31+8;
+	kPlate_w=16;
+	
+	rotate([0,0,-90])
+	difference(){
+		union(){
+			cylinder(d=44,h=8);
+			
+			rotate([0,0,90])
+			translate([0,0,44]) translate([0,-Shank_h/2-Wall_t,-Shank_w/2-Wall_t]) cube([Slide_L,Shank_h+Wall_t*2,Shank_w+Wall_t*2]);
+			
+			cylinder(d=Shank_h+Wall_t*2,h=Shank_w+Wall_t*2+28.8);
+			
+			hull(){
+				rotate([0,0,-30]) translate([12.7,20*3-10,0]) cylinder(d=10,h=8);
+				rotate([0,0,-30]) translate([12.7,0,0]) cylinder(d=18,h=8);
+				//cylinder(d=36,h=8);
+			} // hull
+			hull(){
+				rotate([0,0,30]) translate([-12.7,20*3-10,0]) cylinder(d=10,h=8);
+				rotate([0,0,30]) translate([-12.7,0,0]) cylinder(d=18,h=8);
+				//cylinder(d=36,h=8);
+			} // hull
+			
+			//*
+			
+			// left arm
+			hull(){
+				rotate([0,0,30]) translate([-12.7,20*3-10,0]) cylinder(d=10,h=8);
+				rotate([0,0,30]) translate([-12.7,20*3-16,0]) cylinder(d=10,h=8);
+				
+				translate([-kPlate_w/2+4,24,50]) cylinder(d=10,h=8);
+				translate([-kPlate_w/2+4,30,50]) cylinder(d=10,h=8);
+			} // hull
+			/**/
+			
+			// Right arm
+			hull(){
+				rotate([0,0,-30]) translate([12.7,20*3-10,0]) cylinder(d=10,h=8);
+				rotate([0,0,-30]) translate([12.7,20*3-16,0]) cylinder(d=10,h=8);
+				
+				translate([kPlate_w/2-4,24,50]) cylinder(d=10,h=8);
+				translate([kPlate_w/2-4,30,50]) cylinder(d=10,h=8);
+			} // hull
+			
+		} // union
+			
+		for (j=[0:3]){
+			rotate([0,0,-30]) translate([12.7,20*j-10,0]) rotate([0,180,0]) Bolt4Hole();
+			rotate([0,0,30]) translate([-12.7,20*j-10,0]) rotate([0,180,0]) Bolt4Hole();}
+			
+		rotate([0,0,90])
+			translate([0,0,44]) {
+				translate([-Overlap,-Shank_h/2,-Shank_w/2]) cube([Slide_L+Overlap*2,Shank_h,Shank_w]);
+		
+				translate([Slide_L/2,0,-Shank_w/2-Wall_t-Overlap]) cylinder(d=3,h=Shank_w+Wall_t*2+Overlap*2);
+				translate([Slide_L/2+10,0,-Shank_w/2-Wall_t-Overlap]) cylinder(d=3,h=Shank_w+Wall_t*2+Overlap*2);
+				
+				translate([0,0,Shank_w/4]) rotate([0,-90,0]) cylinder(d1=Spring_d+1,d2=Spring_d,h=1);
+				translate([0,0,-Shank_w/4]) rotate([0,-90,0]) cylinder(d1=Spring_d+1,d2=Spring_d,h=1);
+			}
+			
+		
+	} // difference
+
+} // TrackTensionerMount
+
+translate([-64,0,0]) TrackTensionerMount();
+
 module BolsterMount(){
 	kSpanBOffset=26;
 	kSpanBThickness=31+8;
