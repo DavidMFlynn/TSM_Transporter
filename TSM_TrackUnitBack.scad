@@ -99,11 +99,16 @@ module RingABearingHoles(){
 //RingABearingHoles();
 
 module TrackPlate(){
-	Drive_X=220;
-	Drive_Y=0;
+	
+	Tensioner_X=-130;
+	Drive_X=180;
+	Drive_Y=40;
+	
+	//Drive_X=220;
+	//Drive_Y=0;
 	//SpanBolster_Y=-80;
-	Bolster_Y=-110;
-	Bolster_X=100;
+	Bolster_Y=-90;
+	Bolster_X=105;
 	
 	difference(){
 		hull(){
@@ -113,22 +118,25 @@ module TrackPlate(){
 			translate([-Bolster_X,Bolster_Y,0]) circle(d=50);
 			translate([Drive_X,Drive_Y,0]) circle(d=140);
 			translate([-80,44,0]) circle(d=50);
-			translate([-220,0,0]) circle(d=50);
+			translate([Tensioner_X,0,0]) circle(d=130);
 		} // hull
 		
 		RingABearingHoles();
 		translate([Bolster_X,Bolster_Y,0]) BolsterMount();
 		translate([-Bolster_X,Bolster_Y,0]) BolsterMount();
 		translate([Drive_X,Drive_Y,0]) DriveMountHoles();
-		translate([80,44,0]) TrackRturnIdlerMount(); 
-		translate([-80,44,0]) TrackRturnIdlerMount(); 
-		translate([-220,0,0]) TrackRturnIdlerMount(); 
+		//translate([80,44,0]) TrackRturnIdlerMount(); 
+		//translate([-80,44,0]) TrackRturnIdlerMount();
+	
+		//tensioner
+		translate([Tensioner_X,0,0]) rotate([0,0,90]) BolsterMount();
+		//TrackRturnIdlerMount(); 
 		
 		//Stiffenner slots
-		translate([-75,0,0]) square([25,6],center=true);
-		translate([-165,0,0]) square([25,6],center=true);
-		translate([75,0,0]) square([25,6],center=true);
-		translate([130,0,0]) square([25,6],center=true);
+		//translate([-75,0,0]) square([25,6],center=true);
+		//translate([-165,0,0]) square([25,6],center=true);
+		//translate([75,0,0]) square([25,6],center=true);
+		//translate([130,0,0]) square([25,6],center=true);
 		
 		//wire path
 		translate([Drive_X,Drive_Y+15,0]) hull(){

@@ -307,11 +307,36 @@ translate([0,0,16+44]) TrackTensionerArm();
 translate([0,0,-16+44]) rotate([180,0,0]) TrackTensionerArm();}
 /**/
 
+module TrackTensionerReceiver(){
+	Spring_d=5/16*25.4;
+	Slide_L=60;
+	Shank_w=25+IDXtra*2;
+	Shank_h=16+IDXtra*2;
+	Wall_t=2.5;
+	
+	difference(){
+		translate([0,-Shank_h/2-Wall_t,-Shank_w/2-Wall_t])
+			cube([Slide_L,Shank_h+Wall_t*2,Shank_w+Wall_t*2]);
+		
+		translate([Wall_t*2,0,0]){
+				translate([-Overlap,-Shank_h/2,-Shank_w/2]) cube([Slide_L+Overlap*2,Shank_h,Shank_w]);
+				translate([Slide_L/2,0,-Shank_w/2-Wall_t-Overlap]) cylinder(d=3,h=Shank_w+Wall_t*2+Overlap*2);
+				translate([Slide_L/2+10,0,-Shank_w/2-Wall_t-Overlap]) cylinder(d=3,h=Shank_w+Wall_t*2+Overlap*2);
+				
+				translate([0,0,Shank_w/4]) rotate([0,-90,0]) cylinder(d1=Spring_d+1,d2=Spring_d,h=1);
+				translate([0,0,-Shank_w/4]) rotate([0,-90,0]) cylinder(d1=Spring_d+1,d2=Spring_d,h=1);
+		}
+	} // difference
+} // TrackTensionerReceiver
+
+//rotate([0,-90,0]) TrackTensionerReceiver();
+
+
 module TrackTensionerMount(){
 	Spring_d=5/16*25.4;
 	
-	Shank_w=25+IDXtra;
-	Shank_h=16+IDXtra;
+	Shank_w=25+IDXtra*2;
+	Shank_h=16+IDXtra*2;
 	Wall_t=2.5;
 	Slide_L=60;
 	
@@ -324,8 +349,8 @@ module TrackTensionerMount(){
 		union(){
 			cylinder(d=44,h=8);
 			
-			rotate([0,0,90])
-			translate([0,0,44]) translate([0,-Shank_h/2-Wall_t,-Shank_w/2-Wall_t]) cube([Slide_L,Shank_h+Wall_t*2,Shank_w+Wall_t*2]);
+			//rotate([0,0,90])
+			//translate([0,0,44]) translate([0,-Shank_h/2-Wall_t,-Shank_w/2-Wall_t]) cube([Slide_L,Shank_h+Wall_t*2,Shank_w+Wall_t*2]);
 			
 			cylinder(d=Shank_h+Wall_t*2,h=Shank_w+Wall_t*2+28.8);
 			
@@ -367,6 +392,11 @@ module TrackTensionerMount(){
 			rotate([0,0,-30]) translate([12.7,20*j-10,0]) rotate([0,180,0]) Bolt4Hole();
 			rotate([0,0,30]) translate([-12.7,20*j-10,0]) rotate([0,180,0]) Bolt4Hole();}
 			
+			
+		rotate([0,0,90])
+			translate([0,0,44]) translate([0,-Shank_h/2-Wall_t,-Shank_w/2-Wall_t]) cube([Slide_L,Shank_h+Wall_t*2,Shank_w+Wall_t*2+Overlap]);
+			
+			/*
 		rotate([0,0,90])
 			translate([0,0,44]) {
 				translate([-Overlap,-Shank_h/2,-Shank_w/2]) cube([Slide_L+Overlap*2,Shank_h,Shank_w]);
@@ -377,13 +407,14 @@ module TrackTensionerMount(){
 				translate([0,0,Shank_w/4]) rotate([0,-90,0]) cylinder(d1=Spring_d+1,d2=Spring_d,h=1);
 				translate([0,0,-Shank_w/4]) rotate([0,-90,0]) cylinder(d1=Spring_d+1,d2=Spring_d,h=1);
 			}
+			/**/
 			
 		
 	} // difference
 
 } // TrackTensionerMount
 
-translate([-64,0,0]) TrackTensionerMount();
+//translate([-64,0,0]) TrackTensionerMount();
 
 module BolsterMount(){
 	kSpanBOffset=26;
