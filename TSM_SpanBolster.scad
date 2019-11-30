@@ -4,10 +4,11 @@
 // Filename: TSM_SpanBolster.scad
 // By: David M. Flynn
 // Created: 10/5/2019
-// Revision: 0.9.4 11/17/2019
+// Revision: 0.9.5 11/30/2019
 // Units: mm
 // *************************************************
 //  ***** History ******
+// 0.9.5 11/30/2019 Added stops to RockerArmMount, longer TrackTensionerArm.
 // 0.9.4 11/17/2019 Track return idler 5mm taller.
 // 0.9.3 11/14/2019 Fixes to BolsterMount.
 // 0.9.2 11/8/2019 Added SpanBolsterMount.
@@ -16,12 +17,16 @@
 // *************************************************
 //  ***** for STL output *****
 // TrackSprocket(); // 10 teeth, print 8
-// BolsterMount(); // print 2
+// RockerArmMount(); // print 2
 // RockerArm(Len=110,Angle=30); // for 10 tooth sprockets
 //
 // TrackRturnIdlerHub(IsOuter=true); // FC1
 // TrackRturnIdlerHub(IsOuter=false);
 // TrackRturnIdlerMount();
+//
+// TrackTensionerArm(Len=60); // print 2
+// TrackTensionerReceiver();
+// TrackTensionerMount();
 //
 // Sprocket9Hub(Back_h=5); // not used
 // RockerArm(Len=104,Angle=30); // not used
@@ -62,39 +67,26 @@ AxilLen=25.4*2;
 nTrackTeeth=20;
 	
 module ShowIdleHub(){
-	translate([0,kTrackBackSpace*4,0]) rotate([-90,0,0]) Sprocket9Hub(Back_h=5);
-	rotate([90,0,0]) Sprocket9Hub(Back_h=5);
-	 color("Gray") Spocket9();
-	translate([0,kTrackBackSpace*4,0]) color("Gray") rotate([0,0,180]) Spocket9();
+	//translate([0,kTrackBackSpace*4,0]) rotate([-90,0,0]) Sprocket9Hub(Back_h=5);
+	//rotate([90,0,0]) Sprocket9Hub(Back_h=5);
+	// color("Gray") Spocket9();
+	//translate([0,kTrackBackSpace*4,0]) color("Gray") rotate([0,0,180]) Spocket9();
 	
-	translate([-90,0,0]){
-		translate([0,kTrackBackSpace*4,0]) rotate([-90,0,0]) Sprocket9Hub(Back_h=5);
-		rotate([90,0,0]) Sprocket9Hub(Back_h=5);
-		color("Gray") Spocket9();
-		translate([0,kTrackBackSpace*4,0]) color("Gray") rotate([0,0,180]) Spocket9();
-}
+	//translate([-90,0,0]){
+	//	translate([0,kTrackBackSpace*4,0]) rotate([-90,0,0]) Sprocket9Hub(Back_h=5);
+//		rotate([90,0,0]) Sprocket9Hub(Back_h=5);
+//		color("Gray") Spocket9();
+//		translate([0,kTrackBackSpace*4,0]) color("Gray") rotate([0,0,180]) Spocket9();
+//}
 	
-	translate([0,5,0]) rotate([90,0,0]) RockerArm(Len=104,Angle=30);
-	translate([0,5+24,0]) rotate([90,0,0]) mirror([0,0,1]) RockerArm(Len=104,Angle=30);
+	translate([0,5,0]) rotate([90,0,0]) RockerArm(Len=110,Angle=30);
+	translate([0,5+24,0]) rotate([90,0,0]) mirror([0,0,1]) RockerArm(Len=110,Angle=30);
 	
 	echo("Axil Len = ",kTrackBackSpace*4);
 	//translate([20,0,0]) cube([1,kTrackBackSpace*4,1]);
 } // ShowIdleHub
 	
-module ShowCompleteBolster(){
-	translate([-46,0,-62]){
-	ShowIdleHub();
-	translate([182,0,0]) ShowIdleHub();
-	
-	translate([0,4,0]) rotate([0,30,0]) translate([-104/2,0,0]) rotate([0,-30,0]) rotate([90,0,0]) CenterSpan();
-	
-	translate([0,kTrackBackSpace*4,0])
-	mirror([0,1,0])
-	translate([0,4,0]) rotate([0,30,0]) translate([-104/2,0,0]) rotate([0,-30,0]) rotate([90,0,0]) CenterSpan();
-	}
-} // ShowCompleteBolster
-
-//ShowCompleteBolster();
+//ShowIdleHub();
 
 module TrackRturnIdlerHub(IsOuter=true){
 	// Assy: Sprocket9Hub2,
@@ -259,6 +251,109 @@ module RockerArm(Len=85,Angle=30){
 
 //RockerArm(Len=110,Angle=30);
 
+module RockerArmMount(){
+	kSpanBOffset=26;
+	kSpanBThickness=31+8;
+	kPlate_w=16;
+	kOAH=kSpanBOffset-2+kSpanBThickness;
+	
+	difference(){
+		union(){
+			// base
+			cylinder(d=44,h=8);
+			//cylinder(d=25,h=kSpanBOffset-2);
+			
+			hull(){
+				cylinder(d=16,h=kSpanBOffset);
+				translate([0,14,0]) cylinder(d=16,h=kSpanBOffset);
+			}
+			
+			hull(){
+				translate([0,10,0]) cylinder(d=16,h=kOAH-10);
+				translate([0,14,0]) cylinder(d=16,h=kOAH-10);
+				translate([0,22,kOAH-Overlap]) cylinder(d=16,h=Overlap);
+				
+				translate([-10,8,31]) cylinder(d=8,h=20);
+				translate([10,8,31]) cylinder(d=8,h=20);
+			}
+			
+			hull(){
+				rotate([0,0,-30]) translate([12.7,20*3-10,0]) cylinder(d=10,h=8);
+				rotate([0,0,-30]) translate([12.7,0,0]) cylinder(d=18,h=8);
+				//cylinder(d=36,h=8);
+			} // hull
+			hull(){
+				rotate([0,0,30]) translate([-12.7,20*3-10,0]) cylinder(d=10,h=8);
+				rotate([0,0,30]) translate([-12.7,0,0]) cylinder(d=18,h=8);
+				//cylinder(d=36,h=8);
+			} // hull
+			
+			//*
+			
+			// left arm
+			hull(){
+				rotate([0,0,30]) translate([-12.7,20*3-10,0]) cylinder(d=10,h=8);
+				rotate([0,0,30]) translate([-12.7,20*3-16,0]) cylinder(d=10,h=8);
+				
+				translate([-kPlate_w/2+4,24,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
+				translate([-kPlate_w/2+4,30,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
+			} // hull
+			/**/
+			
+			// Right arm
+			hull(){
+				rotate([0,0,-30]) translate([12.7,20*3-10,0]) cylinder(d=10,h=8);
+				rotate([0,0,-30]) translate([12.7,20*3-16,0]) cylinder(d=10,h=8);
+				
+				translate([kPlate_w/2-4,24,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
+				translate([kPlate_w/2-4,30,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
+			} // hull
+			
+			translate([0,0,kSpanBOffset-2+kSpanBThickness-8])
+			hull(){
+				translate([-kPlate_w/2+4,24,0]) cylinder(d=10,h=8);
+				translate([-kPlate_w/2+4,30,0]) cylinder(d=10,h=8);
+				translate([kPlate_w/2-4,24,0]) cylinder(d=10,h=8);
+				translate([kPlate_w/2-4,30,0]) cylinder(d=10,h=8);
+			} // hull
+		} // union
+		
+		//translate([0,0,kSpanBOffset-2+kSpanBThickness-10]) rotate([-90,0,0]) cylinder(d=14.5,h=50);
+		
+		// Stops
+		dd=Bearing_d+5.5;
+		hull(){
+			translate([0,0,kSpanBOffset]) cylinder(d=dd+IDXtra,h=kOAH-kSpanBOffset+Overlap);
+			translate([0,0,kSpanBOffset]) rotate([0,0,22.5]) translate([-10,0,0]) cylinder(d=dd+IDXtra,h=kOAH-kSpanBOffset+Overlap);
+		}
+		
+		hull(){
+			translate([0,0,kSpanBOffset]) cylinder(d=dd+IDXtra,h=kOAH-kSpanBOffset+Overlap);
+			translate([0,0,kSpanBOffset]) rotate([0,0,-22.5]) translate([10,0,0]) cylinder(d=dd+IDXtra,h=kOAH-kSpanBOffset+Overlap);
+		}
+		
+		translate([0,0,kSpanBOffset-2+kSpanBThickness])
+			{
+				translate([-kPlate_w/2+4,24,0]) Bolt4Hole(depth=8);
+				translate([-kPlate_w/2+4,30,0]) Bolt4Hole(depth=8);
+				translate([kPlate_w/2-4,24,0]) Bolt4Hole(depth=8);
+				translate([kPlate_w/2-4,30,0]) Bolt4Hole(depth=8);
+			}
+			
+		for (j=[0:3]){
+			rotate([0,0,-30]) translate([12.7,20*j-10,0]) rotate([0,180,0]) Bolt4Hole();
+			rotate([0,0,30]) translate([-12.7,20*j-10,0]) rotate([0,180,0]) Bolt4Hole();}
+			
+			
+		translate([0,0,-Overlap]) cylinder(d=10,h=kSpanBOffset-6+Overlap*2);
+		translate([0,0,kSpanBOffset-6]) cylinder(d1=10,d2=6.35,h=1+Overlap*2);
+		translate([0,0,kSpanBOffset-6]) cylinder(d=6.35,h=10);
+	} // difference
+
+} // RockerArmMount
+
+//translate([-47.5,57.5,27.5]) rotate([90,0,0]) RockerArmMount();
+
 
 module TrackTensionerArm(Len=50){
 	BearingPushOut=4.1;
@@ -300,6 +395,8 @@ module TrackTensionerArm(Len=50){
 	} // difference
 	
 } // TrackTensionerArm
+
+//TrackTensionerArm(Len=60);
 
 /*
 translate([10,0,0]){
@@ -415,84 +512,6 @@ module TrackTensionerMount(){
 } // TrackTensionerMount
 
 //translate([-64,0,0]) TrackTensionerMount();
-
-module BolsterMount(){
-	kSpanBOffset=26;
-	kSpanBThickness=31+8;
-	kPlate_w=16;
-	
-	difference(){
-		union(){
-			cylinder(d=44,h=8);
-			//cylinder(d=25,h=kSpanBOffset-2);
-			
-			cylinder(d=16,h=kSpanBOffset);
-			
-			hull(){
-				rotate([0,0,-30]) translate([12.7,20*3-10,0]) cylinder(d=10,h=8);
-				rotate([0,0,-30]) translate([12.7,0,0]) cylinder(d=18,h=8);
-				//cylinder(d=36,h=8);
-			} // hull
-			hull(){
-				rotate([0,0,30]) translate([-12.7,20*3-10,0]) cylinder(d=10,h=8);
-				rotate([0,0,30]) translate([-12.7,0,0]) cylinder(d=18,h=8);
-				//cylinder(d=36,h=8);
-			} // hull
-			
-			//*
-			
-			// left arm
-			hull(){
-				rotate([0,0,30]) translate([-12.7,20*3-10,0]) cylinder(d=10,h=8);
-				rotate([0,0,30]) translate([-12.7,20*3-16,0]) cylinder(d=10,h=8);
-				
-				translate([-kPlate_w/2+4,24,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
-				translate([-kPlate_w/2+4,30,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
-			} // hull
-			/**/
-			
-			// Right arm
-			hull(){
-				rotate([0,0,-30]) translate([12.7,20*3-10,0]) cylinder(d=10,h=8);
-				rotate([0,0,-30]) translate([12.7,20*3-16,0]) cylinder(d=10,h=8);
-				
-				translate([kPlate_w/2-4,24,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
-				translate([kPlate_w/2-4,30,kSpanBOffset-2+kSpanBThickness-8]) cylinder(d=10,h=8);
-			} // hull
-			
-			translate([0,0,kSpanBOffset-2+kSpanBThickness-8])
-			hull(){
-				translate([-kPlate_w/2+4,24,0]) cylinder(d=10,h=8);
-				translate([-kPlate_w/2+4,30,0]) cylinder(d=10,h=8);
-				translate([kPlate_w/2-4,24,0]) cylinder(d=10,h=8);
-				translate([kPlate_w/2-4,30,0]) cylinder(d=10,h=8);
-			} // hull
-		} // union
-		
-		//translate([0,0,kSpanBOffset-2+kSpanBThickness-10]) rotate([-90,0,0]) cylinder(d=14.5,h=50);
-		
-		
-		translate([0,0,kSpanBOffset-2+kSpanBThickness])
-			{
-				translate([-kPlate_w/2+4,24,0]) Bolt4Hole(depth=8);
-				translate([-kPlate_w/2+4,30,0]) Bolt4Hole(depth=8);
-				translate([kPlate_w/2-4,24,0]) Bolt4Hole(depth=8);
-				translate([kPlate_w/2-4,30,0]) Bolt4Hole(depth=8);
-			}
-			
-		for (j=[0:3]){
-			rotate([0,0,-30]) translate([12.7,20*j-10,0]) rotate([0,180,0]) Bolt4Hole();
-			rotate([0,0,30]) translate([-12.7,20*j-10,0]) rotate([0,180,0]) Bolt4Hole();}
-			
-			
-		translate([0,0,-Overlap]) cylinder(d=10,h=kSpanBOffset-6+Overlap*2);
-		translate([0,0,kSpanBOffset-6]) cylinder(d1=10,d2=6.35,h=1+Overlap*2);
-		translate([0,0,kSpanBOffset-6]) cylinder(d=6.35,h=10);
-	} // difference
-
-} // BolsterMount
-
-//BolsterMount();
 
 module RockerEndSupport(){
 	kPlate_w=16;

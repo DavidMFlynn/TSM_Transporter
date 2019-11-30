@@ -100,7 +100,7 @@ module RingABearingHoles(){
 
 module TrackPlate(){
 	
-	Tensioner_X=-130;
+	Tensioner_X=-150;
 	Drive_X=180;
 	Drive_Y=40;
 	
@@ -109,6 +109,8 @@ module TrackPlate(){
 	//SpanBolster_Y=-80;
 	Bolster_Y=-90;
 	Bolster_X=105;
+	Idler_X=-90;
+	Idler_Y=80;
 	
 	difference(){
 		hull(){
@@ -117,7 +119,7 @@ module TrackPlate(){
 			translate([Bolster_X,Bolster_Y,0]) circle(d=50);
 			translate([-Bolster_X,Bolster_Y,0]) circle(d=50);
 			translate([Drive_X,Drive_Y,0]) circle(d=140);
-			translate([-80,44,0]) circle(d=50);
+			translate([Idler_X,Idler_Y,0]) circle(d=50);
 			translate([Tensioner_X,0,0]) circle(d=130);
 		} // hull
 		
@@ -126,7 +128,7 @@ module TrackPlate(){
 		translate([-Bolster_X,Bolster_Y,0]) BolsterMount();
 		translate([Drive_X,Drive_Y,0]) DriveMountHoles();
 		//translate([80,44,0]) TrackRturnIdlerMount(); 
-		//translate([-80,44,0]) TrackRturnIdlerMount();
+		translate([Idler_X,Idler_Y,0]) TrackRturnIdlerMount();
 	
 		//tensioner
 		translate([Tensioner_X,0,0]) rotate([0,0,90]) BolsterMount();
