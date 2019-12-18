@@ -6,13 +6,14 @@
 // Filename: TSM_BodyJack.scad
 // By: David M. Flynn
 // Created: 10/16/2019
-// Revision: 0.9.5 10/30/2019
+// Revision: 0.9.6 12/17/2019
 // Units: mm
 // *************************************************
 //  ***** Notes *****
 // Todo: Add encoders or limit switches and hard stops?
 // *************************************************
 //  ***** History ******
+// 0.9.6 12/17/2019 Little fixes, Stop on RingA
 // 0.9.5 10/30/2019 Reduced teeth on pulley from 36 to 32
 // 0.9.4 10/26/2019 Added RingC() Inner planet carrier support bearing
 // 0.9.3 10/20/2019 Added Lifter parts.
@@ -22,9 +23,10 @@
 // *************************************************
 //  ***** for STL output *****
 // RingA();
+// RingA_HomeFinderDisk();
 // RingB(); // Fixed ring.
 // RingABearing();
-// rotate([180,0,0]) RingC() // Inner planet carrier support bearing
+// rotate([180,0,0]) RingC() // Inner planet carrier support bearing and motor mount
 //
 // PlanetCarrierOuter();
 // PlanetCarrierSpacer();
@@ -33,9 +35,11 @@
 //
 // PlanetCarrierDrivePulley(nTeeth=32); // print 2 /jack
 //
-//LifterRing();
-//LifterBearingCover();
-//LifterConnector();
+// LifterRing();
+// LifterBearingCover();
+// LifterConnector();
+//
+// TestFixture();
 // *************************************************
 //  ***** for Viewing *****
 //rotate([90,0,0]) ShowBodyJack(Rot_a=20);
@@ -479,6 +483,24 @@ module RingABearing(){
 
 //translate([15-0.5,0,0]) rotate([0,90,0])RingABearing();
 
+RingA_Major_OD=80;
+
+module RingA_HomeFinderDisk(){
+	Thickness=1.5;
+	difference(){
+		cylinder(d=RingA_Major_OD+10,h=Thickness);
+		
+		difference(){
+			translate([-RingA_Major_OD/2-10,0,-Overlap]) cube([RingA_Major_OD+20,RingA_Major_OD+20,Thickness+Overlap*2]);
+			translate([0,0,-Overlap*2]) cylinder(d=RingA_Major_OD+4,h=Thickness+Overlap*4);
+		} // difference
+		
+		translate([0,0,-Overlap]) cylinder(d=RingA_Major_OD-2,h=Thickness+Overlap*2);
+	} // difference
+} // RingA_HomeFinderDisk
+
+//translate([0,0,2]) RingA_HomeFinderDisk();
+
 
 module RingA(){
 	ring_gear(number_of_teeth=RingATeeth,
@@ -507,13 +529,16 @@ module RingA(){
 			flat=false);
 	
 	RingA_Teeth_ID=RingATeeth*GearAPitch/180-GearAPitch/90;
-	RingA_Major_OD=80;
+	
 	
 	nSpokes=7;
 	
 	translate([0,0,-Gear_w/2])
 	difference(){
-		cylinder(d=RingA_Major_OD,h=Gear_w);
+		union(){
+			cylinder(d=RingA_Major_OD,h=Gear_w-7);
+			cylinder(d=RingA_Major_OD-2,h=Gear_w);
+		} // union
 		
 		translate([0,0,-Overlap]) cylinder(d=RingA_OD,h=Gear_w+Overlap*2);
 	} // difference
@@ -557,6 +582,16 @@ module RingA(){
 			translate([RingA_Bearing_ID/2,0,0]) rotate([180,0,0]) Bolt4Hole();
 	} // difference
 	
+	// hard stop
+	difference(){
+		hull(){
+			translate([RingA_Major_OD/2+2,0,-8]) cylinder(d=8,h=4);
+			translate([RingA_Major_OD/2-2,0,-8]) cylinder(d=8,h=4);
+			translate([RingA_Major_OD/2-4,0,-15]) cylinder(d=4,h=1);
+		} // hull
+		
+		translate([0,0,-15]) cylinder(d=RingA_Major_OD-4,h=16);
+	} // difference
 	
 } // RingA
 
@@ -697,6 +732,7 @@ module LifterRing(nSpokes=7){
 
 module RingB(){
 	// Stationary Ring Gear
+	// 12/17/2019 added RingB_OD_Xtra to thicken ring gear
 	
 	ring_gear(number_of_teeth=RingBTeeth,
 		circular_pitch=GearBPitch, diametral_pitch=false,
@@ -726,7 +762,8 @@ module RingB(){
 	// mount
 	
 	//*
-	RingB_OD=RingBTeeth*GearBPitch/180+GearBPitch/60;
+	RingB_OD=RingBTeeth*GearBPitch/180+GearBPitch/60+1;
+	RingB_OD_Xtra=3;
 	MB_X=90;
 	MB_Y=MB_X;
 	MB_Rim_t=2;
@@ -737,10 +774,13 @@ module RingB(){
 	translate([0,0,-Gear_w/2])
 	difference(){
 		union(){
+			cylinder(d=RingB_OD+RingB_OD_Xtra,h=Gear_w);
+			
 			difference(){
 				translate([-MB_X/2,-MB_Y/2,0]) cube([MB_X,MB_Y,Gear_w]);
 				translate([-MB_X/2+MB_Rim_t,-MB_Y/2+MB_Rim_t,-Overlap]) cube([MB_X-MB_Rim_t*2,MB_Y-MB_Rim_t*2,Gear_w+Overlap*2]);
-			}
+			} // difference
+			
 			for (j=[0:3]) rotate([0,0,90*j]){
 				hull(){
 					translate([-MB_X/2+10-Bolt4Inset*1.5,-MB_Y/2,0]) cube([Bolt4Inset*3,Overlap,Gear_w]);
@@ -878,7 +918,7 @@ module RingC(){
 	} // difference
 	
 	// motor mount
-	Motor_X=69.3; // this is wrong?
+	Motor_X=69.8; // 69.3; works but belt is loose
 	MotorShaftHole_d=16;
 	MotorSetback=8;
 	Motor_BC_d=22.5;
