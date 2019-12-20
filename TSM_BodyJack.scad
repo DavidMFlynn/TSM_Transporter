@@ -6,13 +6,14 @@
 // Filename: TSM_BodyJack.scad
 // By: David M. Flynn
 // Created: 10/16/2019
-// Revision: 0.9.6 12/17/2019
+// Revision: 0.9.7 12/19/2019
 // Units: mm
 // *************************************************
 //  ***** Notes *****
 // Todo: Add encoders or limit switches and hard stops?
 // *************************************************
 //  ***** History ******
+// 0.9.7 12/19/2019 Changed RingABearing bolt circle
 // 0.9.6 12/17/2019 Little fixes, Stop on RingA
 // 0.9.5 10/30/2019 Reduced teeth on pulley from 36 to 32
 // 0.9.4 10/26/2019 Added RingC() Inner planet carrier support bearing
@@ -26,12 +27,12 @@
 // RingA_HomeFinderDisk();
 // RingB(); // Fixed ring.
 // RingABearing();
-// rotate([180,0,0]) RingC() // Inner planet carrier support bearing and motor mount
+// rotate([180,0,0]) RoundRingC();
 //
 // PlanetCarrierOuter();
 // PlanetCarrierSpacer();
 // PlanetCarrierInner();
-// rotate([180,0,0]) Planet(); // print 12/jack
+// rotate([180,0,0]) Planet();
 //
 // PlanetCarrierDrivePulley(nTeeth=32); // print 2 /jack
 //
@@ -98,10 +99,19 @@ Bearing_OD=1.125*25.4;
 Bearing_ID=0.500*25.4;
 Bearing_w=0.3125*25.4;
 
+/*
 // little bearing 6 x 13 x 5
 sBearing_OD=13;
 sBearing_ID=6;
 sBearing_w=5;
+/**/
+
+// little bearing 6.35 x 12.7 x 4.7
+sBearing_OD=12.7;
+sBearing_ID=6.35;
+sBearing_w=4.7;
+
+
 
 Tube_OD=12.7; // 1/2" Aluminum tubing
 
@@ -455,13 +465,13 @@ module RingABearing(){
 			Race_w=RingA_Bearing_Race_w, PreLoadAdj=BearingPreload, VOffset=0.50, BI=true, myFn=$preview? 60:720);
 	
 	RingABearingMountingRing_t=3;
-	RingABearingMountingRing_BC_d=100;
+	RingABearingMountingRing_BC_d=104;
 	RingABearingMountingRing_d=RingABearingMountingRing_BC_d+Bolt4Inset*2;
 	nBolts=8;
 	
 	difference(){
 		union(){
-			cylinder(d=RingABearingMountingRing_BC_d,h=RingABearingMountingRing_t);
+			cylinder(d=RingABearingMountingRing_d,h=RingABearingMountingRing_t);
 			
 			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
 				
@@ -485,6 +495,126 @@ module RingABearing(){
 
 RingA_Major_OD=80;
 
+module RingA_Stop(HasSkirt=false){
+	RingABearingMountingRing_t=3;
+	RingABearingMountingRing_BC_d=104;
+	RingABearingMountingRing_d=RingABearingMountingRing_BC_d+Bolt4Inset*2;
+	nBolts=8;
+	
+	difference(){
+		union(){
+			
+			// lower ring
+			cylinder(d=RingABearingMountingRing_d-6,h=RingABearingMountingRing_t);
+			
+			//skirt
+			if (HasSkirt==true)
+			difference(){
+				cylinder(d=RingB_BC_d,h=25);
+				
+				translate([0,0,-Overlap]) cylinder(d=RingB_BC_d-4,h=25+Overlap*2);
+			} // difference
+			
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				
+				translate([RingB_BC_d/2,0,18])
+					cylinder(d=Bolt4Inset*2,h=7);
+				translate([RingABearingMountingRing_BC_d/2,0,0])
+					cylinder(d=Bolt4Inset*2,h=7);
+			}
+		} // union
+		
+		translate([0,0,-Overlap]) cylinder(d=RingA_Major_OD+8,h=RingABearingMountingRing_t+Overlap*2);
+		
+		// bolts
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j])
+			translate([RingABearingMountingRing_BC_d/2,0,0])
+				rotate([180,0,0]) Bolt4Hole();
+	} // difference
+	
+	
+	
+	// hard stop
+	rotate([0,0,22.5])
+	difference(){
+		union(){
+			hull(){
+				translate([RingA_Major_OD/2+7,-14,0]) cylinder(d=3,h=1);
+				translate([RingA_Major_OD/2+7,14,0]) cylinder(d=3,h=1);
+				translate([RingA_Major_OD/2+7,-2,10]) cylinder(d=3,h=1);
+				translate([RingA_Major_OD/2+7,2,10]) cylinder(d=3,h=1);
+			}
+			
+			hull(){
+				translate([RingA_Major_OD/2+5,0,5]) cylinder(d=8,h=6);
+				translate([RingA_Major_OD/2+7,0,5]) cylinder(d=8,h=6);
+				translate([RingA_Major_OD/2+9,0,0]) cylinder(d=8,h=1);
+			} // hull
+		} // union
+		
+		translate([0,0,-15]) cylinder(d=RingA_Major_OD-4,h=16);
+	} // difference
+	
+} // RingA_Stop
+
+RingA_Stop();
+translate([0,0,Gear_w/2+6]) rotate([0,0,10]) RingA();
+translate([0,0,Gear_w+16]) ScrewMountRingB();
+translate([0,0,Gear_w/2+6+2]) RingA_HomeFinderDisk();
+translate([0,0,60]) rotate([180,0,0]) RoundRingC();
+
+RingB_OD=RingBTeeth*GearBPitch/180+GearBPitch/60+1;
+RingB_OD_Xtra=3;
+
+RingB_BC_d=100;
+
+RingC_BC_d=RingB_OD+Bolt4Inset*2;
+
+module ScrewMountRingB(){
+	
+	nBolts=8;
+	
+	RingB_Gear();
+	
+	translate([0,0,-Gear_w/2])
+	difference(){
+		union(){
+			
+			// bolt bosses to ring C
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				translate([RingB_OD/2,0,Gear_w/2])
+					cylinder(d=Bolt4Inset*2+2,h=Gear_w/2);
+				translate([RingC_BC_d/2,0,Gear_w/2])
+					cylinder(d=Bolt4Inset*2,h=Gear_w/2);
+				
+			}
+			
+			// bolt bosses to ring A
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				
+				translate([RingB_OD/2,0,0])
+					cylinder(d=Bolt4Inset*2+2,h=Gear_w/2);
+				translate([RingB_BC_d/2,0,0])
+					cylinder(d=Bolt4Inset*2,h=Gear_w/2);
+			}
+		} // union
+		
+		// remove inside
+		translate([0,0,-Overlap]) cylinder(d=RingB_OD,h=Gear_w+Overlap*2);
+		
+		// bolts to ring A
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) 
+			translate([RingB_BC_d/2,0,Gear_w/2]) Bolt4HeadHole(depth=Gear_w);
+		
+		// bolts to Ring C
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) 
+			translate([RingC_BC_d/2,0,Gear_w]) Bolt4Hole(depth=Gear_w);
+	} // difference
+	
+} // ScrewMountRingB
+
+//ScrewMountRingB();
+
 module RingA_HomeFinderDisk(){
 	Thickness=1.5;
 	difference(){
@@ -497,6 +627,9 @@ module RingA_HomeFinderDisk(){
 		
 		translate([0,0,-Overlap]) cylinder(d=RingA_Major_OD-2,h=Thickness+Overlap*2);
 	} // difference
+	
+	
+	
 } // RingA_HomeFinderDisk
 
 //translate([0,0,2]) RingA_HomeFinderDisk();
@@ -730,7 +863,8 @@ module LifterRing(nSpokes=7){
 //LifterRing();
 //translate([50,0,18.4]) rotate([180,0,180]) LifterRing();
 
-module RingB(){
+
+module RingB_Gear(){
 	// Stationary Ring Gear
 	// 12/17/2019 added RingB_OD_Xtra to thicken ring gear
 	
@@ -759,11 +893,25 @@ module RingB(){
 		involute_facets=0, // 1 = triangle, default is 5
 		flat=false);
 
+	translate([0,0,-Gear_w/2])
+	difference(){
+		cylinder(d=RingB_OD+RingB_OD_Xtra,h=Gear_w);
+		
+		translate([0,0,-Overlap]) cylinder(d=RingB_OD,h=Gear_w+Overlap*2);
+	} // difference
+} // RingB_Gear
+
+//translate([0,0,Gear_w+16]) RingB_Gear();
+
+module RingB(){
+	// Stationary Ring Gear
+	// 12/17/2019 added RingB_OD_Xtra to thicken ring gear
+	RingB_Gear();
+
 	// mount
 	
 	//*
-	RingB_OD=RingBTeeth*GearBPitch/180+GearBPitch/60+1;
-	RingB_OD_Xtra=3;
+	
 	MB_X=90;
 	MB_Y=MB_X;
 	MB_Rim_t=2;
@@ -774,7 +922,7 @@ module RingB(){
 	translate([0,0,-Gear_w/2])
 	difference(){
 		union(){
-			cylinder(d=RingB_OD+RingB_OD_Xtra,h=Gear_w);
+			
 			
 			difference(){
 				translate([-MB_X/2,-MB_Y/2,0]) cube([MB_X,MB_Y,Gear_w]);
@@ -824,6 +972,7 @@ module RingB(){
 		/**/
 } // RingB
 
+//translate([0,0,Gear_w+16]) RingB();
 //translate([0,0,Gear_w+1]) RingB();
 //rotate([0,0,180/RingBTeeth])
 
@@ -835,6 +984,135 @@ module RoundRect(X=10,Y=10,Z=5,R=3){
 		translate([X/2-R,Y/2-R,0]) cylinder(r=R,h=Z);
 	} // hull
 } // RoundRect
+
+module RoundRingC(){
+	nBolts=8;
+	MB_X=90;
+	MB_Y=MB_X;
+	nSpokes=8;
+	Spoke_w=2;
+	Motor_a=0;
+	
+	// Planet carrier bearing mount
+	translate([0,0,Gear_w/2-(Bearing_w+2)])
+	difference(){	
+
+		cylinder(d=Bearing_OD+6,h=Bearing_w+2);
+			
+		//Bearing_OD=1.125*25.4;
+		//Bearing_ID=0.500*25.4;
+		//Bearing_w=0.3125*25.4;
+
+		translate([0,0,-Overlap]) cylinder(d=Bearing_OD-1,h=3);
+		translate([0,0,2]) cylinder(d=Bearing_OD,h=Bearing_w+1);
+		
+	} // difference
+	
+	rotate([0,0,Motor_a])
+	difference(){
+		union(){
+			cylinder(d=RingC_BC_d-8,h=Gear_w/2);
+		// bolt bosses to ring C
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				translate([RingB_OD/2-4,0,0])
+					cylinder(d=Bolt4Inset*2+2,h=Gear_w/2);
+				translate([RingC_BC_d/2,0,0])
+					cylinder(d=Bolt4Inset*2,h=Gear_w/2);
+				
+			}
+		} // union
+		
+		translate([0,0,-Overlap]) cylinder(d=RingC_BC_d-8-4,h=Gear_w/2+Overlap*2);
+		
+		// Bolts
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,0])
+			rotate([180,0,0]) Bolt4HeadHole();
+	} // difference
+			
+	
+	// Spokes
+			difference(){
+				for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*(j+0.5)]) hull(){
+					translate([Bearing_OD/2+2,0,0]) cylinder(d=Spoke_w,h=Gear_w/2);
+					translate([RingC_BC_d/2-6,0,0]) cylinder(d=Spoke_w,h=Gear_w/2);
+				} // hull
+				
+				difference(){
+					translate([-MB_X/2-30,-MB_Y/2-30,-Overlap]) cube([MB_X+60,MB_Y+60,Gear_w+Overlap*2]);
+					translate([-MB_X/2+1,-MB_Y/2+1,-Overlap*2]) cube([MB_X-2,MB_Y-2,Gear_w+Overlap*4]);
+				} // difference
+			} // difference
+			
+			// motor mount
+			
+			
+		/*	
+	//belt
+			translate([0,0,12])
+		difference(){
+			hull(){
+				cylinder(d=54,h=10);
+				translate([Motor_X,0,0]) cylinder(d=21,h=10);
+			}
+			translate([0,0,-Overlap])
+			hull(){
+				cylinder(d=54-5,h=10+Overlap*2);
+				translate([Motor_X,0,0]) cylinder(d=21-5,h=10+Overlap*2);
+			}
+		}
+			/**/
+			
+	Motor_X=69.8; // 69.3; works but belt is loose
+	MotorShaftHole_d=16;
+	MotorSetback=8;
+	Motor_BC_d=22.5;
+	MotorBig_d=37;
+	MotorFace_d=32;
+	MM_t=6;
+		Extra_W=22;
+	
+	difference(){
+		hull(){
+			translate([Motor_X,0,0]) cylinder(d=MotorBig_d,h=Gear_w/2);
+			translate([RingB_OD/2-10,-(MotorBig_d+Extra_W)/2,0]) cube([Overlap,MotorBig_d+Extra_W,Gear_w/2]);
+		} // hull
+		
+		hull(){
+			rotate([0,0,32]) translate([RingB_OD/2+4,0,-Overlap]) cylinder(d=4,h=Gear_w/2+Overlap*2);
+			rotate([0,0,10]) translate([RingB_OD/2+4,0,-Overlap]) cylinder(d=4,h=Gear_w/2+Overlap*2);
+			rotate([0,0,7]) translate([RingB_OD/2+12,0,-Overlap]) cylinder(d=4,h=Gear_w/2+Overlap*2);
+			rotate([0,0,16.5]) translate([RingB_OD/2+22,0,-Overlap]) cylinder(d=4,h=Gear_w/2+Overlap*2);
+		}
+		
+		mirror([0,1,0])
+		hull(){
+			rotate([0,0,32]) translate([RingB_OD/2+4,0,-Overlap]) cylinder(d=4,h=Gear_w/2+Overlap*2);
+			rotate([0,0,10]) translate([RingB_OD/2+4,0,-Overlap]) cylinder(d=4,h=Gear_w/2+Overlap*2);
+			rotate([0,0,7]) translate([RingB_OD/2+12,0,-Overlap]) cylinder(d=4,h=Gear_w/2+Overlap*2);
+			rotate([0,0,16.5]) translate([RingB_OD/2+22,0,-Overlap]) cylinder(d=4,h=Gear_w/2+Overlap*2);
+		}
+		
+		translate([Motor_X,0,-Gear_w/2-Overlap]) cylinder(d=MotorFace_d,h=Gear_w-MotorSetback);
+		translate([Motor_X,0,-Gear_w/2-Overlap]) cylinder(d=MotorShaftHole_d,h=Gear_w+Overlap*2);
+		
+		translate([Motor_X,0,Gear_w/2-MotorSetback+MM_t])
+		for (j=[0:3]) rotate([0,0,90*j]) translate([Motor_BC_d/2,0,0]) Bolt8ButtonHeadHole(); //Bolt8ClearHole();
+			
+		// hex key access
+		translate([Motor_X,0,Gear_w/2-3]) rotate([0,90,45]) cylinder(d=3,h=30);
+		
+		translate([0,0,-Overlap]) cylinder(d=RingC_BC_d-8-4,h=Gear_w/2+Overlap*2);
+		
+		// Bolts
+		rotate([0,0,Motor_a])
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,0])
+			rotate([180,0,0]) Bolt4HeadHole();
+	} // difference
+	
+} // RoundRingC
+
+//RoundRingC();
+//translate([0,0,10]) PlanetCarrierDrivePulley(nTeeth=32);
 
 module RingC(){
 	// Inner planet carrier support bearing
