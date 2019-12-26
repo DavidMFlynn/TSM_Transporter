@@ -6,7 +6,7 @@
 // Filename: TSM_BodyJack.scad
 // By: David M. Flynn
 // Created: 10/16/2019
-// Revision: 1.0.0 12/23/2019
+// Revision: 1.1.0 12/25/2019
 // Units: mm
 // *************************************************
 //  ***** Notes *****
@@ -15,8 +15,13 @@
 // Can be built with 300° or continuous rotation.
 // Can have home switch or quadrature encoder on Ring A. 
 // Can be 16:1 or 48:1 reduction. 
+// Variant:  Gimbal motor GBM5208H-200T (60mm Dia. x 23mm, 0.038Nm Torque) from robotshop.com?
+// 	AS5047D encoder 7 pole pairs.
 // *************************************************
 //  ***** History ******
+// 1.1.0 12/25/2019 Gimbal motor version. 
+// 1.0.2 12/22/2019 Code cleanup.
+// 1.0.1 12/24/2019 Adjusted Ring C bolts based on Ring A OD. Removed dead code.
 // 1.0.0 12/23/2019 Modified Planets so teeth meet in the middle of the 1mm gap. Added encoder.
 // 0.9.9 12/22/2019 Added HomeSwitchMount, 48:1 option.
 // 0.9.8 12/20/2019 Everything but the optical switch mount. Added GearBacklash to planets. FC1
@@ -36,17 +41,27 @@
 // RingA_HomeFinderDisk();
 // RingA_EncoderDisk(PPR=70); // Pulses per rotation / 8 = n.25, must end in ".25" or ".75", 90° appart
 // HomeSwitchMount();
-// RingA_Stop(HasSkirt=false,Has2Sensors=false); // shortened to 24.5mm 12/20/2019
+// RingA_Stop(HasSkirt=false, HasStop=true, Has2Sensors=false); // shortened to 24.5mm 12/20/2019
 // RingA_Stop(HasSkirt=true, HasStop=true, Has2Sensors=false); // use skirt in dirty environments
 // RingA_Stop(HasSkirt=true, HasStop=false, Has2Sensors=true); // for continuous rotation
 // ScrewMountRingB(HasSkirt=false); // Fixed ring. flange mount version.
 // ScrewMountRingB(HasSkirt=true); // use skirt is dirty environments
+//
+//  ***** Brushed motor *****
 // RingCSpacer(HasSkirt=true);
 // rotate([180,0,0]) RoundRingC(HasSkirt=true); // print w/ support for motor screws
 //
+//  ***** Brushless Gimbal Motor w/ Encoder
+// RingCSpacerGM(HasSkirt=true);
+// RingCEncoderMount();
+// RingCCover();
+// RoundRingCGM();
+//
+//  ***** Planet carrier parts
 // PlanetCarrierOuter();
 // PlanetCarrierSpacer();
 // PlanetCarrierInner();
+// PlanetCarrierInnerGimbalMotor(); // not ready to print
 // rotate([180,0,0]) Planet();
 // rotate([180,0,0]) Planet(O_a=PlanetToothOffset_a); // Planet A ccw 1/3 tooth
 // rotate([180,0,0]) Planet(O_a=PlanetToothOffset_a*2); // Planet B ccw 2/3 tooth
@@ -64,8 +79,10 @@
 //  ShowBodyJack(Rot_a=20,HasSkirt=false);
 //  ShowPlanetCarrier();
 //  ShowLifter();
+//  ShowBodyJackGM(HasSkirt=true);
 // *************************************************
 
+include<ShaftEncoder.scad>
 include<Pulleys.scad>
 include<BearingLib.scad>
 include<ring_gear.scad>
@@ -147,17 +164,15 @@ Tube_OD=12.7; // 1/2" Aluminum tubing
 
 Ball_d=5/16*25.4;
 
-
 twist=200;
 
-	RingA_OD=RingATeeth*GearAPitch/180+GearAPitch/60;
-	RingA_Bearing_ID=RingA_OD-7;
-	RingA_Bearing_BallCircle=RingA_OD+Ball_d;
-	RingA_Bearing_Race_w=10;
+RingA_OD=RingATeeth*GearAPitch/180+GearAPitch/60;
+RingA_Bearing_ID=RingA_OD-7;
+RingA_Bearing_BallCircle=RingA_OD+Ball_d;
+RingA_Bearing_Race_w=10;
 
 RingA_Bearing_OD=RingA_Bearing_BallCircle+Ball_d+5;
-RingB_Bearing_Race_w=10;
-RingA_Gear_OD=RingATeeth*GearAPitch/180+6;
+//RingA_Gear_OD=RingATeeth*GearAPitch/180+6;
 
 PC_Axil_L=1.5*25.4;
 PC_End_d=Bolt4Inset*2+2;
@@ -171,15 +186,53 @@ RingB_OD_Xtra=3;
 
 RingB_BC_d=100;
 
-RingC_BC_d=RingB_OD+Bolt4Inset*2;
+RingC_BC_d=RingA_OD+RingB_OD_Xtra+Bolt4Inset*2; // was RingB_OD which is mor likely to change
 
+module ShowBodyJackGM(Rot_a=180/RingATeeth,HasSkirt=true){
+	//translate([0,0,-14.5]) rotate([180,0,0]) RingABearing();
+	//rotate([0,0,Rot_a]) RingA();
+	
+	translate([0,0,-14.5]){ 
+		RingA_Stop(HasSkirt=HasSkirt, HasStop=false, Has2Sensors=true);
+		translate([0,0,16.5]) RingA_EncoderDisk(PPR=70); 
+		rotate([0,0,22.5]) translate([-50,0,15]) rotate([0,-90,0]) rotate([0,0,-90]) HomeSwitchMount();
+		rotate([0,0,22.5-45]) translate([-50,0,15]) rotate([0,-90,0]) rotate([0,0,-90]) HomeSwitchMount();
+	}
+	
+	translate([0,0,Gear_w+1])  ScrewMountRingB(HasSkirt=HasSkirt);
+	
+	
+	if (HasSkirt==false) ShowPlanetCarrier(GMVersion=true);
+	
+	//translate([0,0,-24]) rotate([180,0,0]) ShowLifter();
+	
+	//*
+	translate([0,0,58-21.5-9+0.5+Overlap]){
+		RingCSpacerGMCom();
+		rotate([0,0,360/nPolePairs*3]) translate([GM5208_d/2+10,0,9]) 
+			rotate([0,0,-90]) rotate([-90,0,0]) HallSwitchMount();
+		rotate([0,0,360/nPolePairs/3+360/nPolePairs]) translate([GM5208_d/2+10,0,9]) 
+			rotate([0,0,-90]) rotate([-90,0,0]) HallSwitchMount();
+		rotate([0,0,360/nPolePairs/3*2+360/nPolePairs*5]) translate([GM5208_d/2+10,0,9]) 
+			rotate([0,0,-90]) rotate([-90,0,0]) HallSwitchMount();
+		
+		//translate([0,0,6+26]) rotate([0,0,22.5]) RoundRingCGM();
+		//translate([0,0,6+26+4]) RingCEncoderMount();
+		//translate([0,0,6+26+6+Overlap]) rotate([0,0,22.5]) RingCCover();
+	}
+	/**/
+} // ShowBodyJackGM
+
+translate([0,0,Gear_w]) ShowBodyJackGM(HasSkirt=false);
+//translate([0,0,Gear_w]) ShowBodyJackGM(HasSkirt=true);
 
 module ShowBodyJack(Rot_a=180/RingATeeth,HasSkirt=true){
 	translate([0,0,-14.5]) rotate([180,0,0]) RingABearing();
 	rotate([0,0,Rot_a]) RingA();
 	
-	translate([0,0,-14.5]){ RingA_Stop(HasSkirt=HasSkirt);
-	rotate([0,0,22.5]) translate([-50,0,15]) rotate([0,-90,0]) rotate([0,0,-90]) HomeSwitchMount();
+	translate([0,0,-14.5]){ 
+		RingA_Stop(HasSkirt=HasSkirt, HasStop=true, Has2Sensors=false);
+		rotate([0,0,22.5]) translate([-50,0,15]) rotate([0,-90,0]) rotate([0,0,-90]) HomeSwitchMount();
 	}
 	
 	translate([0,0,Gear_w+1])  ScrewMountRingB(HasSkirt=HasSkirt);
@@ -192,10 +245,11 @@ module ShowBodyJack(Rot_a=180/RingATeeth,HasSkirt=true){
 	translate([0,0,-24]) rotate([180,0,0]) ShowLifter();
 } // ShowBodyJack
 
-//rotate([90,0,0]) ShowBodyJack(Rot_a=20);
-//translate([0,0,-110]) rotate([90,0,0]) ShowBodyJack(Rot_a=20);
-// rotate([0,-90,0]) ShowBodyJack(Rot_a=0);
+//rotate([90,0,0]) ShowBodyJack(Rot_a=20,HasSkirt=true);
+//translate([0,0,-110]) rotate([90,0,0]) ShowBodyJack(Rot_a=20,HasSkirt=true);
+// rotate([0,-90,0]) ShowBodyJack(Rot_a=0,HasSkirt=true);
 //translate([0,0,50-16]) PlanetCarrierDrivePulley();
+//ShowBodyJack(Rot_a=20,HasSkirt=false);
 
 // *********************************************************************************************
 //  ***** Planet Carrier Parts *****
@@ -203,11 +257,21 @@ module ShowBodyJack(Rot_a=180/RingATeeth,HasSkirt=true){
 
 PC_Drv_L=15;
 
-module ShowPlanetCarrier(){
-	translate([0,0,33.5])PlanetCarrierDrivePulley(nTeeth=32);
+module ShowPlanetCarrier(GMVersion=true){
+	
+	
 	for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j]) translate([-PC_BC_d/2,0,0]) Planet();
 		
-	translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+PC_spacer_l/2+Overlap]) PlanetCarrierInner();
+	
+	if (GMVersion==false){
+		translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+PC_spacer_l/2+Overlap])
+			PlanetCarrierInner();
+		translate([0,0,33.5])PlanetCarrierDrivePulley(nTeeth=32);
+	} else {
+		translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+Overlap]){
+			PlanetCarrierInnerGimbalMotor();
+			translate([0,0,8+Overlap]) rotate([180,0,0]) GM5208MountingPlate();}
+	}
 	translate([0,0,Gear_w/2+0.5-PC_Axil_L/2]) PlanetCarrierSpacer();
 	translate([0,0,Gear_w/2+0.5-PC_Axil_L/2-Overlap]) rotate([180,0,0]) PlanetCarrierOuter();
 } // ShowPlanetCarrier
@@ -215,6 +279,8 @@ module ShowPlanetCarrier(){
 //ShowPlanetCarrier();
 
 module PlanetCarrierDrivePulley(nTeeth=32){
+	// Used with the brushed gear motor belt driven version.
+	
 	nSpokes=7;
 	Spoke_Thickness=1.6;
 	BeltPitch=0.2*25.4;
@@ -245,10 +311,84 @@ module PlanetCarrierDrivePulley(nTeeth=32){
 
 //translate([0,0,50-16]) PlanetCarrierDrivePulley(nTeeth=32);
 
+GM5208_d=60;
+
+module GimbalMotor5208(){
+	color("Gray")
+			difference(){
+				cylinder(d=GM5208_d,h=23);
+				translate([0,0,-Overlap]) cylinder(d=8,h=23+Overlap*2);
+			} // difference
+} // GimbalMotor5208
+
+module GM5208MountingPlate(HasCommutatorDisk=true){
+	MotorBC1_d=25;
+	MotorBC2_d=30;
+	Spline_d=20;
+	nPolePairs=7;
+	CommDisk_h=1.5;
+	nNotchStep=30;
+	
+	difference(){
+		union(){
+			cylinder(d=MotorBC2_d+Bolt4Inset*2,h=2.5);
+			cylinder(d=Spline_d+5,h=5);
+			
+			if (HasCommutatorDisk==true) cylinder(d=GM5208_d+10,h=CommDisk_h);
+		} // union
+		
+		translate([0,0,-Overlap]) SplineHole(d=Spline_d,l=7,nSplines=6,Spline_w=30,Gap=IDXtra,Key=false);
+		
+		for (j=[0:3]) rotate([0,0,90*j]) translate([MotorBC2_d/2,0,4]) Bolt4ButtonHeadHole();
+			
+		if (HasCommutatorDisk==true) {
+			for (j=[0:nPolePairs]) rotate([0,0,360/nPolePairs*j])
+			{ //translate([GM5208_d/2+5,0,-Overlap]) cylinder(d=1,h=1);
+				//rotate([0,0,180/nPolePairs]) translate([GM5208_d/2+5,0,-Overlap]) cylinder(d=1,h=1);
+				for (k=[0:nNotchStep-2]) hull() {
+					rotate([0,0,180/nPolePairs/nNotchStep*k]){
+						translate([GM5208_d/2+2,0.5,-Overlap]) 
+							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);
+						translate([GM5208_d/2+3,0.5,-Overlap]) 
+							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);}
+					rotate([0,0,180/nPolePairs/nNotchStep*k+1]){
+						translate([GM5208_d/2+2,-0.5,-Overlap]) 
+							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);
+						translate([GM5208_d/2+3,-0.5,-Overlap]) 
+							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);}
+							
+		}}}
+	} // difference
+	
+	// motor
+	if ($preview==true) rotate([180,0,0]) GimbalMotor5208();
+		
+	// Commutation sensor positions
+	if ($preview==true) 
+	for (j=[0:2]) rotate([0,0,360/nPolePairs/3*j]) translate([GM5208_d/2+7,0,0]) cylinder(d=2,h=2);
+} // GM5208MountingPlate
+
+//translate([0,0,8+Overlap]) rotate([180,0,0]) GM5208MountingPlate();
+
+module PlanetCarrierInnerGimbalMotor(){
+	// Used with a brushless gimbal motor (5208) and magnetic encoder
+	Spline_d=20;
+	
+	difference(){
+		PlanetCarrierOuter(Shaft_d=6.35);
+		
+		translate([0,0,3]) cylinder(d=Spline_d+5+IDXtra,h=6);
+	} // difference
+	
+	SplineShaft(d=Spline_d,l=8,nSplines=6,Spline_w=30,Hole=6.35,Key=false);
+} // PlanetCarrierInnerGimbalMotor
+
+ //PlanetCarrierInnerGimbalMotor();
 
 module PlanetCarrierInner(){
+	// Used with the brushed gear motor belt driven version.
+	
 	translate([0,0,-PC_spacer_l/2]) PlanetCarrierOuter();
-	//translate([0,0,PC_spacer_l/2]) rotate([180,0,0]) PlanetCarrierOuter();
 	
 	translate([0,0,-PC_spacer_l/2])
 	SplineShaft(d=PC_Spacer_d,l=PC_spacer_l/2,nSplines=6,Spline_w=30,Hole=Tube_OD+IDXtra,Key=false);
@@ -256,40 +396,30 @@ module PlanetCarrierInner(){
 
 //translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+PC_spacer_l/2+Overlap]) PlanetCarrierInner();
 
-module PlanetCarrierOuter(){
+module PlanetCarrierOuter(Shaft_d=Tube_OD+IDXtra){
 	difference(){
-		union(){
-			
-			for (j=[0:nPlanets*2-1]) rotate([0,0,180/nPlanets*j]) hull(){
-				translate([-PC_BC_d/2,0,0]) cylinder(d=PC_End_d,h=3);
-				cylinder(d=20,h=5);
-				
-				
+		for (j=[0:nPlanets*2-1]) rotate([0,0,180/nPlanets*j]) hull(){
+			translate([-PC_BC_d/2,0,0]) cylinder(d=PC_End_d,h=3);
+			cylinder(d=20,h=5);
 			} // hull
-			
-		} // union
 		
 		// Tube
-		translate([0,0,-Overlap]) cylinder(d=Tube_OD+IDXtra,h=6+Overlap*2);
+		translate([0,0,-Overlap]) cylinder(d=Shaft_d,h=6+Overlap*2);
 		
 		// Planet bolts
-		for (j=[0:nPlanets*2-1]) rotate([0,0,180/nPlanets*j]) translate([-PC_BC_d/2,0,4]) Bolt4ButtonHeadHole();
+		for (j=[0:nPlanets*2-1]) rotate([0,0,180/nPlanets*j]) translate([-PC_BC_d/2,0,4]) 
+			Bolt4ButtonHeadHole();
 			
-		
 	} // difference
-	
 } // PlanetCarrierOuter
 
 //translate([0,0,Gear_w/2+0.5-PC_Axil_L/2-Overlap]) rotate([180,0,0]) PlanetCarrierOuter();
 
-
-module PlanetCarrierSpacer(){
+module PlanetCarrierSpacer(Shaft_d=Tube_OD+IDXtra){
 	difference(){
 		for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*(j+0.5)]) hull(){
 				translate([-PC_BC_d/2,0,0]) cylinder(d=PC_End_d,h=PC_Axil_L);
 				cylinder(d=20,h=PC_Axil_L);
-				
-				
 			} // hull
 		
 		// Cut-outs for planet gears
@@ -300,11 +430,10 @@ module PlanetCarrierSpacer(){
 		for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*(j+0.5)]) translate([-PC_BC_d/2,0,0]) {
 			rotate([180,0,0]) Bolt4Hole();
 			translate([0,0,PC_Axil_L]) Bolt4Hole();
-		}
+		} // for
 		
 		// Tube
-		translate([0,0,-Overlap])  cylinder(d=Tube_OD+IDXtra,h=PC_Axil_L+Overlap*2);
-		
+		translate([0,0,-Overlap])  cylinder(d=Shaft_d,h=PC_Axil_L+Overlap*2);
 		
 	} // difference
 } // PlanetCarrierSpacer
@@ -482,6 +611,8 @@ module RingABearing(){
 
 RingA_Major_OD=80;
 
+
+	
 module RingA_Stop(HasSkirt=false, HasStop=true, Has2Sensors=true){
 	RingABearingMountingRing_t=3;
 	RingABearingMountingRing_BC_d=104;
@@ -489,20 +620,21 @@ module RingA_Stop(HasSkirt=false, HasStop=true, Has2Sensors=true){
 	nBolts=8;
 	PostToRingB_h=24.5;
 	
-	module OptoMountHoles(){
-		hull(){
-			translate([-RingABearingMountingRing_d/2+6-Overlap,0,8]) rotate([0,90,0]) cylinder(d=7,h=3+Overlap*2);
-			translate([-RingABearingMountingRing_d/2+6-Overlap,0,25]) rotate([0,90,0]) cylinder(d=7,h=3+Overlap*2);
-		} // hull
-		translate([-RingABearingMountingRing_d/2+6-Overlap,-7.5,10]) rotate([0,-90,0]) Bolt4Hole();
-		translate([-RingABearingMountingRing_d/2+6-Overlap,7.5,10]) rotate([0,-90,0]) Bolt4Hole();
-		translate([-RingABearingMountingRing_d/2+6-Overlap,-7.5,20]) rotate([0,-90,0]) Bolt4Hole();
-		translate([-RingABearingMountingRing_d/2+6-Overlap,7.5,20]) rotate([0,-90,0]) Bolt4Hole();
+	module OptoMountPlate(Z=20){
+		translate([0,-20,0]) cube([3,40,Z]);
 	} // OptoMount
 	
-	module OptoMountPlate(){
-		translate([-RingABearingMountingRing_d/2+6,-20,0]) cube([3,40,PostToRingB_h]);
+	module OptoMountHoles(){
+		hull(){
+			translate([0,0,8]) rotate([0,90,0]) cylinder(d=7,h=3+Overlap*2);
+			translate([0,0,25]) rotate([0,90,0]) cylinder(d=7,h=3+Overlap*2);
+		} // hull
+		translate([0,-7.5,10]) rotate([0,-90,0]) Bolt4Hole();
+		translate([0,7.5,10]) rotate([0,-90,0]) Bolt4Hole();
+		translate([0,-7.5,20]) rotate([0,-90,0]) Bolt4Hole();
+		translate([0,7.5,20]) rotate([0,-90,0]) Bolt4Hole();
 	} // OptoMount
+	
 	
 	difference(){
 		union(){
@@ -527,15 +659,17 @@ module RingA_Stop(HasSkirt=false, HasStop=true, Has2Sensors=true){
 			} // for
 			
 			// Optical sensor mount
-			rotate([0,0,22.5]) OptoMountPlate();
-			if (Has2Sensors==true) rotate([0,0,-22.5]) OptoMountPlate();
+			rotate([0,0,22.5]) translate([-RingABearingMountingRing_d/2+6,0,0]) OptoMountPlate(Z=PostToRingB_h);
+			if (Has2Sensors==true) rotate([0,0,-22.5]) 
+				translate([-RingABearingMountingRing_d/2+6,0,0]) OptoMountPlate(Z=PostToRingB_h);
 		} // union
 		
 		translate([0,0,-Overlap]) cylinder(d=RingA_Major_OD+8,h=RingABearingMountingRing_t+Overlap*2);
 		
 		// Optical sensor mount
-		rotate([0,0,22.5]) OptoMountHoles();
-		if (Has2Sensors==true) rotate([0,0,-22.5]) OptoMountHoles();
+		rotate([0,0,22.5]) translate([-RingABearingMountingRing_d/2+6-Overlap,0,0]) OptoMountHoles();
+		if (Has2Sensors==true) rotate([0,0,-22.5]) 
+			translate([-RingABearingMountingRing_d/2+6-Overlap,0,0]) OptoMountHoles();
 			
 		// bolts
 		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]){
@@ -604,7 +738,7 @@ module HomeSwitchMount(){
 //rotate([0,0,22.5]) translate([-50,0,15]) rotate([0,-90,0]) rotate([0,0,-90]) HomeSwitchMount();
 
 /*
-RingA_Stop(HasSkirt=false);
+RingA_Stop(HasSkirt=false, HasStop=true, Has2Sensors=true);
 translate([0,0,Gear_w/2+6]) rotate([0,0,10]) RingA();
 //rotate([180,0,0]) RingABearing();
 //translate([0,0,Gear_w+16]) ScrewMountRingB();
@@ -633,11 +767,10 @@ module RingA_EncoderDisk(PPR=100){
 				
 			translate([InnerBC_r,0,-Overlap]) {
 				translate([0,InnerBC_Hole_d/2-0.5,0]) cylinder(d=1,h=Thickness+Overlap*2,$fn=18);
-				translate([0,-InnerBC_Hole_d/2+0.5,0]) cylinder(d=1,h=Thickness+Overlap*2,$fn=18);					
+				translate([0,-InnerBC_Hole_d/2+0.5,0]) cylinder(d=1,h=Thickness+Overlap*2,$fn=18);		
 				}
-			}
-				
-		}
+			} // hull	
+		} // for
 		
 		// center hole
 		translate([0,0,-Overlap]) cylinder(d=RingA_Major_OD-2+IDXtra,h=Thickness+Overlap*2);
@@ -649,7 +782,7 @@ module RingA_EncoderDisk(PPR=100){
 		}
 } // RingA_EncoderDisk
 
-//translate([0,0,2]) RingA_EncoderDisk(PPR=70);
+//translate([0,0,2]) RingA_EncoderDisk(PPR=7);
 
 module RingA_HomeFinderDisk(){
 	Thickness=1.5;
@@ -941,7 +1074,345 @@ module RingB(){
 //rotate([0,0,180/RingBTeeth])
 
 // ****************************************************************************************************
+//  ***** Ring C, Motor mount, encoder mount and end bearing support *****
+//  ***** Used with a brushless gimbal motor (5208) and magnetic encoder *****
+// ****************************************************************************************************
+
+//GimbalMotor5208();
+GMotor_OD=60;
+nPolePairs=7;
+
+module HallSwitchMount(){
+	BoltOffset_X=6;
+	BoltOffset_Y=5;
+	X=BoltOffset_X*2+Bolt4Inset*2;
+	Y=BoltOffset_Y*2+Bolt4Inset*2+1;
+	T=3;
+	
+	module SwitchHoles(T=3){
+		X=5.42+IDXtra;
+		Y=4.53+IDXtra;
+		Y1=5.77;
+		Y2=13.3;
+		
+		translate([0,0,T]) Bolt4Hole();
+		translate([-X/2,Y1-Y/2,-Overlap]) cube([X,Y,T+Overlap*2]);
+		translate([-X/2,Y2-Y/2,-Overlap]) cube([X,Y,T+Overlap*2]);
+	} // SwitchHoles
+	
+	difference(){
+		hull(){
+			translate([-BoltOffset_X,-BoltOffset_Y-2,0]) cylinder(d=8,h=3);
+			translate([-BoltOffset_X,BoltOffset_Y,0]) cylinder(d=8,h=3);
+			translate([BoltOffset_X,-BoltOffset_Y-2,0]) cylinder(d=8,h=3);
+			translate([BoltOffset_X,BoltOffset_Y,0]) cylinder(d=8,h=3);
+		
+		} // hull
+		//translate([-X/2,-Y/2-2,0]) cube([X,Y+2,T]);
+		
+				translate([-BoltOffset_X,-BoltOffset_Y,T]) Bolt4ClearHole();
+				translate([-BoltOffset_X,BoltOffset_Y,T]) Bolt4ClearHole();
+				translate([BoltOffset_X,-BoltOffset_Y,T]) Bolt4ClearHole();
+				translate([BoltOffset_X,BoltOffset_Y,T]) Bolt4ClearHole();
+
+		translate([0,-BoltOffset_Y-2.5,0]) SwitchHoles(T);
+	} // difference
+} // HallSwitchMount
+
+module RingCSpacerGMCom(){
+	nBolts=8;
+	BoltBossB_h=6;
+	Spacer_h=6+26;
+	Encoder_z=-6;
+	
+	module OptoMountPlate(Z=20){
+		Width=29;
+		translate([-3,-Width/2,0]) cube([6,Width,Z]);
+	} // OptoMount
+	
+	module OptoMountHoles(){
+		Bolt_Y=6;
+		hull(){
+			translate([0,0,22]) rotate([0,90,0]) cylinder(d=7,h=12);
+			translate([0,-3.5,6.5]) cube([12,7,Overlap]); //cylinder(d=7,h=12);
+		} // hull
+		translate([0,-Bolt_Y,10]) rotate([0,-90,0]) Bolt4Hole();
+		translate([0,Bolt_Y,10]) rotate([0,-90,0]) Bolt4Hole();
+		translate([0,-Bolt_Y,20]) rotate([0,-90,0]) Bolt4Hole();
+		translate([0,Bolt_Y,20]) rotate([0,-90,0]) Bolt4Hole();
+	} // OptoMount
+	
+	
+	difference(){
+		union(){
+			cylinder(d=RingB_OD+RingB_OD_Xtra,h=BoltBossB_h+Overlap);
+				
+			// Ring B bolt bosses
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				translate([RingB_OD/2,0,0])
+						cylinder(d=Bolt4Inset*2+2,h=BoltBossB_h);
+				translate([RingC_BC_d/2,0,0]) cylinder(d=Bolt4Inset*2,h=BoltBossB_h);
+			} // hull
+			
+			// RingC bolt bosses
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+					translate([RingB_OD/2,0,Spacer_h-8]) cylinder(d=Bolt4Inset*2+2,h=8);
+					translate([RingB_OD/2-1,0,8]) cylinder(d=4,h=BoltBossB_h);
+				
+				translate([RingC_BC_d/2,0,Spacer_h-8]) cylinder(d=Bolt4Inset*2,h=8);
+			} // hull
+			
+			difference(){
+				translate([0,0,BoltBossB_h])
+					cylinder(d1=RingB_OD+RingB_OD_Xtra,d2=RingC_BC_d-Bolt4Inset*2,h=Spacer_h-BoltBossB_h);
+				translate([0,0,BoltBossB_h-Overlap])
+					cylinder(d1=RingB_OD+RingB_OD_Xtra-4,d2=RingC_BC_d-Bolt4Inset*2-4,h=Spacer_h-BoltBossB_h+Overlap*2);
+			} // difference
+			
+			rotate([0,0,Pole_a*3])
+				translate([(RingB_OD+RingB_OD_Xtra)/2-3,0,0])  OptoMountPlate(Z=Spacer_h);
+			rotate([0,0,360/nPolePairs/3+Pole_a*1])
+				translate([(RingB_OD+RingB_OD_Xtra)/2-3,0,0])  OptoMountPlate(Z=Spacer_h);
+			rotate([0,0,360/nPolePairs/3*2+Pole_a*5])
+				translate([(RingB_OD+RingB_OD_Xtra)/2-3,0,0])  OptoMountPlate(Z=Spacer_h);
+		} // union
+		
+		// Opto switches for commutation
+		rotate([0,0,Pole_a*3])
+			translate([(RingB_OD+RingB_OD_Xtra)/2-8,0,Encoder_z])  OptoMountHoles();
+		rotate([0,0,360/nPolePairs/3+Pole_a*1])
+			translate([(RingB_OD+RingB_OD_Xtra)/2-8,0,Encoder_z])  OptoMountHoles();
+		rotate([0,0,360/nPolePairs/3*2+Pole_a*5]) 
+			translate([(RingB_OD+RingB_OD_Xtra)/2-8,0,Encoder_z])  OptoMountHoles();
+		
+		// Bolts to Ring B
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,BoltBossB_h])
+				Bolt4HeadHole(lHead=7);
+		
+		// Bolts to Ring C
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,Spacer_h])
+				Bolt4Hole();
+	
+		// center hole
+			translate([0,0,-Overlap]) cylinder(d=RingB_OD+RingB_OD_Xtra-4,h=BoltBossB_h+Overlap);
+			translate([0,0,BoltBossB_h-Overlap]) 
+				cylinder(d1=RingB_OD+RingB_OD_Xtra-4,d2=RingC_BC_d-Bolt4Inset*2-4,h=Spacer_h-BoltBossB_h+Overlap*2);
+		
+		
+	} // difference
+	
+	// Commutation sensor positions
+	Pole_a=360/nPolePairs;
+	
+	if ($preview==true) {
+		rotate([0,0,Pole_a*3]) translate([GM5208_d/2+7,0,0]) cylinder(d=2,h=2); // U
+		rotate([0,0,360/nPolePairs/3+Pole_a*1]) translate([GM5208_d/2+7,0,0]) cylinder(d=2,h=2); // V
+		rotate([0,0,360/nPolePairs/3*2+Pole_a*5]) translate([GM5208_d/2+7,0,0]) cylinder(d=2,h=2); // W
+	}
+	
+} // RingCSpacerGMCom
+
+//RingCSpacerGMCom();
+
+//rotate([0,0,360/nPolePairs*3]) translate([GM5208_d/2+7,0,11]) 
+	//rotate([0,0,-90]) rotate([-90,0,0]) HallSwitchMount();
+
+module RingCSpacerGM(HasSkirt=false){
+	nBolts=8;
+	BoltBossB_h=6;
+	Spacer_h=6+26;
+	
+	//if ($preview==true) translate([0,0,6]) GimbalMotor5208();
+	
+	difference(){
+		union(){
+			cylinder(d=RingB_OD+RingB_OD_Xtra,h=BoltBossB_h+Overlap);
+				
+			// Ring B bolt bosses
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				translate([RingB_OD/2,0,0])
+						cylinder(d=Bolt4Inset*2+2,h=BoltBossB_h);
+				translate([RingC_BC_d/2,0,0]) cylinder(d=Bolt4Inset*2,h=BoltBossB_h);
+			} // hull
+			
+			// RingC bolt bosses
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*(j+0.5)]) hull(){
+				if (HasSkirt==true){ 
+					translate([RingB_OD/2,0,Spacer_h-8]) cylinder(d=Bolt4Inset*2+2,h=8);
+					translate([RingB_OD/2-1,0,0]) cylinder(d=4,h=BoltBossB_h);
+				} else {
+					//translate([RingB_OD/2,0,Spacer_h-8]) cylinder(d=Bolt4Inset*2+2,h=8);
+					translate([RingB_OD/2,0,0.01]) cube([2.5,Bolt4Inset*2+2,0.02],center=true); //cylinder(d=Bolt4Inset*2+4,h=BoltBossB_h);
+				} // else
+				translate([RingC_BC_d/2,0,Spacer_h-8]) cylinder(d=Bolt4Inset*2,h=8);
+			} // hull
+			
+			if (HasSkirt==true) difference(){
+				translate([0,0,BoltBossB_h]) cylinder(d1=RingB_OD+RingB_OD_Xtra,d2=RingC_BC_d-Bolt4Inset*2,h=Spacer_h-BoltBossB_h);
+				
+				translate([0,0,BoltBossB_h-Overlap]) cylinder(d1=RingB_OD+RingB_OD_Xtra-4,d2=RingC_BC_d-Bolt4Inset*2-4,h=Spacer_h-BoltBossB_h+Overlap*2);
+				
+			} // difference
+		} // union
+		
+		// Bolts to Ring B
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,BoltBossB_h])
+				Bolt4HeadHole();
+		
+		// Bolts to Ring C
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*(j+0.5)]) translate([RingC_BC_d/2,0,Spacer_h])
+				Bolt4Hole();
+	
+		// center hole
+		if (HasSkirt==true){
+			translate([0,0,-Overlap]) cylinder(d=RingB_OD+RingB_OD_Xtra-4,h=BoltBossB_h+Overlap);
+			translate([0,0,BoltBossB_h-Overlap]) 
+				cylinder(d1=RingB_OD+RingB_OD_Xtra-4,d2=RingC_BC_d-Bolt4Inset*2-4,h=Spacer_h-BoltBossB_h+Overlap*2);
+		} else {
+			translate([0,0,-Overlap]) cylinder(d=RingB_OD+RingB_OD_Xtra-4,h=Spacer_h+Overlap*3);
+		} // if else
+		
+	} // difference
+		
+} // RingCSpacerGM
+
+//RingCSpacerGM(HasSkirt=true);
+//RingCSpacerGM(HasSkirt=false);
+
+
+module RingCCover(){
+	nBolts=8;
+	RingC_d=RingC_BC_d-Bolt4Inset*2;
+	RingC_h=6;
+	Cover_h=30;
+	
+	difference(){
+		union(){
+			cylinder(d=RingC_d,h=RingC_h+Overlap);
+			
+			translate([0,0,RingC_h]) cylinder(d1=RingC_d,d2=45, h=Cover_h);
+			
+			// bolt bosses to ring C
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				translate([RingC_d/2-2,0,0])
+					cylinder(d=Bolt4Inset*2+2,h=RingC_h);
+				translate([RingC_BC_d/2,0,0])
+					cylinder(d=Bolt4Inset*2,h=RingC_h);
+			} // hull
+		} // union
+		
+		// Remove extra thickness
+		translate([0,0,-Overlap]) cylinder(d=RingC_d-4,h=RingC_h+Overlap*2);
+		translate([0,0,RingC_h]) cylinder(d1=RingC_d-4,d2=45-4,h=Cover_h-2);
+		
+		// Bolts
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,RingC_h])
+			Bolt4HeadHole();
+
+	} // difference
+} // RingCCover
+
+//translate([0,0,6+23+6]) rotate([0,0,22.5]) RingCCover();
+
+module RingCEncoderMount(){
+	// Aligning the encoder to the motor phase 12N14P may require 360/14 rotation.
+	
+	Adj_a=360/14;
+	
+	if ($preview==true) translate([0,0,4]) color("Blue") cylinder(d=32,h=22);
+	
+	difference(){
+		union(){
+			cylinder(d=SE_Cover_OD+Bolt4Inset*4,h=2);
+			translate([0,0,2.5]) IntegratedBase();
+		} // union
+		
+		// bolt holes
+		for (j=[0:Adj_a-1]){
+			hull(){
+				rotate([0,0,j]) translate([SE_Cover_OD/2+Bolt4Inset,0,-Overlap]) 
+					cylinder(d=3,h=2+Overlap*2);
+				rotate([0,0,j-1]) translate([SE_Cover_OD/2+Bolt4Inset,0,-Overlap]) 
+					cylinder(d=3,h=2+Overlap*2);
+			} // hull
+			hull(){
+				rotate([0,0,120+j]) translate([SE_Cover_OD/2+Bolt4Inset,0,-Overlap]) 
+					cylinder(d=3,h=2+Overlap*2);
+				rotate([0,0,120+j-1]) translate([SE_Cover_OD/2+Bolt4Inset,0,-Overlap]) 
+					cylinder(d=3,h=2+Overlap*2);
+			} // hull
+			hull(){
+				rotate([0,0,240+j]) translate([SE_Cover_OD/2+Bolt4Inset,0,-Overlap]) 
+					cylinder(d=3,h=2+Overlap*2);
+				rotate([0,0,240+j-1]) translate([SE_Cover_OD/2+Bolt4Inset,0,-Overlap]) 
+					cylinder(d=3,h=2+Overlap*2);
+			} // hull
+			hull(){
+				rotate([0,0,180+j]) translate([SE_Cover_OD/2+Bolt4Inset,0,-Overlap]) 
+					cylinder(d=3,h=2+Overlap*2);
+				rotate([0,0,180+j-1]) translate([SE_Cover_OD/2+Bolt4Inset,0,-Overlap]) 
+					cylinder(d=3,h=2+Overlap*2);
+			} // hull
+		} // for
+		
+		translate([0,0,-Overlap]) cylinder(d=sBearing_OD,h=6);
+	} // difference
+	
+} // RingCEncoderMount
+
+//translate([0,0,6+23+4]) RingCEncoderMount();
+
+module RoundRingCGM(){
+	nBolts=8;
+	RingC_d=RingC_BC_d-Bolt4Inset*2;
+	RingC_h=6;
+	RingC_Plate_h=4;
+	MotorBC_d=44;
+
+	difference(){
+		union(){
+			cylinder(d=RingC_d,h=RingC_h);
+			
+			// bolt bosses to ring C
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				translate([RingC_d/2-2,0,0])
+					cylinder(d=Bolt4Inset*2+2,h=RingC_h);
+				translate([RingC_BC_d/2,0,0])
+					cylinder(d=Bolt4Inset*2,h=RingC_h);
+			} // hull
+		} // union
+		
+		// Remove extra thickness
+		translate([0,0,RingC_Plate_h]) cylinder(d=RingC_d-4,h=RingC_h-3+Overlap*2);
+		
+		// Motor mounting bolts
+		for (j=[0:3]) rotate([0,0,45+90*j]) translate([MotorBC_d/2,0,RingC_Plate_h]) Bolt4ButtonHeadHole();
+		
+		// Encoder shaft bearing
+		translate([0,0,-Overlap]) cylinder(d=sBearing_OD-1,h=RingC_h+Overlap*2);
+		translate([0,0,1]) cylinder(d=sBearing_OD,h=RingC_h+Overlap*2);
+		
+		// encoder bolt holes
+		translate([SE_Cover_OD/2+Bolt4Inset,0,RingC_Plate_h]) Bolt4Hole();
+		rotate([0,0,120]) translate([SE_Cover_OD/2+Bolt4Inset,0,RingC_Plate_h]) 
+					Bolt4Hole();
+		rotate([0,0,240]) translate([SE_Cover_OD/2+Bolt4Inset,0,RingC_Plate_h]) 
+					Bolt4Hole();
+		rotate([0,0,180]) translate([SE_Cover_OD/2+Bolt4Inset,0,RingC_Plate_h]) 
+					Bolt4Hole();
+		
+		// Bolts
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,RingC_h])
+			Bolt4HeadHole();
+	} // difference
+		
+} // RoundRingCGM
+
+//translate([0,0,6+23]) rotate([0,0,22.5]) RoundRingCGM();
+
+// ****************************************************************************************************
 //  ***** Ring C, Motor mount and end bearing support *****
+//  ***** Used with the brushed gear motor belt driven version. *****
 // ****************************************************************************************************
 
 module RoundRect(X=10,Y=10,Z=5,R=3){
@@ -1859,131 +2330,6 @@ module TestFixture(){
 
 //TestFixture();
 //translate([0,0,6]) rotate([180,0,0]) RingABearing();
-
-
-/*
-// old code
-
-module RingA(){
-	ring_gear(number_of_teeth=RingATeeth,
-		circular_pitch=GearAPitch, diametral_pitch=false,
-		pressure_angle=Pressure_a,
-		clearance = 0.2,
-		gear_thickness=Gear_w/2,
-		rim_thickness=Gear_w/2,
-		rim_width=2,
-		backlash=Backlash,
-		twist=twist/RingATeeth,
-		involute_facets=0, // 1 = triangle, default is 5
-		flat=false);
-	
-	mirror([0,0,1])
-		ring_gear(number_of_teeth=RingATeeth,
-			circular_pitch=GearAPitch, diametral_pitch=false,
-			pressure_angle=Pressure_a,
-			clearance = 0.2,
-			gear_thickness=Gear_w/2,
-			rim_thickness=Gear_w/2,
-			rim_width=2,
-			backlash=Backlash,
-			twist=twist/RingATeeth,
-			involute_facets=0, // 1 = triangle, default is 5
-			flat=false);
-	
-	RingA_Teeth_ID=RingATeeth*GearAPitch/180-GearAPitch/90;
-	RingA_Major_OD=80;
-	
-	nSpokes=7;
-	
-	translate([0,0,-Gear_w/2])
-	difference(){
-		cylinder(d=RingA_Major_OD,h=Gear_w);
-		
-		translate([0,0,-Overlap]) cylinder(d=RingA_OD,h=Gear_w+Overlap*2);
-	} // difference
-	
-	translate([0,0,-Gear_w/2-6]) rotate([180,0,0])
-	OnePieceInnerRace(BallCircle_d=RingA_Bearing_BallCircle,	Race_ID=RingA_Bearing_ID,	
-		Ball_d=Ball_d, Race_w=RingA_Bearing_Race_w, PreLoadAdj=BearingPreload, VOffset=0.00, BI=true, myFn=$preview? 60:720);
-
-	// Skirt connecting bearing to gear
-	translate([0,0,-Gear_w/2-6-Overlap])
-	difference(){
-		cylinder(d1=RingA_Bearing_BallCircle-Ball_d*0.7,d2=RingA_Major_OD,h=6+Overlap*2);
-		
-		translate([0,0,-Overlap]) cylinder(d1=RingA_Bearing_BallCircle-Ball_d*0.7-5,d2=RingA_Teeth_ID,h=6+Overlap*4);
-	} // difference
-	
-	// Planet carrier bearing mount
-	translate([0,0,-Gear_w/2-6-RingA_Bearing_Race_w])
-	difference(){
-		union(){
-			 cylinder(d=Bearing_OD+6,h=Bearing_w+2);
-			
-			for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j]) hull(){
-				translate([Bearing_OD/2+3,0,0]) cylinder(d=2,h=Bearing_w+2);
-				translate([RingA_Bearing_ID/2+1,0,0]) cylinder(d=2,h=Bearing_w+2);
-			} // hull
-		} // union
-		//Bearing_OD=1.125*25.4;
-		//Bearing_ID=0.500*25.4;
-		//Bearing_w=0.3125*25.4;
-
-		translate([0,0,-Overlap]) cylinder(d=Bearing_OD-1,h=3);
-		translate([0,0,2]) cylinder(d=Bearing_OD,h=Bearing_w+1);
-	} // difference
-	
-	// Lever mount
-	
-	LeverMount_d=Gear_w; //Tube_OD+8;
-	translate([0,0,0])
-	difference(){
-		hull(){
-			translate([-LeverMount_L/2,LeverOffset,0]) rotate([0,90,0]) cylinder(d=LeverMount_d,h=LeverMount_L);
-			translate([-LeverMount_L/2,LeverOffset-20,0]) rotate([0,90,0]) cylinder(d=LeverMount_d,h=LeverMount_L);
-		} // hull
-		
-		MidCut_l=24;
-		
-		// cut out middle
-		hull(){
-			translate([-LeverMount_L/2+MidCut_l/2,LeverOffset,0]) rotate([0,90,0]) cylinder(d=LeverMount_d+Overlap*2,h=LeverMount_L-MidCut_l);
-			translate([-LeverMount_L/2+MidCut_l/2,LeverOffset-20,0]) rotate([0,90,0]) cylinder(d=LeverMount_d+Overlap*2,h=LeverMount_L-MidCut_l);
-		} // hull
-		
-		translate([0,0,-LeverMount_d/2-Overlap]) cylinder(d=RingA_OD,h=LeverMount_d+Overlap*2);
-		translate([-LeverMount_L/2-Overlap,LeverOffset,0]) rotate([0,90,0]) cylinder(d=Tube_OD,h=LeverMount_L+Overlap*2);
-	} // difference
-	
-	// output lever
-	if ($preview==true){
-		translate([LeverMount_L/2,LeverOffset,0]) rotate([0,-90,0]) color("Red") cylinder(d=Tube_OD,h=160);
-		translate([LeverMount_L/2,LeverOffset,0]) rotate([0,-90,0]) translate([0,0,160]) rotate([180,0,0]) RodEnd();
-	}
-} // RingA
-
-
-module RodEnd(){
-	Tube_d=12.7;
-	WristPin_d=6.35;
-	
-	TubeEnd(TubeOD=Tube_d, Wall_t=0.89, Hole_d=3, Stop_l=TubeStop_l, GlueAllowance=0.40);
-	
-	difference(){
-		hull(){
-			translate([-Tube_d/2,0,-Tube_d/2-1]) rotate([0,90,0]) cylinder(d=Tube_d,h=Tube_d);
-			translate([0,0,-Overlap]) cylinder(d=Tube_d,h=Overlap);
-		} // hull
-		
-		translate([-Tube_d/2-Overlap,0,-Tube_d/2-1]) rotate([0,90,0]) cylinder(d=WristPin_d,h=Tube_d+Overlap*2);
-	} // difference
-} // RodEnd
-
-//RodEnd();
-
-
-
-/**/
 
 
 
