@@ -189,8 +189,8 @@ RingB_BC_d=100;
 RingC_BC_d=RingA_OD+RingB_OD_Xtra+Bolt4Inset*2; // was RingB_OD which is mor likely to change
 
 module ShowBodyJackGM(Rot_a=180/RingATeeth,HasSkirt=true){
-	//translate([0,0,-14.5]) rotate([180,0,0]) RingABearing();
-	//rotate([0,0,Rot_a]) RingA();
+	translate([0,0,-14.5]) rotate([180,0,0]) RingABearing();
+	rotate([0,0,Rot_a]) RingA();
 	
 	translate([0,0,-14.5]){ 
 		RingA_Stop(HasSkirt=HasSkirt, HasStop=false, Has2Sensors=true);
@@ -219,12 +219,14 @@ module ShowBodyJackGM(Rot_a=180/RingATeeth,HasSkirt=true){
 		//translate([0,0,6+26]) rotate([0,0,22.5]) RoundRingCGM();
 		//translate([0,0,6+26+4]) RingCEncoderMount();
 		//translate([0,0,6+26+6+Overlap]) rotate([0,0,22.5]) RingCCover();
+		
+		translate([0,0,6+26+Overlap]) RingCCoverCom();
 	}
 	/**/
 } // ShowBodyJackGM
 
-translate([0,0,Gear_w]) ShowBodyJackGM(HasSkirt=false);
-//translate([0,0,Gear_w]) ShowBodyJackGM(HasSkirt=true);
+//translate([0,0,Gear_w]) ShowBodyJackGM(HasSkirt=false);
+translate([0,0,Gear_w]) ShowBodyJackGM(HasSkirt=true);
 
 module ShowBodyJack(Rot_a=180/RingATeeth,HasSkirt=true){
 	translate([0,0,-14.5]) rotate([180,0,0]) RingABearing();
@@ -1081,6 +1083,7 @@ module RingB(){
 //GimbalMotor5208();
 GMotor_OD=60;
 nPolePairs=7;
+MotorBC_d=44;
 
 module HallSwitchMount(){
 	BoltOffset_X=6;
@@ -1216,6 +1219,41 @@ module RingCSpacerGMCom(){
 
 //rotate([0,0,360/nPolePairs*3]) translate([GM5208_d/2+7,0,11]) 
 	//rotate([0,0,-90]) rotate([-90,0,0]) HallSwitchMount();
+
+module RingCCoverCom(){
+	nBolts=8;
+	RingC_d=RingC_BC_d-Bolt4Inset*2;
+	RingC_h=6;
+	
+	difference(){
+		union(){
+			cylinder(d=RingC_d,h=RingC_h);
+			
+			// bolt bosses to ring C
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				translate([RingC_d/2-2,0,0])
+					cylinder(d=Bolt4Inset*2+2,h=RingC_h);
+				translate([RingC_BC_d/2,0,0])
+					cylinder(d=Bolt4Inset*2,h=RingC_h);
+			} // hull
+		} // union
+		
+		// Remove extra thickness
+		//translate([0,0,3]) cylinder(d=RingC_d-4,h=RingC_h+Overlap*2);
+		
+		// Bolts
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,RingC_h])
+			Bolt4HeadHole();
+		
+		// Motor mounting bolts
+		for (j=[0:3]) rotate([0,0,45+90*j]) translate([MotorBC_d/2,0,5]) Bolt4ButtonHeadHole();
+
+		// center hole
+		translate([0,0,-Overlap]) cylinder(d=12,h=RingC_h+Overlap*2);
+	} // difference
+} // RingCCoverCom
+
+//RingCCoverCom();
 
 module RingCSpacerGM(HasSkirt=false){
 	nBolts=8;
@@ -1367,7 +1405,7 @@ module RoundRingCGM(){
 	RingC_d=RingC_BC_d-Bolt4Inset*2;
 	RingC_h=6;
 	RingC_Plate_h=4;
-	MotorBC_d=44;
+	
 
 	difference(){
 		union(){
