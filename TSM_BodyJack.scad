@@ -136,7 +136,7 @@ P_Ratio=RingATeeth/PlanetATeeth;
 PBt=P_Ratio*PlanetBTeeth;
 // Ring A rotations per motor rotation
 Rf=1/(1-RingBTeeth/PBt);
-//*
+/*
 // uncomment to show gearing calculations
 echo("Ratio = ",Rf);
 echo("Ring A PD = ",RingA_pd);
@@ -184,7 +184,7 @@ PC_spacer_l=40;
 RingA_Major_OD=80;
 EncDisk_d=RingA_Major_OD+11;
 Encoder_r=EncDisk_d/2-2.75;
-EncoderSw_r=Encoder_r+8;
+EncoderSw_r=Encoder_r+8.25; // Increased 12/29/2019 by 0.25 so it wont rub on the A ring.
 
 LeverOffset=47;
 LeverMount_L=50;
@@ -813,7 +813,7 @@ module RingA_Stop(HasSkirt=false, HasStop=true, Has2Sensors=true){
 	
 } // RingA_Stop
 
-//RingA_Stop(HasSkirt=true, HasStop=true, Has2Sensors=true);
+// RingA_Stop(HasSkirt=true, HasStop=true, Has2Sensors=true);
 
 module SwitchHoles(T=3){
 	X=5.42+IDXtra;
