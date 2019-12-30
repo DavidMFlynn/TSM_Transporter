@@ -1227,6 +1227,8 @@ module HallSwitchMount(){
 		translate([0,Bolt_Y,20]) rotate([0,90,0]) Bolt4Hole(depth=20);
 	} // HallOptoMountHoles
 	
+RingC_BC_GM4008Twist_a=-2.0;
+	
 module RingCSpacerGM4008Com(){
 	nBolts=8;
 	BoltBossB_h=6;
@@ -1242,14 +1244,14 @@ module RingCSpacerGM4008Com(){
 			cylinder(d=RingB_OD+RingB_OD_Xtra,h=BoltBossB_h+Overlap);
 				
 			// Ring B bolt bosses
-			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j+RingC_BC_GM4008Twist_a]) hull(){
 				translate([RingB_OD/2,0,0])
 						cylinder(d=Bolt4Inset*2+2,h=BoltBossB_h);
 				translate([RingC_BC_d/2,0,0]) cylinder(d=Bolt4Inset*2,h=BoltBossB_h);
 			} // hull
 			
 			// RingC bolt bosses
-			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j-RingC_BC_GM4008Twist_a]) hull(){
 					translate([RingB_OD/2,0,Spacer_h-8]) cylinder(d=Bolt4Inset*2+2,h=8);
 					translate([RingB_OD/2-1,0,8]) cylinder(d=4,h=BoltBossB_h);
 				
@@ -1282,11 +1284,11 @@ module RingCSpacerGM4008Com(){
 			translate([GM4008CommSw_d/2,0,Encoder_z])  HallOptoMountHoles();
 		
 		// Bolts to Ring B
-		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,BoltBossB_h])
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j+RingC_BC_GM4008Twist_a]) translate([RingC_BC_d/2,0,BoltBossB_h])
 				Bolt4HeadHole(lHead=7);
 		
 		// Bolts to Ring C
-		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,Spacer_h])
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j-RingC_BC_GM4008Twist_a]) translate([RingC_BC_d/2,0,Spacer_h])
 				Bolt4Hole();
 	
 		// center hole
@@ -1303,7 +1305,8 @@ module RingCSpacerGM4008Com(){
 	}
 } // RingCSpacerGM4008Com
 
-// RingCSpacerGM4008Com();
+//
+RingCSpacerGM4008Com();
 	
 module RingCSpacerGM5208Com(){
 	// some dimensions are wrong, needs update w/ real motor values
