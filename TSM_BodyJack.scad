@@ -55,7 +55,8 @@
 // rotate([180,0,0]) RoundRingC(HasSkirt=true); // print w/ support for motor screws
 //
 //  ***** Brushless Gimbal Motor w/ Encoder
-// RingCSpacerGM(HasSkirt=true);
+// RingCSpacerGM(HasSkirt=true); // Plain for sensored motor
+// RingCSpacerGM4008Com(); // hall switchs for 11 pole pairs
 // RingCEncoderMount();
 // RingCCover();
 // RoundRingCGM();
@@ -165,6 +166,8 @@ sBearing_w=4.7;
 Tube_OD=12.7; // 1/2" Aluminum tubing
 
 Ball_d=5/16*25.4;
+
+WT_OD=5/16*25.4;
 
 twist=200;
 
@@ -371,7 +374,7 @@ module GimbalMotor4008(){
 
 //GimbalMotor4008();
 
-GM4008MP_h=5;
+GM4008MP_h=5; // Mounting Plate thickness
 
 module GM4008MountingPlate(HasCommutatorDisk=true){
 	Spline_d=GM4008_Spline_d;
@@ -380,6 +383,7 @@ module GM4008MountingPlate(HasCommutatorDisk=true){
 	CommDisk_h=1.5;
 	nNotchStep=30;
 	
+	WireTube_d=WT_OD+1;
 	
 	difference(){
 		union(){
@@ -418,6 +422,8 @@ module GM4008MountingPlate(HasCommutatorDisk=true){
 } // GM4008MountingPlate
 
 //GM4008MountingPlate(HasCommutatorDisk=true);
+
+GM5208MP_h=5; // Mounting Plate thickness
 
 module GM5208MountingPlate(HasCommutatorDisk=true){
 	Spline_d=GM5208_Spline_d;
@@ -471,16 +477,18 @@ module PlanetCarrierInnerGM4008(){
 	Spline_d=GM4008_Spline_d;
 	nSplines=GM4008_nSplines;
 	
+	WireTube_d=WT_OD+1;
+	
 	difference(){
-		PlanetCarrierOuter(Shaft_d=6.35);
+		PlanetCarrierOuter(Shaft_d=WireTube_d);
 		
 		translate([0,0,PC_InnerGM4008_h]) cylinder(d=Spline_d+5+IDXtra,h=6);
 	} // difference
 	
-	SplineShaft(d=Spline_d,l=8,nSplines=nSplines,Spline_w=30,Hole=6.35,Key=false);
+	SplineShaft(d=Spline_d,l=8,nSplines=nSplines,Spline_w=30,Hole=WireTube_d,Key=false);
 } // PlanetCarrierInnerGM4008
 
-//PlanetCarrierInnerGM4008();
+// PlanetCarrierInnerGM4008();
 
 PC_InnerGM5208_h=3;
 
@@ -489,13 +497,15 @@ module PlanetCarrierInnerGM5208(){
 	Spline_d=GM5208_Spline_d;
 	nSplines=GM5208_nSplines;
 	
+	WireTube_d=WT_OD+1;
+	
 	difference(){
-		PlanetCarrierOuter(Shaft_d=6.35);
+		PlanetCarrierOuter(Shaft_d=WireTube_d);
 		
 		translate([0,0,PC_InnerGM5208_h]) cylinder(d=Spline_d+5+IDXtra,h=6);
 	} // difference
 	
-	SplineShaft(d=Spline_d,l=8,nSplines=nSplines,Spline_w=30,Hole=6.35,Key=false);
+	SplineShaft(d=Spline_d,l=8,nSplines=nSplines,Spline_w=30,Hole=WireTube_d,Key=false);
 } // PlanetCarrierInnerGM5208
 
 // PlanetCarrierInnerGM5208();
@@ -1229,6 +1239,101 @@ module HallSwitchMount(){
 	
 RingC_BC_GM4008Twist_a=-2.0;
 	
+module RingCGMCover(){
+	// Cover w/ wire exit and guide tube holder
+	nBolts=8;
+	RingC_d=RingC_BC_d-Bolt4Inset*2;
+	RingC_h=6;
+	Cover_h=16;
+	
+	// basic ring with wire path
+	difference(){
+		union(){
+			cylinder(d=RingC_d,h=RingC_h);
+			
+			// bolt bosses to ring C
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				translate([RingC_d/2-2,0,0])
+					cylinder(d=Bolt4Inset*2+2,h=RingC_h);
+				translate([RingC_BC_d/2,0,0])
+					cylinder(d=Bolt4Inset*2,h=RingC_h);
+			} // hull
+		} // union
+		
+		// Remove extra thickness
+		translate([0,0,-Overlap]) cylinder(d=RingC_d-4,h=RingC_h+Overlap*2);
+		
+		// Bolts
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,RingC_h])
+			Bolt4HeadHole();
+		
+		// Wire path
+		hull(){
+			translate([0,0,5]) rotate([90,0,22.5]) cylinder(d=5,h=RingC_d);
+			translate([0,0,4]) rotate([90,0,22.5]) cylinder(d=5,h=RingC_d);
+		} // hull
+
+	} // difference
+	
+	// top decoration
+	difference(){
+		union(){
+			cylinder(d=RingC_d,h=3);
+			translate([0,0,3]) cylinder(d1=RingC_d-4+Overlap,d2=35, h=Cover_h-6);
+			
+			cylinder(d=35,h=Cover_h);
+			
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				translate([RingC_d/2-2,0,2]) {
+					cylinder(d=4,h=RingC_h-2);
+					translate([0,0,RingC_h-2]) sphere(d=4);}
+				translate([35/2,0,Cover_h-RingC_h+2]) {
+					cylinder(d=4,h=RingC_h-2);
+					translate([0,0,RingC_h-2]) sphere(d=4);}
+			} // hull
+			
+			// Wire path
+		hull(){
+			translate([0,0,5]) rotate([90,0,22.5]) cylinder(d=7,h=RingC_d/2);
+			translate([0,0,4]) rotate([90,0,22.5]) cylinder(d=7,h=RingC_d/2);
+		} // hull
+		} // union
+		
+		// Remove extra thickness
+		translate([0,0,-Overlap]) cylinder(d=RingC_d-4,h=1+Overlap);
+		translate([0,0,1-Overlap]) cylinder(d1=RingC_d-4,d2=35-5,h=Cover_h-5);
+		cylinder(d=35-5,h=Cover_h-3);
+		
+		// Wire path
+		hull(){
+			translate([0,0,5]) rotate([90,0,22.5]) cylinder(d=5,h=RingC_d);
+			translate([0,0,4]) rotate([90,0,22.5]) cylinder(d=5,h=RingC_d);
+		} // hull
+	} // difference
+	
+	// wire tube support
+	
+	difference(){
+		union(){
+			translate([0,0,3]) cylinder(d=WT_OD+6,h=Cover_h-3);
+			
+			// ribs
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				translate([RingC_d/2-2,0,2]) cylinder(d=4,h=RingC_h-2);
+				translate([0,0,3]) cylinder(d=4,h=Cover_h-4);
+				translate([35/2-4,0,3]) cylinder(d=4,h=Cover_h-4);
+					
+			} // hull
+		} // union
+		
+		cylinder(d=WT_OD,h=7);
+		cylinder(d=WT_OD-1,h=Cover_h-3);
+		translate([0,0,Cover_h-6]) rotate([90,0,22.5]) cylinder(d=5,h=12);
+	} // difference
+} // RingCGMCover
+
+//translate([0,0,7]) RingCGMCover();
+
 module RingCSpacerGM4008Com(){
 	nBolts=8;
 	BoltBossB_h=6;
@@ -1305,8 +1410,7 @@ module RingCSpacerGM4008Com(){
 	}
 } // RingCSpacerGM4008Com
 
-//
-RingCSpacerGM4008Com();
+//RingCSpacerGM4008Com();
 	
 module RingCSpacerGM5208Com(){
 	// some dimensions are wrong, needs update w/ real motor values
@@ -1565,7 +1669,7 @@ module RingCSpacerGM(HasSkirt=false){
 //RingCSpacerGM(HasSkirt=false);
 
 
-module RingCCover(){
+module RingCEncoderCover(){
 	// Tall cover for magnetic encoder
 	nBolts=8;
 	RingC_d=RingC_BC_d-Bolt4Inset*2;
@@ -1596,9 +1700,9 @@ module RingCCover(){
 			Bolt4HeadHole();
 
 	} // difference
-} // RingCCover
+} // RingCEncoderCover
 
-//translate([0,0,6+23+6]) rotate([0,0,22.5]) RingCCover();
+//translate([0,0,6+23+6]) rotate([0,0,22.5]) RingCEncoderCover();
 
 module RingCEncoderMount(){
 	// Aligning the encoder to the motor phase 12N14P may require 360/14 rotation.
@@ -1917,6 +2021,7 @@ module RoundRingC(HasSkirt=false){
 
 module RingC(){
 	// Inner planet carrier support bearing
+	// Big square one w/ motor mount for brushed platary motor. 
 	
 	RingB_OD=RingBTeeth*GearBPitch/180+GearBPitch/60;
 	MB_X=90;
