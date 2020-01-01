@@ -823,7 +823,7 @@ module RingA_Stop(HasSkirt=false, HasStop=true, Has2Sensors=true){
 	
 } // RingA_Stop
 
-// RingA_Stop(HasSkirt=true, HasStop=true, Has2Sensors=true);
+ //RingA_Stop(HasSkirt=true, HasStop=true, Has2Sensors=true);
 
 module SwitchHoles(T=3){
 	X=5.42+IDXtra;
@@ -903,7 +903,7 @@ module RingA_EncoderDisk(PPR=100){
 		}
 } // RingA_EncoderDisk
 
-//translate([0,0,2]) RingA_EncoderDisk(PPR=7);
+//translate([0,0,Gear_w/2+6+2+Overlap]) RingA_EncoderDisk(PPR=70);
 
 module RingA_HomeFinderDisk(){
 	Thickness=1.5;
@@ -923,7 +923,8 @@ module RingA_HomeFinderDisk(){
 	
 } // RingA_HomeFinderDisk
 
-//translate([0,0,2]) RingA_HomeFinderDisk();
+//translate([0,0,Gear_w/2+6+2+Overlap]) RingA_HomeFinderDisk();
+//translate([0,0,Gear_w/2+Overlap]) RingA_HomeFinderDisk();
 
 module RingA(HasStop=true){
 	
@@ -1020,7 +1021,7 @@ module RingA(HasStop=true){
 	
 } // RingA
 
-//RingA(HasStop=false);
+//translate([0,0,Gear_w/2+6]) RingA(HasStop=false);
 
 // ***********************************************************************************************
 //  ***** Ring B, Stationary ring gear *****
