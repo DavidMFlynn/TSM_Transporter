@@ -6,7 +6,7 @@
 // Filename: TSM_BodyJack.scad
 // By: David M. Flynn
 // Created: 10/16/2019
-// Revision: 1.1.2 12/29/2019
+// Revision: 1.1.3 1/8/2020
 // Units: mm
 // *************************************************
 //  ***** Notes *****
@@ -19,6 +19,7 @@
 // 	AS5047D encoder 7 pole pairs.
 // *************************************************
 //  ***** History ******
+// 1.1.3 1/8/2020   Fixes for GM5208 motor.
 // 1.1.2 12/29/2019 Motor mount w/ adjustable timing. 
 // 1.1.1 12/28/2019 Added GM4008 motor variant. 
 // 1.1.0 12/25/2019 Gimbal motor version. 
@@ -83,6 +84,7 @@
 //  ShowPlanetCarrier();
 //  ShowLifter();
 //  ShowBodyJackGM(HasSkirt=true);
+//  ShowGM5208Module();
 // *************************************************
 
 include<ShaftEncoder.scad>
@@ -200,18 +202,26 @@ RingC_BC_d=RingA_OD+RingB_OD_Xtra+Bolt4Inset*2; // was RingB_OD which is mor lik
 
 // GM5208 Motor data
 GM5208_d=60;
-GM5208_h=23;
+GM5208_h=23.8; // includes 0.8mm mounting inset
 GM5208RBC1_d=25; // rotor
 GM5208RBC2_d=30;
-GM5208SBC_d=44; // stator
-GM5208_nPolePairs=7;
-GM5208Comm_d=70;
+GM5208SBC1_d=25; // stator
+GM5208SBC2_d=30;
+GM5208SBC3_d=44; // 7 holes 45 degrees appart, wire path at 8th position
+GM5208_nPolePairs=11;
+GM5208Comm_d=GM5208_d+13; // 1mm motor to Sw, 3mm Sw end to slot, 2.5mm slot to OD
 GM5208CommSw_d=GM5208Comm_d+11; // C/L of slot d-5, Sw mounting surface is slot center +8mm 
 GM5208_nSplines=6;
 GM5208_Spline_d=20;
+/* // 7 pole pair values
 GM5208CommU_a=360/GM5208_nPolePairs*3;
 GM5208CommV_a=360/GM5208_nPolePairs/3+360/GM5208_nPolePairs;
 GM5208CommW_a=360/GM5208_nPolePairs/3*2+360/GM5208_nPolePairs*5;
+/**/
+GM5208CommU_a=360/GM5208_nPolePairs*2;
+GM5208CommV_a=360/GM5208_nPolePairs/3+360/GM5208_nPolePairs*10;
+GM5208CommW_a=360/GM5208_nPolePairs/3*2+360/GM5208_nPolePairs*0;
+
 
 
 // GM4008 Motor data
@@ -425,7 +435,7 @@ module GM4008MountingPlate(HasCommutatorDisk=true){
 
 GM5208MP_h=5; // Mounting Plate thickness
 
-module GM5208MountingPlate(HasCommutatorDisk=true){
+module GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
 	Spline_d=GM5208_Spline_d;
 	nSplines=GM5208_nSplines;
 	nPolePairs=GM5208_nPolePairs;
@@ -461,14 +471,14 @@ module GM5208MountingPlate(HasCommutatorDisk=true){
 	} // difference
 	
 	// motor
-	if ($preview==true) rotate([180,0,0]) GimbalMotor5208();
+	if ($preview==true && ShowMotor==true) rotate([180,0,0]) GimbalMotor5208();
 		
 	// Commutation sensor positions
 	if ($preview==true) 
 	for (j=[0:2]) rotate([0,0,360/nPolePairs/3*j]) translate([GM5208Comm_d/2+1,0,0]) cylinder(d=2,h=2);
 } // GM5208MountingPlate
 
-//translate([0,0,8+Overlap]) rotate([180,0,0]) GM5208MountingPlate(HasCommutatorDisk=true);
+//translate([0,0,8+Overlap]) rotate([180,0,0]) GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=false);
 
 PC_InnerGM4008_h=3;
 
@@ -509,6 +519,7 @@ module PlanetCarrierInnerGM5208(){
 } // PlanetCarrierInnerGM5208
 
 // PlanetCarrierInnerGM5208();
+
 
 module PlanetCarrierInner(){
 	// Used with the brushed gear motor belt driven version.
@@ -1187,6 +1198,27 @@ module RingB(){
 //  ***** Used with a brushless gimbal motor (4008/5208) and "Hall switch" disk *****
 // ****************************************************************************************************
 
+
+module ShowGM5208Module(){
+	translate([0,0,110]) RingCGMCover();
+	translate([0,0,90]) RingCMtrMountGM5208Com();
+	translate([0,0,80]) RingCCoverGM5208Com();
+	
+	translate([0,0,50]) GimbalMotor5208();
+	
+	
+	translate([0,0,40]) rotate([180,0,0]) GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=false);
+	RingCSpacerGM5208Com();
+	translate([0,0,-20]) PlanetCarrierInnerGM5208();
+	
+	
+
+} // ShowGM5208Module
+
+//ShowGM5208Module();
+
+
+
 module HallSwitchMount(){
 	BoltOffset_X=6;
 	BoltOffset_Y=5;
@@ -1239,9 +1271,10 @@ module HallSwitchMount(){
 	} // HallOptoMountHoles
 	
 RingC_BC_GM4008Twist_a=-2.0;
+RingC_BC_GM5208Twist_a=-2.0;
 	
 module RingCGMCover(){
-	// Cover w/ wire exit and guide tube holder
+	// Cover w/ wire exit and wire guide tube holder
 	nBolts=8;
 	RingC_d=RingC_BC_d-Bolt4Inset*2;
 	RingC_h=6;
@@ -1295,8 +1328,8 @@ module RingCGMCover(){
 			
 			// Wire path
 		hull(){
-			translate([0,0,5]) rotate([90,0,22.5]) cylinder(d=7,h=RingC_d/2);
-			translate([0,0,4]) rotate([90,0,22.5]) cylinder(d=7,h=RingC_d/2);
+			translate([0,0,5]) rotate([90,0,22.5]) cylinder(d=8,h=RingC_d/2);
+			translate([0,0,4]) rotate([90,0,22.5]) cylinder(d=8,h=RingC_d/2);
 		} // hull
 		} // union
 		
@@ -1335,13 +1368,15 @@ module RingCGMCover(){
 
 //translate([0,0,7]) RingCGMCover();
 
+
+
 module RingCSpacerGM4008Com(){
 	nBolts=8;
 	BoltBossB_h=6;
 	Spacer_h=GM4008MP_h+PC_InnerGM4008_h+GM4008_h+0.5; // xtra 0.5 is a little extra space
 	//echo(Spacer_h=Spacer_h);
 	//echo(GM4008_h=GM4008_h);
-	Encoder_z=Spacer_h-GM4008_h-12.6; // hole pattern offest from top 
+	Encoder_z=Spacer_h-GM4008_h-13; // hole pattern offest from top, adjusted -0.4 1/8/2020
 	nPolePairs=GM4008_nPolePairs;
 		
 	
@@ -1414,28 +1449,28 @@ module RingCSpacerGM4008Com(){
 //RingCSpacerGM4008Com();
 	
 module RingCSpacerGM5208Com(){
-	// some dimensions are wrong, needs update w/ real motor values
 	nBolts=8;
 	BoltBossB_h=6;
 	Spacer_h=GM5208MP_h+PC_InnerGM5208_h+GM5208_h+0.5; // xtra 0.5 is a little extra space
 	//echo(Spacer_h=Spacer_h);
 	//echo(GM5208_h=GM5208_h);
-	Encoder_z=Spacer_h-GM5208_h-12.6; // hole pattern offest from top 
+	Encoder_z=Spacer_h-GM5208_h-13.4; // hole pattern offest from top, adjusted -0.8 1/8/2020
 	nPolePairs=GM5208_nPolePairs;
+	Skirt_ID=GM5208Comm_d+1.5;
 	
 	difference(){
 		union(){
 			cylinder(d=RingB_OD+RingB_OD_Xtra,h=BoltBossB_h+Overlap);
 				
 			// Ring B bolt bosses
-			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j+RingC_BC_GM5208Twist_a]) hull(){
 				translate([RingB_OD/2,0,0])
 						cylinder(d=Bolt4Inset*2+2,h=BoltBossB_h);
 				translate([RingC_BC_d/2,0,0]) cylinder(d=Bolt4Inset*2,h=BoltBossB_h);
 			} // hull
 			
 			// RingC bolt bosses
-			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j-RingC_BC_GM5208Twist_a]) hull(){
 					translate([RingB_OD/2,0,Spacer_h-8]) cylinder(d=Bolt4Inset*2+2,h=8);
 					translate([RingB_OD/2-1,0,8]) cylinder(d=4,h=BoltBossB_h);
 				
@@ -1447,7 +1482,7 @@ module RingCSpacerGM5208Com(){
 				translate([0,0,BoltBossB_h])
 					cylinder(d1=RingB_OD+RingB_OD_Xtra,d2=RingC_BC_d-Bolt4Inset*2,h=Spacer_h-BoltBossB_h);
 				translate([0,0,BoltBossB_h-Overlap])
-					cylinder(d1=RingB_OD+RingB_OD_Xtra-4,d2=RingC_BC_d-Bolt4Inset*2-4,h=Spacer_h-BoltBossB_h+Overlap*2);
+					cylinder(d1=Skirt_ID,d2=RingC_BC_d-Bolt4Inset*2-4,h=Spacer_h-BoltBossB_h+Overlap*2);
 			} // difference
 			
 			rotate([0,0,GM5208CommU_a])
@@ -1467,17 +1502,17 @@ module RingCSpacerGM5208Com(){
 			translate([GM5208CommSw_d/2,0,Encoder_z])  HallOptoMountHoles();
 		
 		// Bolts to Ring B
-		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,BoltBossB_h])
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j+RingC_BC_GM5208Twist_a]) translate([RingC_BC_d/2,0,BoltBossB_h])
 				Bolt4HeadHole(lHead=7);
 		
 		// Bolts to Ring C
-		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,Spacer_h])
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j-RingC_BC_GM5208Twist_a]) translate([RingC_BC_d/2,0,Spacer_h])
 				Bolt4Hole();
 	
 		// center hole
-			translate([0,0,-Overlap]) cylinder(d=RingB_OD+RingB_OD_Xtra-4,h=BoltBossB_h+Overlap);
+			translate([0,0,-Overlap]) cylinder(d=Skirt_ID,h=BoltBossB_h+Overlap);//cylinder(d=RingB_OD+RingB_OD_Xtra-4,h=BoltBossB_h+Overlap);
 			translate([0,0,BoltBossB_h-Overlap]) 
-				cylinder(d1=RingB_OD+RingB_OD_Xtra-4,d2=RingC_BC_d-Bolt4Inset*2-4,h=Spacer_h-BoltBossB_h+Overlap*2);
+				cylinder(d1=Skirt_ID,d2=RingC_BC_d-Bolt4Inset*2-4,h=Spacer_h-BoltBossB_h+Overlap*2);//cylinder(d1=RingB_OD+RingB_OD_Xtra-4,d2=RingC_BC_d-Bolt4Inset*2-4,h=Spacer_h-BoltBossB_h+Overlap*2);
 	} // difference
 	
 	// Commutation sensor positions
@@ -1488,7 +1523,7 @@ module RingCSpacerGM5208Com(){
 	}
 } // RingCSpacerGM5208Com
 
-// RingCSpacerGM5208Com();
+//RingCSpacerGM5208Com();
 
 //rotate([0,0,360/nPolePairs*3]) translate([GM5208_d/2+7,0,11]) 
 	//rotate([0,0,-90]) rotate([-90,0,0]) HallSwitchMount();
@@ -1524,6 +1559,42 @@ module RingCMtrMountGM4008Com(){
 } // RingCMtrMountGM4008Com
 
 //rotate([180,0,0]) RingCMtrMountGM4008Com();
+
+module RingCMtrMountGM5208Com(){
+	nBolts=6;
+	RingC_d=RingC_BC_d-Bolt4Inset*2-5;
+	RimgCMMFlange_d=RingC_d-Bolt4Inset*4;
+	RingC_h=6.8;
+	MotorBoss_h=3.8; // added 1/8/2020
+	
+	difference(){
+		cylinder(d=RingC_d,h=RingC_h);
+		
+		// Remove extra thickness
+		translate([0,0,-Overlap]) difference(){
+			cylinder(d=RingC_d+Overlap,h=MotorBoss_h+Overlap);
+			translate([0,0,-Overlap]) cylinder(d=RimgCMMFlange_d,h=MotorBoss_h+Overlap*2);
+		} // difference
+		
+		// Bolts
+		for (j=[0:nBolts-1]) 
+		 for (k=[0:0.5:360/GM5208_nPolePairs]) hull(){
+			 rotate([0,0,360/nBolts*j+k-0.5]) translate([RingC_d/2-Bolt4Inset,0,-Overlap]) cylinder(d=3,h=RingC_h+Overlap*2,$fn=12);
+			 rotate([0,0,360/nBolts*j+k+0.5]) translate([RingC_d/2-Bolt4Inset,0,-Overlap]) cylinder(d=3,h=RingC_h+Overlap*2,$fn=12);
+		 } // hull
+		
+		// Motor mounting bolts
+		for (j=[0:3]) rotate([0,0,45+90*j]) translate([GM5208SBC3_d/2,0,RingC_h]) Bolt4ClearHole();
+			
+		// Wire path
+		translate([25,0,-Overlap]) cylinder(d=7,h=RingC_h+Overlap*2);
+
+		// center hole
+		translate([0,0,-Overlap]) cylinder(d=13,h=RingC_h+Overlap*2);
+	} // difference
+} // RingCMtrMountGM5208Com
+
+//rotate([180,0,0]) RingCMtrMountGM5208Com();
 
 module RingCCoverGM4008Com(){
 	nBolts=8;
@@ -1566,7 +1637,9 @@ module RingCCoverGM4008Com(){
 
 module RingCCoverGM5208Com(){
 	nBolts=8;
+	nMtrBolts=6;
 	RingC_d=RingC_BC_d-Bolt4Inset*2;
+	RimgCMMFlange_d=RingC_d-5-Bolt4Inset*4;
 	RingC_h=6;
 	
 	difference(){
@@ -1583,17 +1656,18 @@ module RingCCoverGM5208Com(){
 		} // union
 		
 		// Remove extra thickness
-		//translate([0,0,3]) cylinder(d=RingC_d-4,h=RingC_h+Overlap*2);
+		translate([0,0,3]) cylinder(d=RingC_d-4,h=RingC_h+Overlap*2);
 		
 		// Bolts
 		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,RingC_h])
 			Bolt4HeadHole();
 		
 		// Motor mounting bolts
-		for (j=[0:3]) rotate([0,0,45+90*j]) translate([GM5208SBC_d/2,0,5]) Bolt4ButtonHeadHole();
+		for (j=[0:nMtrBolts-1]) 
+			 rotate([0,0,360/nMtrBolts*j]) translate([RimgCMMFlange_d/2+Bolt4Inset,0,RingC_h]) Bolt4Hole();
 
 		// center hole
-		translate([0,0,-Overlap]) cylinder(d=12,h=RingC_h+Overlap*2);
+		translate([0,0,-Overlap]) cylinder(d=RimgCMMFlange_d+IDXtra,h=RingC_h+Overlap*2);
 	} // difference
 } // RingCCoverGM5208Com
 
