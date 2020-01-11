@@ -107,23 +107,37 @@ BearingPreload=-0.3; // easy to back drive
 //  or 48:1 (Ring B = 47 teeth) with asymetrical planet gears
 nPlanets=3;
 Pressure_a=20;
-PlanetATeeth=16;
-PlanetBTeeth=16;
-GearAPitch=260;
-RingATeeth=48; // output gear
 
-/*
+//*
 // 16:1 
 GearBPitch=286.8965517241379;
 RingBTeeth=45;
+PlanetBTeeth=16;
+PlanetATeeth=16;
+GearAPitch=260;
+RingATeeth=48; // output gear
 PlanetToothOffset_a=0;
 /**/
 
-//*
+/*
 // 48:1
 GearBPitch=268.3870967741936;
 RingBTeeth=47;
+PlanetBTeeth=16;
+PlanetATeeth=16;
+GearAPitch=260;
+RingATeeth=48; // output gear
 PlanetToothOffset_a=360/PlanetBTeeth/3;
+/**/
+/*
+// ???:1
+GearBPitch=268.3870967741936;
+RingBTeeth=47;
+PlanetBTeeth=16;
+PlanetToothOffset_a=360/PlanetBTeeth/3;
+PlanetATeeth=15;
+RingATeeth=44; // output gear
+GearAPitch=260;
 /**/
 
 Gear_w=18;
@@ -134,12 +148,12 @@ Ring_B_cpd=PC_BC_d+PlanetBTeeth*GearBPitch/180;
 //RingBTeeth=floor(Ring_B_cpd*180/GearBPitch);
 
 // Planet rotations per motor rotations, aka planet carrier
-P_Ratio=RingATeeth/PlanetATeeth;
-// Planet B teeth per motor rotation
-PBt=P_Ratio*PlanetBTeeth;
+P_Ratio=RingBTeeth/PlanetBTeeth;
+// Planet A teeth per motor rotation
+PBt=P_Ratio*PlanetATeeth;
 // Ring A rotations per motor rotation
-Rf=1/(1-RingBTeeth/PBt);
-/*
+Rf=1/(1-RingATeeth/PBt);
+//*
 // uncomment to show gearing calculations
 echo("Ratio = ",Rf);
 echo("Ring A PD = ",RingA_pd);
