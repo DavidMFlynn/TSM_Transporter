@@ -49,7 +49,7 @@
 // RingA_Stop(HasSkirt=true, HasStop=true, Has2Sensors=false); // use skirt in dirty environments
 // RingA_Stop(HasSkirt=true, HasStop=false, Has2Sensors=true); // for continuous rotation
 // ScrewMountRingB(HasSkirt=false); // Fixed ring. flange mount version.
-// ScrewMountRingB(HasSkirt=true); // use skirt is dirty environments
+ ScrewMountRingB(HasSkirt=true); // use skirt is dirty environments
 //
 //  ***** Brushed motor *****
 // RingCSpacer(HasSkirt=true);
@@ -108,7 +108,7 @@ BearingPreload=-0.3; // easy to back drive
 nPlanets=3;
 Pressure_a=20;
 
-//*
+/*
 // 16:1 
 GearBPitch=286.8965517241379;
 RingBTeeth=45;
@@ -129,15 +129,15 @@ GearAPitch=260;
 RingATeeth=48; // output gear
 PlanetToothOffset_a=360/PlanetBTeeth/3;
 /**/
-/*
-// ???:1
-GearBPitch=268.3870967741936;
+//*
+// 705:1
+GearBPitch=268;
 RingBTeeth=47;
 PlanetBTeeth=16;
 PlanetToothOffset_a=360/PlanetBTeeth/3;
 PlanetATeeth=15;
 RingATeeth=44; // output gear
-GearAPitch=260;
+GearAPitch=286.4827586206896;
 /**/
 
 Gear_w=18;
@@ -158,7 +158,7 @@ Rf=1/(1-RingATeeth/PBt);
 echo("Ratio = ",Rf);
 echo("Ring A PD = ",RingA_pd);
 echo("PC BC Dia = ",PC_BC_d);
-echo("Calc'd Ring B PD = ",Ring_B_cpd/2);
+echo("Calc'd Ring B PD = ",Ring_B_cpd);
 echo("Ring B PD error =",Ring_B_cpd-RingBTeeth*GearBPitch/180);
 /**/
 
@@ -331,21 +331,22 @@ module ShowPlanetCarrier(GMVersion=true){
 	
 	for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j]) translate([-PC_BC_d/2,0,0]) Planet();
 		
-	
+	//*
 	if (GMVersion==false){
 		translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+PC_spacer_l/2+Overlap])
 			PlanetCarrierInner();
 		translate([0,0,33.5])PlanetCarrierDrivePulley(nTeeth=32);
 	} else {
 		translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+Overlap]){
-			PlanetCarrierInnerGimbalMotor();
+			//PlanetCarrierInnerGimbalMotor();
 			translate([0,0,8+Overlap]) rotate([180,0,0]) GM5208MountingPlate();}
 	}
+	/**/
 	translate([0,0,Gear_w/2+0.5-PC_Axil_L/2]) PlanetCarrierSpacer();
 	translate([0,0,Gear_w/2+0.5-PC_Axil_L/2-Overlap]) rotate([180,0,0]) PlanetCarrierOuter();
 } // ShowPlanetCarrier
 
-//ShowPlanetCarrier();
+//ShowPlanetCarrier(GMVersion=true);
 
 module PlanetCarrierDrivePulley(nTeeth=32){
 	// Used with the brushed gear motor belt driven version.
