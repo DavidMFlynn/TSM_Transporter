@@ -49,7 +49,7 @@
 // RingA_Stop(HasSkirt=true, HasStop=true, Has2Sensors=false); // use skirt in dirty environments
 // RingA_Stop(HasSkirt=true, HasStop=false, Has2Sensors=true); // for continuous rotation
 // ScrewMountRingB(HasSkirt=false); // Fixed ring. flange mount version.
- ScrewMountRingB(HasSkirt=true); // use skirt is dirty environments
+// ScrewMountRingB(HasSkirt=true); // use skirt is dirty environments
 //
 //  ***** Brushed motor *****
 // RingCSpacer(HasSkirt=true);
@@ -66,15 +66,22 @@
 // PlanetCarrierOuter();
 // PlanetCarrierSpacer();
 // PlanetCarrierInner();
-// PlanetCarrierInnerGimbalMotor(); // not ready to print
+// PlanetCarrierInnerGM4008()
+// PlanetCarrierInnerGM5208();
 // rotate([180,0,0]) Planet();
 // rotate([180,0,0]) Planet(O_a=PlanetToothOffset_a); // Planet A ccw 1/3 tooth
 // rotate([180,0,0]) Planet(O_a=PlanetToothOffset_a*2); // Planet B ccw 2/3 tooth
 //
 // PlanetCarrierDrivePulley(nTeeth=32); // print 2 /jack
 //
-// LifterRing();
-// LifterBearingCover();
+// LifterSpline(); // Lifter Arm Assy lock on to this.
+//
+// ***** Lifter Arm Assy *****
+/// LifterSpacer();
+// rotate([180,0,0]) LifterLock(); // locking ring
+// translate([0,0,20]) LifterLockCover(); // part of the lifter arm
+// LifterDogLeg();
+// LifterBearingCover(); 
 //
 // TestFixture();
 // *************************************************
@@ -129,15 +136,16 @@ GearAPitch=260;
 RingATeeth=48; // output gear
 PlanetToothOffset_a=360/PlanetBTeeth/3;
 /**/
+
 //*
 // 705:1
 GearBPitch=268;
 RingBTeeth=47;
 PlanetBTeeth=16;
-PlanetToothOffset_a=360/PlanetBTeeth/3;
 PlanetATeeth=15;
 RingATeeth=44; // output gear
 GearAPitch=286.4827586206896;
+PlanetToothOffset_a=0;
 /**/
 
 Gear_w=18;
@@ -517,6 +525,8 @@ module PlanetCarrierInnerGM4008(){
 
 PC_InnerGM5208_h=3;
 
+//SplineShaft(d=GM5208_Spline_d,l=10,nSplines=GM5208_nSplines,Spline_w=30,Hole=12.7,Key=false);
+
 module PlanetCarrierInnerGM5208(){
 	// Used with a brushless gimbal motor (5208) 
 	Spline_d=GM5208_Spline_d;
@@ -710,8 +720,8 @@ module Planet(O_a=0){
 			}
 		} // union
 
-		if (O_a!=0) 
-			rotate([0,0,O_a]) translate([-8.5,0,Gear_w*1.5]) cylinder(d=1.5,h=2);
+		//if (O_a!=0) 
+			rotate([0,0,O_a]) translate([-8.5,0,Gear_w*1.5]) cylinder(d=2,h=2);
 
 		translate([0,0,-Gear_w/2-Overlap]) cylinder(d=sBearing_OD,h=sBearing_w+Overlap);
 		translate([0,0,Gear_w+Gear_w/2+1-sBearing_w]) cylinder(d=sBearing_OD,h=sBearing_w+Overlap);
@@ -1463,6 +1473,69 @@ module RingCSpacerGM4008Com(){
 
 //RingCSpacerGM4008Com();
 	
+module InnerPlanetBearing(){
+	nBolts=8;
+	BoltBossB_h=6;
+	Skirt_h=5+Bearing_w+2;
+	Skirt_ID=GM5208Comm_d+1.5;
+	
+	difference(){
+		union(){
+			cylinder(d=RingB_OD+RingB_OD_Xtra,h=Skirt_h);
+			
+			// Ring B bolt bosses
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				translate([RingB_OD/2,0,0])
+						cylinder(d=Bolt4Inset*2+2,h=Skirt_h);
+				translate([RingC_BC_d/2,0,0]) cylinder(d=Bolt4Inset*2,h=Skirt_h);
+			} // hull
+			
+			// Ring C bolt bosses
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j+22.5]) hull(){
+				translate([RingB_OD/2,0,Skirt_h-BoltBossB_h])
+						cylinder(d=Bolt4Inset*2+2,h=BoltBossB_h);
+				translate([RingC_BC_d/2,0,Skirt_h-BoltBossB_h]) cylinder(d=Bolt4Inset*2,h=BoltBossB_h);
+				translate([(RingB_OD+RingB_OD_Xtra)/2,0,2]) sphere(d=4,$fn=12);
+			} // hull
+		} // union
+		
+		// Bolts to Ring B
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,BoltBossB_h])
+				Bolt4HeadHole(lHead=Skirt_h);
+
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j+22.5]) translate([RingC_BC_d/2,0,Skirt_h])
+				Bolt4Hole(depth=8);
+		
+		translate([0,0,-Overlap]) cylinder(d=Skirt_ID,h=Skirt_h+Overlap*2);
+	} // difference
+	
+	nSpokes=7;
+	
+	// Planet carrier bearing mount
+	
+	difference(){
+		union(){
+			 translate([0,0,Skirt_h-(Bearing_w+2)]) cylinder(d=Bearing_OD+6,h=Bearing_w+2);
+			
+			for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j]) hull(){
+					translate([Bearing_OD/2+3,0,Skirt_h-(Bearing_w+2)]) rotate([0,0,45]) cylinder(d=2,h=Bearing_w+2,$fn=4);
+					translate([RingB_OD/2,0,Skirt_h-(Bearing_w+2)]) rotate([0,0,45]) cylinder(d=2,h=Bearing_w+2,$fn=4);
+				} // hull
+			
+		} // union
+		//Bearing_OD=1.125*25.4;
+		//Bearing_ID=0.500*25.4;
+		//Bearing_w=0.3125*25.4;
+
+		translate([0,0,Skirt_h-2]) cylinder(d=Bearing_OD-1,h=3);
+		translate([0,0,Skirt_h-(Bearing_w+2)-Overlap]) cylinder(d=Bearing_OD,h=Bearing_w+Overlap*2);
+		
+	} // difference
+		
+} // InnerPlanetBearing
+
+//rotate([180,0,]) InnerPlanetBearing();
+
 module RingCSpacerGM5208Com(){
 	nBolts=8;
 	BoltBossB_h=6;
@@ -2222,6 +2295,15 @@ module RingC(){
 //  ***** Lifter Parts *****
 // ***********************************************************************************************
 
+//LifterSpline(); // Lifter Arm Assy lock on to this.
+
+// ***** Lifter Arm Assy *****
+/// LifterSpacer();
+// rotate([180,0,0]) LifterLock(); // locking ring
+// translate([0,0,20]) LifterLockCover(); // part of the lifter arm
+// LifterDogLeg();
+// LifterBearingCover(); 
+
 module ShowLifter(){
 	CenterDistance=-90;
 	
@@ -2321,46 +2403,6 @@ module LifterLock(nSpokes=7){
 } // LifterLock
 
 //rotate([180,0,0]) LifterLock(); // for STL
-
-module LifterLockingRing(nSpokes=7){
-	// Push-Pull version
-	
-	Lock_Ball_Circle_d=RingA_Bearing_ID+Lock_Ball_d;
-	Major_d=RingA_Bearing_BallCircle+Ball_d+4;
-	LLR_h=Lock_Ball_d;
-	
-	difference(){
-		union(){
-			cylinder(d=Major_d,h=LLR_h);
-			
-			translate([0,0,LLR_h-4]) cylinder(d1=Major_d,d2=Major_d+2,h=3+Overlap);
-			translate([0,0,LLR_h-1]) cylinder(d=Major_d+2,h=1);
-		} // union
-		
-		translate([0,0,-Overlap]) cylinder(d=Lock_Ball_Circle_d+Lock_Ball_d-2,h=LLR_h+Overlap*2);
-		
-		// Bolts bosses
-			for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j]) hull(){
-					translate([Major_d/2-Bolt4Inset-2,0,-Overlap]) cylinder(r=Bolt4Inset+IDXtra,h=LLR_h+Overlap*4);
-					translate([Major_d/2-Bolt4Inset*2,0,-Overlap]) cylinder(r=Bolt4Inset+1+IDXtra,h=LLR_h+Overlap*4);
-			}
-			
-		// Ball detents
-		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*(j+0.5)]) 
-			translate([Lock_Ball_Circle_d/2,0,LLR_h/2]) sphere(d=Lock_Ball_d, $fn=$preview? 18:90);
-		
-		// Ball releases
-		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*(j+0.5)]) hull(){
-			translate([Lock_Ball_Circle_d/2,0,LLR_h/2-2]) sphere(d=Lock_Ball_d, $fn=$preview? 18:90);
-			translate([Lock_Ball_Circle_d/2+2,0,LLR_h/2-5]) sphere(d=Lock_Ball_d, $fn=$preview? 18:90);
-		} // hull
-	} // difference
-	
-} // LifterLockingRing
-
-//translate([0,0,10-Lock_Ball_d/2+5]) LifterLockingRing(); // unlocked
-//rotate([180,0,0]) LifterLockingRing(); // for STL
-//translate([0,0,10-Lock_Ball_d/2]) LifterLockingRing(); // locked
 
 Dogbone_L=90;
 
