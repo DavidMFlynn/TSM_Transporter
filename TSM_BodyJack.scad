@@ -196,12 +196,11 @@ WT_OD=5/16*25.4;
 twist=200;
 
 RingA_OD=RingATeeth*GearAPitch/180+GearAPitch/60;
-RingA_Bearing_ID=RingA_OD-7;
-RingA_Bearing_BallCircle=RingA_OD+Ball_d;
-RingA_Bearing_Race_w=10;
-
+RingA_Bearing_BallCircle=84; // was RingA_OD+Ball_d;
+RingA_Bearing_ID=RingA_Bearing_BallCircle-Ball_d-Bolt4Inset*2;// was RingA_OD-7;
 RingA_Bearing_OD=RingA_Bearing_BallCircle+Ball_d+5;
-//RingA_Gear_OD=RingATeeth*GearAPitch/180+6;
+
+RingA_Bearing_Race_w=10;
 
 PC_Axil_L=1.5*25.4;
 PC_End_d=Bolt4Inset*2+2;
@@ -219,8 +218,7 @@ RingB_OD=RingBTeeth*GearBPitch/180+GearBPitch/60+1;
 RingB_OD_Xtra=3;
 
 RingB_BC_d=100;
-
-RingC_BC_d=RingA_OD+RingB_OD_Xtra+Bolt4Inset*2; // was RingB_OD which is mor likely to change
+RingC_BC_d=86; //was RingA_OD+RingB_OD_Xtra+Bolt4Inset*2; 
 
 // GM5208 Motor data
 GM5208_d=60;
@@ -661,8 +659,6 @@ module Planet(O_a=0){
 				translate([0,0,0.5+Overlap]) cylinder(d=PlanetATeeth*GearAPitch/180+10,h=1);
 			} // difference
 				
-			
-			
 			translate([0,0,Gear_w/2-Overlap]) rotate([0,0,O_a+180/PlanetBTeeth-2.75])
 			difference(){
 				gear(number_of_teeth=PlanetBTeeth,
@@ -771,6 +767,7 @@ module RingABearing(){
 //translate([15-0.5,0,0]) rotate([0,90,0]) RingABearing();
 
 module RingA_Stop(HasSkirt=false, HasStop=true, Has2Sensors=true){
+	// Connects RingA bearing to RingB
 	RingABearingMountingRing_t=3;
 	RingABearingMountingRing_BC_d=104;
 	RingABearingMountingRing_d=RingABearingMountingRing_BC_d+Bolt4Inset*2;
@@ -1001,16 +998,17 @@ module RingA(HasStop=true){
 			cylinder(d=RingA_Major_OD-2,h=Gear_w);
 		} // union
 		
-		translate([0,0,-Overlap]) cylinder(d=RingA_OD,h=Gear_w+Overlap*2);
+		translate([0,0,-Overlap]) cylinder(d=RingA_OD, h=Gear_w+Overlap*2);
 	} // difference
 	
 
 	// Skirt connecting bearing to gear
 	translate([0,0,-Gear_w/2-6-Overlap])
 	difference(){
-		cylinder(d1=RingA_Bearing_BallCircle-Ball_d*0.7,d2=RingA_Major_OD,h=6+Overlap*2);
+		Skirt_OD=RingA_Bearing_BallCircle-Ball_d*0.7;
+		cylinder(d1=Skirt_OD, d2=RingA_Major_OD, h=6+Overlap*2);
 		
-		translate([0,0,-Overlap]) cylinder(d1=RingA_Bearing_BallCircle-Ball_d*0.7-5,d2=RingA_Teeth_ID,h=6+Overlap*4);
+		translate([0,0,-Overlap]) cylinder(d1=Skirt_OD-5, d2=RingA_Teeth_ID, h=6+Overlap*4);
 	} // difference
 	
 	// Planet carrier bearing mount
@@ -1103,22 +1101,19 @@ module RingB_Gear(){
 //translate([0,0,Gear_w+16]) RingB_Gear();
 
 module ScrewMountRingB(HasSkirt=false){
-	
 	nBolts=8;
-	
+
 	RingB_Gear();
 	
 	translate([0,0,-Gear_w/2])
 	difference(){
 		union(){
-			
 			// bolt bosses to ring C
 			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
 				translate([RingB_OD/2,0,Gear_w/2])
 					cylinder(d=Bolt4Inset*2+2,h=Gear_w/2);
 				translate([RingC_BC_d/2,0,Gear_w/2])
 					cylinder(d=Bolt4Inset*2,h=Gear_w/2);
-				
 			}
 			
 			// bolt bosses to ring A
@@ -1393,8 +1388,6 @@ module RingCGMCover(){
 
 //translate([0,0,7]) RingCGMCover();
 
-
-
 module RingCSpacerGM4008Com(){
 	nBolts=8;
 	BoltBossB_h=6;
@@ -1403,7 +1396,6 @@ module RingCSpacerGM4008Com(){
 	//echo(GM4008_h=GM4008_h);
 	Encoder_z=Spacer_h-GM4008_h-13; // hole pattern offest from top, adjusted -0.4 1/8/2020
 	nPolePairs=GM4008_nPolePairs;
-		
 	
 	difference(){
 		union(){
