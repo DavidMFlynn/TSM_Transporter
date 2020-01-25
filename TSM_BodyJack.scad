@@ -77,7 +77,7 @@
 // LifterSpline(); // Lifter Arm Assy lock on to this.
 //
 // ***** Lifter Arm Assy *****
-/// LifterSpacer();
+// LifterSpacer();
 // rotate([180,0,0]) LifterLock(); // locking ring
 // translate([0,0,20]) LifterLockCover(); // part of the lifter arm
 // LifterDogLeg();
@@ -2605,7 +2605,7 @@ module LifterDogLeg(nSpokes=7){
 
 module LifterSpline(nSpokes=7){
 	Spline_h=20;
-	Lock_Ball_Circle_d=RingA_Bearing_ID/2+Lock_Ball_d/2;
+	Lock_Ball_Circle_r=RingA_Bearing_ID/2+Lock_Ball_d/2;
 	
 	difference(){
 		union(){
@@ -2623,7 +2623,7 @@ module LifterSpline(nSpokes=7){
 		
 		// Ball detents
 		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*(j+0.5)])
-			translate([Lock_Ball_Circle_d,0,2+Spline_h/2]) sphere(d=Lock_Ball_d, $fn=$preview? 18:90);
+			translate([Lock_Ball_Circle_r,0,2+Spline_h/2]) sphere(d=Lock_Ball_d, $fn=$preview? 18:90);
 	} // difference
 	
 } // LifterSpline
