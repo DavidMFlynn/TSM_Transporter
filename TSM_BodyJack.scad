@@ -6,7 +6,7 @@
 // Filename: TSM_BodyJack.scad
 // By: David M. Flynn
 // Created: 10/16/2019
-// Revision: 1.1.3 1/8/2020
+// Revision: 1.1.4 1/25/2020
 // Units: mm
 // *************************************************
 //  ***** Notes *****
@@ -19,6 +19,7 @@
 // 	AS5047D encoder 7 pole pairs.
 // *************************************************
 //  ***** History ******
+// 1.1.4 1/25/2020 Standardizing dimensions. 
 // 1.1.3 1/8/2020   Fixes for GM5208 motor.
 // 1.1.2 12/29/2019 Motor mount w/ adjustable timing. 
 // 1.1.1 12/28/2019 Added GM4008 motor variant. 
@@ -50,6 +51,7 @@
 // RingA_Stop(HasSkirt=true, HasStop=false, Has2Sensors=true); // for continuous rotation
 // ScrewMountRingB(HasSkirt=false); // Fixed ring. flange mount version.
 // ScrewMountRingB(HasSkirt=true); // use skirt is dirty environments
+// rotate([180,0,]) InnerPlanetBearing();
 //
 //  ***** Brushed motor *****
 // RingCSpacer(HasSkirt=true);
@@ -59,8 +61,8 @@
 // RingCSpacerGM(HasSkirt=true); // Plain for sensored motor
 // RingCSpacerGM4008Com(); // hall switchs for 11 pole pairs
 // RingCEncoderMount();
-// RingCCover();
 // RoundRingCGM();
+// RingCGMCover();
 //
 //  ***** Planet carrier parts
 // PlanetCarrierOuter();
