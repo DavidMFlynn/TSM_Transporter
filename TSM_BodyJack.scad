@@ -78,6 +78,9 @@
 //
 // LifterSpline(); // Lifter Arm Assy lock on to this.
 //
+// ***** Connector Only *****
+// BallLockRing();
+//
 // ***** Lifter Arm Assy *****
 // LifterSpacer();
 // rotate([180,0,0]) LifterLock(); // locking ring
@@ -128,7 +131,7 @@ RingATeeth=48; // output gear
 PlanetToothOffset_a=0;
 /**/
 
-/*
+//*
 // 48:1
 GearBPitch=268.3870967741936;
 RingBTeeth=47;
@@ -139,7 +142,7 @@ RingATeeth=48; // output gear
 PlanetToothOffset_a=360/PlanetBTeeth/3;
 /**/
 
-//*
+/*
 // 705:1
 GearBPitch=268;
 RingBTeeth=47;
@@ -2530,6 +2533,50 @@ module LifterOneRing(nSpokes=7){
 } // LifterOneRing
 
 //translate([-90,0,20]) LifterOneRing();
+
+module BallLockRing(nSpokes=7){
+	Spline_h=20;
+	Lock_Ball_Circle_d=RingA_Bearing_ID+Lock_Ball_d;
+	Major_d=RingA_Bearing_BallCircle+Ball_d+4;
+	LLC_h=6;
+	Skirt_t=5;
+	
+	difference(){
+		cylinder(d=Major_d,h=Spline_h);
+		
+		translate([0,0,-Overlap]) SplineHole(d=RingA_Bearing_ID+Bolt4Inset*2,l=Spline_h+Overlap*2,nSplines=nSpokes,Spline_w=25,Gap=IDXtra,Key=true);
+		
+		// lock ring
+		difference(){
+			translate([0,0,Spline_h/2-Lock_Ball_d/2-IDXtra]) cylinder(d=Major_d+Overlap,h=Spline_h);
+			
+			translate([0,0,Spline_h/2-Lock_Ball_d/2-IDXtra-Overlap])
+				cylinder(d=Lock_Ball_Circle_d+Lock_Ball_d-2,h=Spline_h+Overlap*2);
+			
+			// Bolts bosses
+			for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j]) hull(){
+					translate([Major_d/2-Bolt4Inset-2,0,-Overlap]) cylinder(r=Bolt4Inset,h=Spline_h+Overlap*4);
+					translate([Major_d/2-Bolt4Inset*2,0,-Overlap]) cylinder(r=Bolt4Inset+1,h=Spline_h+Overlap*4);
+			}
+		} // difference
+		
+		// Bolts
+		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j]) translate([Major_d/2-Bolt4Inset-2,0,Spline_h]) Bolt4Hole();
+		
+		// Ball detents
+		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*(j+0.5)]) hull(){
+			translate([Lock_Ball_Circle_d/2,0,Spline_h/2]) sphere(d=Lock_Ball_d+IDXtra, $fn=$preview? 18:90);
+			translate([Lock_Ball_Circle_d/2,0,Spline_h/2]) rotate([0,90,0]) cylinder(d=Lock_Ball_d+IDXtra,h=15, $fn=$preview? 18:90);
+		} // hull
+	} // difference
+	
+	// Balls
+	if ($preview==true)
+	for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*(j+0.5)])
+			translate([Lock_Ball_Circle_d/2,0,Spline_h/2]) color("Red") sphere(d=Lock_Ball_d, $fn=18);
+} // BallLockRing
+
+//BallLockRing();
 
 module LifterDogLeg(nSpokes=7){
 	Spline_h=20;
