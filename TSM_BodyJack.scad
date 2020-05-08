@@ -334,7 +334,13 @@ module ShowBodyJack(Rot_a=180/RingATeeth,HasSkirt=true){
 // *********************************************************************************************
 //  ***** Planet Carrier Parts *****
 // *********************************************************************************************
-
+//  ***** STL for 48:1 w/ 4008 motor *****
+// GM4008MountingPlate(HasCommutatorDisk=true);
+// SplineShaft(d=GM4008_Spline_d,l=4,nSplines=GM4008_nSplines,Spline_w=30,Hole=12.7+IDXtra,Key=false);
+// PlanetCarrierSpacer();
+// rotate([180,0,0]) Planet(O_a=0); // print 3
+// PlanetCarrierOuter(); // print 2
+// *********************************************************************************************
 PC_Drv_L=15;
 
 module ShowPlanetCarrier(GMVersion=true){
@@ -358,6 +364,29 @@ module ShowPlanetCarrier(GMVersion=true){
 } // ShowPlanetCarrier
 
 //ShowPlanetCarrier(GMVersion=true);
+
+module ShowPlanetCarrier48_4008(GMVersion=true){
+	
+	
+	for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j]) translate([-PC_BC_d/2,0,0]) Planet();
+		
+	//*
+	if (GMVersion==false){
+		translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+PC_spacer_l/2+Overlap])
+			PlanetCarrierInner();
+		translate([0,0,33.5])PlanetCarrierDrivePulley(nTeeth=32);
+	} else {
+		translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+Overlap]){
+			PlanetCarrierInnerGM4008();
+			translate([0,0,8+Overlap]) rotate([180,0,0]) GM4008MountingPlate();}
+	}
+	/**/
+	translate([0,0,Gear_w/2+0.5-PC_Axil_L/2]) PlanetCarrierSpacer();
+	translate([0,0,Gear_w/2+0.5-PC_Axil_L/2-Overlap]) rotate([180,0,0]) PlanetCarrierOuter();
+} // ShowPlanetCarrier48_4008
+
+//ShowPlanetCarrier48_4008(GMVersion=true);
+
 
 module PlanetCarrierDrivePulley(nTeeth=32){
 	// Used with the brushed gear motor belt driven version.
@@ -507,6 +536,8 @@ module GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
 //translate([0,0,8+Overlap]) rotate([180,0,0]) GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=false);
 
 PC_InnerGM4008_h=3;
+
+//SplineShaft(d=GM4008_Spline_d,l=4,nSplines=GM4008_nSplines,Spline_w=30,Hole=12.7+IDXtra,Key=false);
 
 module PlanetCarrierInnerGM4008(){
 	// Used with a brushless gimbal motor (4008) 
@@ -721,7 +752,7 @@ module Planet(O_a=0){
 			}
 		} // union
 
-		//if (O_a!=0) 
+		if (O_a!=0) 
 			rotate([0,0,O_a]) translate([-8.5,0,Gear_w*1.5]) cylinder(d=2,h=2);
 
 		translate([0,0,-Gear_w/2-Overlap]) cylinder(d=sBearing_OD,h=sBearing_w+Overlap);
@@ -731,11 +762,21 @@ module Planet(O_a=0){
 
 //for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j]) translate([-PC_BC_d/2,0,0]) rotate([0,0,180/PlanetBTeeth]) Planet(O_a=PlanetToothOffset_a*j);
 //Planet(O_a=PlanetToothOffset_a);
-//Planet();
+//Planet(O_a=0);
 //cylinder(d=13,h=50);
 	
 // *************************************************************************************
 //  ***** Ring A, drive ring and bearing *****
+// *************************************************************************************
+//  ***** STL for 48:1 GM4008 *****
+// RingA(HasStop=false);
+// RingA_Stop(HasSkirt=true, HasStop=false, nSensors=0); // Drive wheel using motor commutation for position
+// RingABearing();
+//
+// RingA_HomeFinderDisk(); // or
+// RingA_EncoderDisk(PPR=70);
+//
+// HomeSwitchMount();
 // *************************************************************************************
 
 module RingABearing(){
@@ -771,7 +812,7 @@ module RingABearing(){
 
 //translate([15-0.5,0,0]) rotate([0,90,0]) RingABearing();
 
-module RingA_Stop(HasSkirt=false, HasStop=true, Has2Sensors=true){
+module RingA_Stop(HasSkirt=false, HasStop=true, nSensors=2){
 	// Connects RingA bearing to RingB
 	RingABearingMountingRing_t=3;
 	RingABearingMountingRing_BC_d=104;
@@ -816,8 +857,9 @@ module RingA_Stop(HasSkirt=false, HasStop=true, Has2Sensors=true){
 			} // for
 			
 			// Optical sensor mount
-			rotate([0,0,22.5]) translate([-EncoderSw_r,0,0]) OptoMountPlate(Z=PostToRingB_h);
-			if (Has2Sensors==true) rotate([0,0,-22.5]) 
+			if (nSensors>0)
+				rotate([0,0,22.5]) translate([-EncoderSw_r,0,0]) OptoMountPlate(Z=PostToRingB_h);
+			if (nSensors==2) rotate([0,0,-22.5]) 
 				translate([-EncoderSw_r,0,0]) OptoMountPlate(Z=PostToRingB_h);
 		} // union
 		
@@ -825,8 +867,9 @@ module RingA_Stop(HasSkirt=false, HasStop=true, Has2Sensors=true){
 		translate([0,0,-Overlap]) cylinder(d=RingA_Major_OD+8,h=RingABearingMountingRing_t+Overlap*2);
 		
 		// Optical sensor mount
-		rotate([0,0,22.5]) translate([-EncoderSw_r-Overlap,0,0]) OptoMountHoles();
-		if (Has2Sensors==true) rotate([0,0,-22.5]) 
+		if (nSensors>0)
+			rotate([0,0,22.5]) translate([-EncoderSw_r-Overlap,0,0]) OptoMountHoles();
+		if (nSensors==2) rotate([0,0,-22.5]) 
 			translate([-EncoderSw_r-Overlap,0,0]) OptoMountHoles();
 			
 		// bolts
@@ -897,7 +940,7 @@ module HomeSwitchMount(){
 //rotate([0,0,22.5]) translate([-50,0,15]) rotate([0,-90,0]) rotate([0,0,-90]) HomeSwitchMount();
 
 /*
-RingA_Stop(HasSkirt=false, HasStop=true, Has2Sensors=true);
+RingA_Stop(HasSkirt=false, HasStop=true, nSensors=2);
 translate([0,0,Gear_w/2+6]) rotate([0,0,10]) RingA();
 //rotate([180,0,0]) RingABearing();
 //translate([0,0,Gear_w+16]) ScrewMountRingB();
@@ -963,6 +1006,7 @@ module RingA_HomeFinderDisk(){
 
 //translate([0,0,Gear_w/2+6+2+Overlap]) RingA_HomeFinderDisk();
 //translate([0,0,Gear_w/2+Overlap]) RingA_HomeFinderDisk();
+
 
 module RingA(HasStop=true){
 	
@@ -1064,6 +1108,9 @@ module RingA(HasStop=true){
 
 // ***********************************************************************************************
 //  ***** Ring B, Stationary ring gear *****
+// ***********************************************************************************************
+//  ***** STL for 48:1 GM4008 *****
+// ScrewMountRingB(HasSkirt=true);
 // ***********************************************************************************************
 
 module RingB_Gear(){
@@ -1222,7 +1269,25 @@ module RingB(){
 //  ***** Ring C, Motor mount, Commutator disk, end bearing support *****
 //  ***** Used with a brushless gimbal motor (4008/5208) and "Hall switch" disk *****
 // ****************************************************************************************************
+//  ***** STL for 48:1 GM4008 *****
+// RingCGMCover();
+// rotate([180,0,0])RingCMtrMountGM4008Com();
+// RingCCoverGM4008Com();
+// RingCSpacerGM4008Com();
+// rotate([180,0,0]) InnerPlanetBearing();
+//
+// HallSwitchMount(); // print 3
+// ****************************************************************************************************
 
+module TopAssy4008(){
+	translate([0,0,46]) RingCGMCover();
+	translate([0,0,36]) RingCMtrMountGM4008Com();
+	translate([0,0,36])  RingCCoverGM4008Com();
+	RingCSpacerGM4008Com();
+	translate([0,0,-16]) InnerPlanetBearing();
+} // TopAssy4008
+
+//TopAssy4008();
 
 module ShowGM5208Module(){
 	translate([0,0,110]) RingCGMCover();
@@ -1231,18 +1296,13 @@ module ShowGM5208Module(){
 	
 	translate([0,0,50]) GimbalMotor5208();
 	
-	
 	translate([0,0,40]) rotate([180,0,0]) GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=false);
 	RingCSpacerGM5208Com();
 	translate([0,0,-20]) PlanetCarrierInnerGM5208();
 	
-	
-
 } // ShowGM5208Module
 
 //ShowGM5208Module();
-
-
 
 module HallSwitchMount(){
 	BoltOffset_X=6;
@@ -1267,6 +1327,8 @@ module HallSwitchMount(){
 		translate([0,-BoltOffset_Y-2.5,0]) SwitchHoles(T);
 	} // difference
 } // HallSwitchMount
+
+//HallSwitchMount();
 
 	module HallOptoMountPlate(Z=20,Label="W"){
 		Width=20;
@@ -1766,7 +1828,7 @@ module RingCCoverGM5208Com(){
 
 module RingCSpacerGM(HasSkirt=false){
 	// plain skirt w/o hall sensors
-	
+
 	nBolts=8;
 	BoltBossB_h=6;
 	Spacer_h=6+26;
