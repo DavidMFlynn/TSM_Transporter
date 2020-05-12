@@ -335,10 +335,12 @@ module ShowBodyJack(Rot_a=180/RingATeeth,HasSkirt=true){
 //  ***** Planet Carrier Parts *****
 // *********************************************************************************************
 //  ***** STL for 48:1 w/ 4008 motor *****
-// GM4008MountingPlate(HasCommutatorDisk=true);
+// GM4008MountingPlate(HasCommutatorDisk=true); // Commutator
 // SplineShaft(d=GM4008_Spline_d,l=4,nSplines=GM4008_nSplines,Spline_w=30,Hole=12.7+IDXtra,Key=false);
 // PlanetCarrierSpacer();
-// rotate([180,0,0]) Planet(O_a=0); // print 3
+// rotate([180,0,0]) Planet(O_a=0);
+// rotate([180,0,0]) Planet(O_a=PlanetToothOffset_a);
+// rotate([180,0,0]) Planet(O_a=PlanetToothOffset_a*2);
 // PlanetCarrierOuter(); // print 2
 // *********************************************************************************************
 PC_Drv_L=15;
@@ -2352,6 +2354,11 @@ module RingC(){
 //RingC();
 // ***********************************************************************************************
 //  ***** Lifter Parts *****
+// ***********************************************************************************************
+//  ***** STL for 48:1 GM4008 *****
+// LifterSpline(nSpokes=7); // bolts to Ring A
+// BallLockRing(nSpokes=7);
+// LifterLock(nSpokes=7);
 // ***********************************************************************************************
 
 //LifterSpline(); // Lifter Arm Assy lock on to this.
