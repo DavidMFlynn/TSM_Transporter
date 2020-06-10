@@ -4,10 +4,11 @@
 // Filename: TSM_DrivePlanetary.scad
 // By: David M. Flynn
 // Created: 10/1/2019
-// Revision: 0.9.9 11/16/2019
+// Revision: 1.0.0 6/7/2020
 // Units: mm
 // *************************************************
 //  ***** History ******
+// 1.0.0 6/7/2020 Added Idle version
 // 0.9.9 11/16/2019 Encoder mount.
 // 0.9.8 11/8/2019 Added RingB spacer and encoder mount. Added 5mm and Enc to RingB.
 // 0.9.7 10/9/2019 Updated mounting plate.
@@ -22,19 +23,22 @@
 //  ***** for STL output *****
 // rotate([180,0,0]) Planet(); // print 5
 //
-// PlanetCarrier(); // outer
+// PlanetCarrier(FullCover=true); // outer
 // rotate([180,0,0]) MotorSleeve();
 // InnerPlanetCarrier();
 // rotate([180,0,0]) EncoderDisc();
 //
 // RingBSpacer(); // add to RingB
 // RingB(); // Stator, FC1
+// RingB(HasGear=false);
 // EncoderMount();
 // rotate([180,0,0]) RingA();
+// rotate([180,0,0]) RingA(HasGear=false);
 //
 // OuterTrackSprocket();
-// InnerTrackSprocket(); InnerSprocketMount();
-// InnerSprocketMountSpacer();
+// InnerTrackSprocket();
+// InnerSprocketMount(SpacerHeight=5);
+// InnerSprocketMountSpacer(); // obsolete
 //
 // MountingPlate(); // for testing
 // *************************************************
@@ -194,9 +198,12 @@ if ($preview==true) translate([0,0,-DrvMtr_l+4+Enc_h]) color("Red"){
 	
 	}}
 	
-module PlanetCarrier(){
+module PlanetCarrier(FullCover=true){
 	difference(){
 		union(){
+			if (FullCover==true){
+				cylinder(d=RingATeeth*GearAPitch/180+4,h=1.2);
+			}
 			// Motor sleve/spacer bolt bosses
 			for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*(j+0.5)]) hull(){
 				translate([-DrvMtr_OD/2-4,0,0]) cylinder(d=8,h=6);
@@ -447,7 +454,10 @@ module MotorSleeve(){
 	InnerTrackSpocketBolt_BC=RingA_Bearing_OD/2+1.5;
 
 
-module RingA(){
+module RingA(HasGear=true){
+	
+	if (HasGear==true){
+
 	ring_gear(number_of_teeth=RingATeeth,
 		circular_pitch=GearAPitch, diametral_pitch=false,
 		pressure_angle=Pressure_a,
@@ -472,7 +482,12 @@ module RingA(){
 			twist=twist/RingATeeth,
 			involute_facets=0, // 1 = triangle, default is 5
 			flat=false);
-	
+		} else {
+			
+			difference(){
+				translate([0,0,-10]) cylinder(d=RingA_Gear_OD+1,h=20);
+				translate([0,0,-10-Overlap]) cylinder(d=RingA_Gear_OD-3,h=20+Overlap*2);
+			}}
 	Boss_h=10;
 	
 	translate([0,0,-10])
@@ -524,7 +539,8 @@ module RingA(){
 			Race_w=RingB_Bearing_Race_w, PreLoadAdj=BearingPreload, VOffset=0.00, BI=true, myFn=$preview? 60:720);
 } // RingA
 
-// RingA();
+ //RingA(HasGear=true);
+// RingA(HasGear=false);
 
 
 module OuterTrackSprocket(ShowTeeth=$preview){
@@ -570,14 +586,14 @@ module InnerSprocketMountSpacer(Height=6){
 	difference(){
 		union(){
 			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*(j+0.5)]) hull(){
-				translate([InnerTrackSpocketBolt_BC,0,0]) cylinder(d=Bolt4Inset*2,h=6);
-				translate([RingA_Bearing_OD/2-4,0,0]) cylinder(d=Bolt4Inset*2+2,h=6);}
+				translate([InnerTrackSpocketBolt_BC,0,0]) cylinder(d=Bolt4Inset*2,h=Height);
+				translate([RingA_Bearing_OD/2-4,0,0]) cylinder(d=Bolt4Inset*2+2,h=Height);}
 				
 			cylinder(d=RingA_Bearing_OD,h=Height);
 		} // union
 		
 		// Bolts to connect to Ring A
-		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*(j+0.5)]) translate([InnerTrackSpocketBolt_BC,0,7])
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*(j+0.5)]) translate([InnerTrackSpocketBolt_BC,0,Height])
 			Bolt4ClearHole();
 		
 		// cut out inside
@@ -586,9 +602,9 @@ module InnerSprocketMountSpacer(Height=6){
 	
 } // InnerSprocketMountSpacer
 
-//InnerSprocketMountSpacer();
+//translate([0,0,-6]) InnerSprocketMountSpacer();
 
-module InnerSprocketMount(){
+module InnerSprocketMount(SpacerHeight=6){
 	nBolts=nTrackTeeth/2;
 	Height=13;
 	
@@ -604,11 +620,18 @@ module InnerSprocketMount(){
 				
 			
 			cylinder(d1=RingA_Bearing_OD,d2=BSkirt_OD+10,h=Height);
+			
+			// Spacer
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*(j+0.5)]) hull(){
+				translate([InnerTrackSpocketBolt_BC,0,-SpacerHeight]) cylinder(d=Bolt4Inset*2,h=SpacerHeight+Overlap);
+				translate([RingA_Bearing_OD/2-4,0,-SpacerHeight]) cylinder(d=Bolt4Inset*2+2,h=SpacerHeight+Overlap);}
+				
+			translate([0,0,-SpacerHeight]) cylinder(d=RingA_Bearing_OD,h=SpacerHeight+Overlap);
 		} // union
 		
 		// Bolts to connect to Ring A
 		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*(j+0.5)]) translate([InnerTrackSpocketBolt_BC,0,7])
-			Bolt4HeadHole();
+			Bolt4HeadHole(depth=Height+SpacerHeight);
 		
 		// Bolts to connect to Spocket
 		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([BSkirt_OD/2+5,0,Height])
@@ -617,15 +640,16 @@ module InnerSprocketMount(){
 		// cut out inside
 		translate([0,0,-Overlap]) cylinder(d1=RingB_Bering_BallCircle-2,d2=BSkirt_OD+1,h=10);
 		translate([0,0,-Overlap]) cylinder(d=BSkirt_OD+1,h=Height+Overlap*2);
+		translate([0,0,-SpacerHeight-Overlap]) cylinder(d=RingB_Bering_BallCircle-2,h=SpacerHeight+Overlap*2);
 	} // difference
 } // InnerSprocketMount
 
-//translate([0,0,-10]) InnerSprocketMount();
+//translate([0,0,-10]) InnerSprocketMount(SpacerHeight=6);
 
 BSkirtBC_d=BSkirt_OD-Bolt4Inset*2;
 
-module RingB(){
-	
+module RingB(HasGear=true){
+	if (HasGear==true){
 	ring_gear(number_of_teeth=RingBTeeth,
 		circular_pitch=GearBPitch, diametral_pitch=false,
 		pressure_angle=Pressure_a,
@@ -650,11 +674,10 @@ module RingB(){
 		twist=twist/RingBTeeth,
 		involute_facets=0, // 1 = triangle, default is 5
 		flat=false);
+	}
 
 	// mount
-	
-	
-	
+		
 	translate([0,0,-10])
 	difference(){
 		union(){
@@ -710,7 +733,8 @@ module RingB(){
 		Ball_d=Ball_d, Race_w=RingB_Bearing_Race_w, PreLoadAdj=BearingPreload, VOffset=0.00, BI=true, myFn=$preview? 60:720);
 } // RingB
 
-//translate([0,0,21]) rotate([0,0,180/RingBTeeth]) RingB();
+//translate([0,0,21]) rotate([0,0,180/RingBTeeth]) RingB(HasGear=true);
+//RingB(HasGear=false);
 
 module RingBSpacer(){
 	kThickness=5;
