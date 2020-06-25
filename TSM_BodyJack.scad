@@ -6,7 +6,7 @@
 // Filename: TSM_BodyJack.scad
 // By: David M. Flynn
 // Created: 10/16/2019
-// Revision: 1.1.4 1/25/2020
+// Revision: 1.1.5 6/13/2020
 // Units: mm
 // *************************************************
 //  ***** Notes *****
@@ -19,6 +19,7 @@
 // 	AS5047D encoder 7 pole pairs.
 // *************************************************
 //  ***** History ******
+// 1.1.5 6/13/2020 Shortened RingA_Stop to 24.3, Added clearance to ring gear teeth, moving teeth out by 0.2mm.
 // 1.1.4 1/25/2020 Standardizing dimensions. 
 // 1.1.3 1/8/2020   Fixes for GM5208 motor.
 // 1.1.2 12/29/2019 Motor mount w/ adjustable timing. 
@@ -46,9 +47,9 @@
 // RingA_EncoderDisk(PPR=70); // Pulses per rotation / 8 = n.25, must end in ".25" or ".75", 90° appart
 // HomeSwitchMount();
 // HallSwitchMount();
-// RingA_Stop(HasSkirt=false, HasStop=true, Has2Sensors=false); // shortened to 24.5mm 12/20/2019
-// RingA_Stop(HasSkirt=true, HasStop=true, Has2Sensors=false); // use skirt in dirty environments
-// RingA_Stop(HasSkirt=true, HasStop=false, Has2Sensors=true); // for continuous rotation
+// RingA_Stop(HasSkirt=false, HasStop=true, nSensors=0); // shortened to 24.5mm 12/20/2019
+// RingA_Stop(HasSkirt=true, HasStop=true, nSensors=1); // use skirt in dirty environments
+// RingA_Stop(HasSkirt=true, HasStop=false, nSensors=2); // for continuous rotation
 // ScrewMountRingB(HasSkirt=false); // Fixed ring. flange mount version.
 // ScrewMountRingB(HasSkirt=true); // use skirt is dirty environments
 // rotate([180,0,]) InnerPlanetBearing();
@@ -73,6 +74,8 @@
 // rotate([180,0,0]) Planet();
 // rotate([180,0,0]) Planet(O_a=PlanetToothOffset_a); // Planet A ccw 1/3 tooth
 // rotate([180,0,0]) Planet(O_a=PlanetToothOffset_a*2); // Planet B ccw 2/3 tooth
+//
+// GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=false); // commutation disc
 //
 // PlanetCarrierDrivePulley(nTeeth=32); // print 2 /jack
 //
@@ -112,8 +115,10 @@ Overlap=0.05;
 IDXtra=0.2;
 Bolt4Inset=4;
 
-GearBacklash=0.25; // this needs to be adjusted for the filament/printer used, 0.2 to 0.4 recommended
-BearingPreload=-0.3; // easy to back drive
+GearBacklash=0.35; // this needs to be adjusted for the filament/printer used, 0.2 to 0.4 recommended
+GearClearance=0.2; // moves hub in on planets
+RingGearClearance=0.2; // moves teeth back on ring gears
+BearingPreload=-0.5; // easy to back drive
 
 // 16:1 ratio with symetrical planet gears, could be 24:1 (Ring B = 46 teeth)
 //  or 48:1 (Ring B = 47 teeth) with asymetrical planet gears
@@ -236,7 +241,7 @@ GM5208SBC3_d=44; // 7 holes 45 degrees appart, wire path at 8th position
 GM5208_nPolePairs=11;
 GM5208Comm_d=GM5208_d+13; // 1mm motor to Sw, 3mm Sw end to slot, 2.5mm slot to OD
 GM5208CommSw_d=GM5208Comm_d+11; // C/L of slot d-5, Sw mounting surface is slot center +8mm 
-GM5208_nSplines=6;
+GM5208_nSplines=4; // was 6
 GM5208_Spline_d=20;
 /* // 7 pole pair values
 GM5208CommU_a=360/GM5208_nPolePairs*3;
@@ -271,7 +276,7 @@ module ShowBodyJackGM(Rot_a=180/RingATeeth,HasSkirt=true){
 	rotate([0,0,Rot_a]) RingA();
 	
 	translate([0,0,-14.5]){ 
-		RingA_Stop(HasSkirt=HasSkirt, HasStop=false, Has2Sensors=true);
+		RingA_Stop(HasSkirt=HasSkirt, HasStop=false, nSensors=2);
 		translate([0,0,16.5]) RingA_EncoderDisk(PPR=70); 
 		rotate([0,0,22.5]) translate([-50,0,15]) rotate([0,-90,0]) rotate([0,0,-90]) HomeSwitchMount();
 		rotate([0,0,22.5-45]) translate([-50,0,15]) rotate([0,-90,0]) rotate([0,0,-90]) HomeSwitchMount();
@@ -311,7 +316,7 @@ module ShowBodyJack(Rot_a=180/RingATeeth,HasSkirt=true){
 	rotate([0,0,Rot_a]) RingA();
 	
 	translate([0,0,-14.5]){ 
-		RingA_Stop(HasSkirt=HasSkirt, HasStop=true, Has2Sensors=false);
+		RingA_Stop(HasSkirt=HasSkirt, HasStop=true, nSensors=1);
 		rotate([0,0,22.5]) translate([-50,0,15]) rotate([0,-90,0]) rotate([0,0,-90]) HomeSwitchMount();
 	}
 	
@@ -333,6 +338,15 @@ module ShowBodyJack(Rot_a=180/RingATeeth,HasSkirt=true){
 
 // *********************************************************************************************
 //  ***** Planet Carrier Parts *****
+// *********************************************************************************************
+//  ***** STL for 48:1 w/ 5208 motor *****
+// GM5208MountingPlate(HasCommutatorDisk=true); // Commutator
+// SplineShaft(d=GM5208_Spline_d,l=4,nSplines=GM5208_nSplines,Spline_w=30,Hole=12.7+IDXtra,Key=false);
+// PlanetCarrierSpacer();
+// rotate([180,0,0]) Planet(O_a=0);
+// rotate([180,0,0]) Planet(O_a=PlanetToothOffset_a);
+// rotate([180,0,0]) Planet(O_a=PlanetToothOffset_a*2);
+// PlanetCarrierOuter(); // print 2
 // *********************************************************************************************
 //  ***** STL for 48:1 w/ 4008 motor *****
 // GM4008MountingPlate(HasCommutatorDisk=true); // Commutator
@@ -443,7 +457,7 @@ module GimbalMotor4008(){
 
 GM4008MP_h=5; // Mounting Plate thickness
 
-module GM4008MountingPlate(HasCommutatorDisk=true){
+module GM4008MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
 	Spline_d=GM4008_Spline_d;
 	nSplines=GM4008_nSplines;
 	nPolePairs=GM4008_nPolePairs;
@@ -481,7 +495,7 @@ module GM4008MountingPlate(HasCommutatorDisk=true){
 	} // difference
 	
 	// motor
-	if ($preview==true) rotate([180,0,0]) GimbalMotor4008();
+	if ($preview==true && ShowMotor==true) rotate([180,0,0]) GimbalMotor4008();
 		
 	// Commutation sensor positions
 	if ($preview==true) 
@@ -507,7 +521,9 @@ module GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
 			if (HasCommutatorDisk==true) cylinder(d=GM5208Comm_d,h=CommDisk_h);
 		} // union
 		
-		translate([0,0,-Overlap]) SplineHole(d=Spline_d,l=7,nSplines=nSplines,Spline_w=30,Gap=IDXtra,Key=false);
+		translate([0,0,-Overlap]) rotate([0,0,45]) SplineHole(d=Spline_d,l=GM4008MP_h+Overlap*2,nSplines=nSplines,Spline_w=30,Gap=IDXtra*2,Key=false);
+		
+		//translate([0,0,-Overlap]) SplineHole(d=Spline_d,l=7,nSplines=nSplines,Spline_w=30,Gap=IDXtra,Key=false);
 		
 		for (j=[0:3]) rotate([0,0,90*j]) translate([GM5208RBC2_d/2,0,3.5]) Bolt4ButtonHeadHole();
 			
@@ -557,7 +573,7 @@ module PlanetCarrierInnerGM4008(){
 	SplineShaft(d=Spline_d,l=8,nSplines=nSplines,Spline_w=30,Hole=WireTube_d,Key=false);
 } // PlanetCarrierInnerGM4008
 
-// PlanetCarrierInnerGM4008();
+//PlanetCarrierInnerGM4008();
 
 PC_InnerGM5208_h=3;
 
@@ -644,7 +660,7 @@ module Planet(O_a=0){
 			gear(number_of_teeth=PlanetATeeth,
 				circular_pitch=GearAPitch, diametral_pitch=false,
 				pressure_angle=Pressure_a,
-				clearance = 0.2,
+				clearance = GearClearance,
 				gear_thickness=Gear_w/2,
 				rim_thickness=Gear_w/2,
 				rim_width=5,
@@ -661,7 +677,7 @@ module Planet(O_a=0){
 			gear(number_of_teeth=PlanetATeeth,
 				circular_pitch=GearAPitch, diametral_pitch=false,
 				pressure_angle=Pressure_a,
-				clearance = 0.2,
+				clearance = GearClearance,
 				gear_thickness=Gear_w/2,
 				rim_thickness=Gear_w/2,
 				rim_width=5,
@@ -681,7 +697,7 @@ module Planet(O_a=0){
 				gear(number_of_teeth=PlanetATeeth,
 					circular_pitch=GearAPitch, diametral_pitch=false,
 					pressure_angle=Pressure_a,
-					clearance = 0.2,
+					clearance = GearClearance,
 					gear_thickness=1+Overlap*2,
 					rim_thickness=1+Overlap*2,
 					rim_width=5,
@@ -702,7 +718,7 @@ module Planet(O_a=0){
 				gear(number_of_teeth=PlanetBTeeth,
 					circular_pitch=GearBPitch, diametral_pitch=false,
 					pressure_angle=Pressure_a,
-					clearance = 0.2,
+					clearance = GearClearance,
 					gear_thickness=1+Overlap*2,
 					rim_thickness=1+Overlap*2,
 					rim_width=5,
@@ -722,7 +738,7 @@ module Planet(O_a=0){
 				gear(number_of_teeth=PlanetBTeeth,
 					circular_pitch=GearBPitch, diametral_pitch=false,
 					pressure_angle=Pressure_a,
-					clearance = 0.2,
+					clearance = GearClearance,
 					gear_thickness=Gear_w/2,
 					rim_thickness=Gear_w/2,
 					rim_width=5,
@@ -739,7 +755,7 @@ module Planet(O_a=0){
 					gear(number_of_teeth=PlanetBTeeth,
 					circular_pitch=GearBPitch, diametral_pitch=false,
 					pressure_angle=Pressure_a,
-					clearance = 0.2,
+					clearance = GearClearance,
 					gear_thickness=Gear_w/2,
 					rim_thickness=Gear_w/2,
 					rim_width=5,
@@ -764,7 +780,7 @@ module Planet(O_a=0){
 
 //for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j]) translate([-PC_BC_d/2,0,0]) rotate([0,0,180/PlanetBTeeth]) Planet(O_a=PlanetToothOffset_a*j);
 //Planet(O_a=PlanetToothOffset_a);
-//Planet(O_a=0);
+// Planet(O_a=0);
 //cylinder(d=13,h=50);
 	
 // *************************************************************************************
@@ -780,12 +796,24 @@ module Planet(O_a=0){
 //
 // HomeSwitchMount();
 // *************************************************************************************
+//  ***** STL for 48:1 GM4008 *****
+// RingA(HasStop=false);
+// RingA_Stop(HasSkirt=true, HasStop=false, nSensors=0); // Drive wheel using motor commutation for position
+// RingABearing();
+//
+// RingA_HomeFinderDisk(); // or
+// RingA_EncoderDisk(PPR=70);
+//
+// HomeSwitchMount();
+// *************************************************************************************
+
+RingABearingMountingRing_t=3;
 
 module RingABearing(){
 	OnePieceOuterRace(BallCircle_d=RingA_Bearing_BallCircle, Race_OD=RingA_Bearing_OD, Ball_d=Ball_d, 
 			Race_w=RingA_Bearing_Race_w, PreLoadAdj=BearingPreload, VOffset=0.50, BI=true, myFn=$preview? 60:720);
 	
-	RingABearingMountingRing_t=3;
+	
 	RingABearingMountingRing_BC_d=104;
 	RingABearingMountingRing_d=RingABearingMountingRing_BC_d+Bolt4Inset*2;
 	nBolts=8;
@@ -816,11 +844,10 @@ module RingABearing(){
 
 module RingA_Stop(HasSkirt=false, HasStop=true, nSensors=2){
 	// Connects RingA bearing to RingB
-	RingABearingMountingRing_t=3;
 	RingABearingMountingRing_BC_d=104;
 	RingABearingMountingRing_d=RingABearingMountingRing_BC_d+Bolt4Inset*2;
 	nBolts=8;
-	PostToRingB_h=24.5;
+	PostToRingB_h=24.3;
 	
 	module OptoMountPlate(Z=20){
 		translate([0,-20,0]) cube([4,40,Z]);
@@ -906,7 +933,7 @@ module RingA_Stop(HasSkirt=false, HasStop=true, nSensors=2){
 	
 } // RingA_Stop
 
- //RingA_Stop(HasSkirt=true, HasStop=true, Has2Sensors=true);
+ //RingA_Stop(HasSkirt=true, HasStop=true, nSensors=2);
 
 module SwitchHoles(T=3){
 	X=5.42+IDXtra;
@@ -1015,7 +1042,7 @@ module RingA(HasStop=true){
 	ring_gear(number_of_teeth=RingATeeth,
 		circular_pitch=GearAPitch, diametral_pitch=false,
 		pressure_angle=Pressure_a,
-		clearance = 0.2,
+		clearance = RingGearClearance,
 		gear_thickness=Gear_w/2,
 		rim_thickness=Gear_w/2,
 		rim_width=2,
@@ -1028,7 +1055,7 @@ module RingA(HasStop=true){
 		ring_gear(number_of_teeth=RingATeeth,
 			circular_pitch=GearAPitch, diametral_pitch=false,
 			pressure_angle=Pressure_a,
-			clearance = 0.2,
+			clearance = RingGearClearance,
 			gear_thickness=Gear_w/2,
 			rim_thickness=Gear_w/2,
 			rim_width=2,
@@ -1122,7 +1149,7 @@ module RingB_Gear(){
 	ring_gear(number_of_teeth=RingBTeeth,
 		circular_pitch=GearBPitch, diametral_pitch=false,
 		pressure_angle=Pressure_a,
-		clearance = 0.2,
+		clearance = RingGearClearance,
 		gear_thickness=Gear_w/2,
 		rim_thickness=Gear_w/2,
 		rim_width=2,
@@ -1135,7 +1162,7 @@ module RingB_Gear(){
 	ring_gear(number_of_teeth=RingBTeeth,
 		circular_pitch=GearBPitch, diametral_pitch=false,
 		pressure_angle=Pressure_a,
-		clearance = 0.2,
+		clearance = RingGearClearance,
 		gear_thickness=Gear_w/2,
 		rim_thickness=Gear_w/2,
 		rim_width=2,
@@ -2922,7 +2949,6 @@ module TestFixture(){
 
 	}
 	
-	RingABearingMountingRing_t=3;
 	Skirt_h=20;
 	RingABearingMountingRing_BC_d=100;
 	RingABearingMountingRing_d=RingABearingMountingRing_BC_d+Bolt4Inset*2;
