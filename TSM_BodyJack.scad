@@ -6,7 +6,7 @@
 // Filename: TSM_BodyJack.scad
 // By: David M. Flynn
 // Created: 10/16/2019
-// Revision: 1.1.5 6/13/2020
+// Revision: 1.1.6 6/30/2020
 // Units: mm
 // *************************************************
 //  ***** Notes *****
@@ -19,6 +19,7 @@
 // 	AS5047D encoder 7 pole pairs.
 // *************************************************
 //  ***** History ******
+// 1.1.6 6/30/2020 New version: LifterLockCover2.
 // 1.1.5 6/13/2020 Shortened RingA_Stop to 24.3, Added clearance to ring gear teeth, moving teeth out by 0.2mm.
 // 1.1.4 1/25/2020 Standardizing dimensions. 
 // 1.1.3 1/8/2020   Fixes for GM5208 motor.
@@ -2393,7 +2394,7 @@ module RingC(){
 // ***********************************************************************************************
 //  ***** STL for 48:1 GM4008/GM5208 *****
 // LifterSpline(nSpokes=7); // bolts to Ring A
-// BallLockRing(nSpokes=7);
+// FlangedBallLockRing(nSpokes=7);
 // LifterLock(nSpokes=7);
 //
 // LifterLockCover2(nSpokes=7);
@@ -2427,7 +2428,7 @@ module ShowLifter2(){
 	translate([0,0,-2.2]) LifterSpline();
 	FlangedBallLockRing(nSpokes=7); // OK
 	translate([0,0,6]) LifterLock(nSpokes=7); // OK
-	translate([0,0,20]) LifterLockCover2(nSpokes=7); 
+	//translate([0,0,20]) LifterLockCover2(nSpokes=7); 
 	
 	/*
 	translate([CenterDistance,0,50]) rotate([0,180,0]){
@@ -2541,6 +2542,7 @@ module LifterLockCover2(nSpokes=7){
 	Major_d=RingA_Bearing_BallCircle+Ball_d+4;
 	LLC_h=6;
 	Skirt_t=5;
+	WirePath_d=6;
 	WirePath_w=25;
 	WirePathLeft=-50;
 	
@@ -2553,10 +2555,6 @@ module LifterLockCover2(nSpokes=7){
 			cylinder(d=Major_d-Bolt4Inset,h=3.5);
 			translate([0,0,3.5]) rotate_extrude() translate([Major_d/2-Bolt4Inset/2-1.5,0,0]) circle(r=1.5);
 			
-			
-			
-	
-	
 			// Dog leg bolt flange
 			difference(){
 				hull(){
@@ -2572,52 +2570,27 @@ module LifterLockCover2(nSpokes=7){
 				for (j=[0:nBolts-1]) rotate([0,0,BoltArc_a/(nBolts-1)*j-BoltArc_a/2])
 						translate([-Bolt_BCr,0,Skirt_t+1]) Bolt4ButtonHeadHole();
 				
-				// wire path
-				rotate([0,0,BoltArc_a/(nBolts-1)/2])
-					hull(){
-						translate([-Bolt_BCr+2,0,-Overlap]) cylinder(d=7,h=Overlap);
-						translate([-Bolt_BCr+10,0,Skirt_t+Overlap]) cylinder(d=7,h=Overlap);
-					}
-				rotate([0,0,-BoltArc_a/(nBolts-1)/2])
-					hull(){
-						translate([-Bolt_BCr+2,0,-Overlap]) cylinder(d=7,h=Overlap);
-						translate([-Bolt_BCr+10,0,Skirt_t+Overlap]) cylinder(d=7,h=Overlap);
-					}
-			} // difference
-			
-			
-			//*
-			//wire path
-			difference(){
-				hull(){
-					translate([15,WirePath_w/2,0]) cylinder(d=10,h=Overlap);
-					translate([15,WirePath_w/2,4]) sphere(d=8);
-					
-					translate([15,-WirePath_w/2,0]) cylinder(d=10,h=Overlap);
-					translate([15,-WirePath_w/2,4]) sphere(d=8);
-					
-					translate([WirePathLeft,WirePath_w/2,0]) cylinder(d=10,h=Overlap);
-					translate([WirePathLeft,WirePath_w/2,4]) sphere(d=8);
-					
-					translate([WirePathLeft,-WirePath_w/2,0]) cylinder(d=10,h=Overlap);
-					translate([WirePathLeft,-WirePath_w/2,4]) sphere(d=8);
-				} // hull
 				
-				hull(){
-					translate([15,WirePath_w/2,2]) cylinder(d=6,h=Overlap);
-					translate([15,WirePath_w/2,4]) sphere(d=4);
-					
-					translate([15,-WirePath_w/2,2]) cylinder(d=6,h=Overlap);
-					translate([15,-WirePath_w/2,4]) sphere(d=4);
-					
-					translate([WirePathLeft,WirePath_w/2,2]) cylinder(d=6,h=Overlap);
-					translate([WirePathLeft,WirePath_w/2,4]) sphere(d=4);
-					
-					translate([WirePathLeft,-WirePath_w/2,2]) cylinder(d=6,h=Overlap);
-					translate([WirePathLeft,-WirePath_w/2,4]) sphere(d=4);
-				} // hull
 			} // difference
-				/**/
+			
+			hull(){
+				translate([0,0,7]) scale([2,2,1]) sphere(r=6,$fn=$preview? 18:90);
+				scale([2,2,1]) cylinder(r=7,h=7);}
+			
+			// Wire Path
+			translate([0,10,0]) {
+			hull(){ cylinder(d=WirePath_d+5,h=Overlap); translate([0,0,3+WirePath_d/2]) sphere(d=WirePath_d+5,$fn=$preview? 18:90);}
+			hull(){ translate([0,0,3+WirePath_d/2]) sphere(d=WirePath_d+5,$fn=$preview? 18:90);
+					translate([-Bolt_BCr+10,-4,3+WirePath_d/2]) sphere(d=WirePath_d+5,$fn=$preview? 18:90);}
+		}
+			mirror([0,1,0])
+			translate([0,10,0]) {
+				hull(){ cylinder(d=WirePath_d+5,h=Overlap); translate([0,0,3+WirePath_d/2]) sphere(d=WirePath_d+5,$fn=$preview? 18:90);}
+				hull(){ translate([0,0,3+WirePath_d/2]) sphere(d=WirePath_d+5,$fn=$preview? 18:90);
+						translate([-Bolt_BCr+10,-4,3+WirePath_d/2]) sphere(d=WirePath_d+5,$fn=$preview? 18:90);}
+			}
+		
+			
 			// Bolts bosses
 			for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j]) hull(){
 					translate([Major_d/2-Bolt4Inset-2,0,0]) cylinder(r=Bolt4Inset,h=LLC_h);
@@ -2632,7 +2605,8 @@ module LifterLockCover2(nSpokes=7){
 		// Bolts
 		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j]) translate([Major_d/2-Bolt4Inset-2,0,LLC_h]) Bolt4HeadHole();
 		
-		rotate([0,0,BoltArc_a/(nBolts-1)/2])
+		// wire path
+				rotate([0,0,BoltArc_a/(nBolts-1)/2])
 					hull(){
 						translate([-Bolt_BCr+2,0,-Overlap]) cylinder(d=7,h=Overlap);
 						translate([-Bolt_BCr+10,0,Skirt_t+Overlap]) cylinder(d=7,h=Overlap);
@@ -2643,19 +2617,19 @@ module LifterLockCover2(nSpokes=7){
 						translate([-Bolt_BCr+10,0,Skirt_t+Overlap]) cylinder(d=7,h=Overlap);
 					}
 					
-		hull(){
-			translate([15,WirePath_w/2,-Overlap]) cylinder(d=6,h=Overlap);
-			translate([15,WirePath_w/2,4]) sphere(d=4);
-			
-			translate([15,-WirePath_w/2,-Overlap]) cylinder(d=6,h=Overlap);
-			translate([15,-WirePath_w/2,4]) sphere(d=4);
-			
-			translate([-25,WirePath_w/2,-Overlap]) cylinder(d=6,h=Overlap);
-			translate([-25,WirePath_w/2,4]) sphere(d=4);
-			
-			translate([-25,-WirePath_w/2,-Overlap]) cylinder(d=6,h=Overlap);
-			translate([-25,-WirePath_w/2,4]) sphere(d=4);
-		} // hull
+		translate([0,10,-Overlap]) {
+			hull(){ cylinder(d=WirePath_d,h=Overlap); translate([0,0,3+WirePath_d/2]) sphere(d=WirePath_d,$fn=18);}
+			hull(){ translate([0,0,3+WirePath_d/2]) sphere(d=WirePath_d,$fn=18);
+					translate([-Bolt_BCr+10,-4,3+WirePath_d/2]) sphere(d=WirePath_d,$fn=18);}
+		}
+		mirror([0,1,0])
+		translate([0,10,-Overlap]) {
+			hull(){ cylinder(d=WirePath_d,h=Overlap); translate([0,0,3+WirePath_d/2]) sphere(d=WirePath_d,$fn=18);}
+			hull(){ translate([0,0,3+WirePath_d/2]) sphere(d=WirePath_d,$fn=18);
+					translate([-Bolt_BCr+10,-4,3+WirePath_d/2]) sphere(d=WirePath_d,$fn=18);}
+		}
+				
+		translate([0,0,-Overlap]) cylinder(d=5/16*25.4+IDXtra,h=6);
 			
 	} // difference
 } // LifterLockCover2
@@ -2842,7 +2816,8 @@ module BallLockRing(nSpokes=7){
 
 //BallLockRing();
 
-module DogLeg(CD=150,Offset=30){
+module DogLeg(nSpokes=7, CD=150, Offset=30){
+	Spline_h=20;
 	Major_d=RingA_Bearing_BallCircle+Ball_d+4;
 	Skirt_t=15;
 	nBolts=5;
@@ -2871,9 +2846,6 @@ module DogLeg(CD=150,Offset=30){
 	} // EndBolts
 	
 	
-	
-	
-	
 	difference(){
 		union(){
 			End();
@@ -2884,14 +2856,14 @@ module DogLeg(CD=150,Offset=30){
 				for (j=[0:nBolts-1]) rotate([0,0,BoltArc_a/(nBolts-1)*j-BoltArc_a/2])
 					translate([-Bolt_BCr,0,0])
 						rotate([0,0,-(BoltArc_a/(nBolts-1)*j-BoltArc_a/2)])
-						translate([-Bolt4Inset*3,0,0]) cylinder(r=Bolt4Inset+2,h=Skirt_t);
+						translate([-Bolt4Inset*2,0,0]) cylinder(r=Bolt4Inset+2,h=Skirt_t);
 					
 					
 				translate([-CD,0,Skirt_t+Offset]) rotate([0,180,0]) 
 				for (j=[0:nBolts-1]) rotate([0,0,BoltArc_a/(nBolts-1)*j-BoltArc_a/2])
 					translate([-Bolt_BCr,0,0])
 						rotate([0,0,-(BoltArc_a/(nBolts-1)*j-BoltArc_a/2)])
-						translate([-Bolt4Inset*3,0,0]) cylinder(r=Bolt4Inset+2,h=Skirt_t);
+						translate([-Bolt4Inset*2,0,0]) cylinder(r=Bolt4Inset+2,h=Skirt_t);
 					
 			} // hull
 		
@@ -2899,8 +2871,58 @@ module DogLeg(CD=150,Offset=30){
 		
 		EndBolts();
 		translate([-CD,0,Skirt_t+Offset]) rotate([0,180,0]) EndBolts();
-		translate([0,0,Skirt_t]) cylinder(r=Bolt_BCr+Bolt4Inset+2,h=20);
-		translate([-CD,0,Skirt_t+Offset]) rotate([0,180,0]) translate([0,0,Skirt_t]) cylinder(r=Bolt_BCr+Bolt4Inset+2,h=20);
+		
+		// Wire path
+		translate([0,0,-Overlap]) {
+			rotate([0,0,BoltArc_a/(nBolts-1)/2]) translate([-Bolt_BCr,0,0]){
+				cylinder(d=6,h=Skirt_t+Overlap*2);
+				hull(){
+					translate([0,0,Skirt_t/2]) sphere(d=6,$fn=18);
+					rotate([0,0,-BoltArc_a/(nBolts-1)/2]) translate([30,0,Skirt_t/2]) sphere(d=6,$fn=18);
+				}
+			}
+			rotate([0,0,-BoltArc_a/(nBolts-1)/2]) translate([-Bolt_BCr,0,0]){
+				cylinder(d=6,h=Skirt_t+Overlap*2);
+				hull(){
+					translate([0,0,Skirt_t/2]) sphere(d=6,$fn=18);
+					rotate([0,0,BoltArc_a/(nBolts-1)/2]) translate([30,0,Skirt_t/2]) sphere(d=6,$fn=18);
+				}
+				}}
+			
+		hull(){
+			rotate([0,0,BoltArc_a/(nBolts-1)/2]) translate([-Bolt_BCr,0,Skirt_t/2]) sphere(d=6,$fn=18);
+			translate([-CD,0,Skirt_t+Offset]) rotate([0,180,0]) rotate([0,0,BoltArc_a/(nBolts-1)/2]) translate([-Bolt_BCr,0,Skirt_t/2]) sphere(d=6,$fn=18);
+		}
+		hull(){
+			rotate([0,0,-BoltArc_a/(nBolts-1)/2]) translate([-Bolt_BCr,0,Skirt_t/2]) sphere(d=6,$fn=18);
+			translate([-CD,0,Skirt_t+Offset]) rotate([0,180,0]) rotate([0,0,-BoltArc_a/(nBolts-1)/2]) translate([-Bolt_BCr,0,Skirt_t/2]) sphere(d=6,$fn=18);
+		}
+			
+		hull() for (j=[0:nBolts-1]) rotate([0,0,BoltArc_a/(nBolts-1)*j-BoltArc_a/2])
+				translate([-Bolt_BCr,0,Skirt_t]) cylinder(r=Bolt4Inset+2+IDXtra,h=Skirt_t);
+		
+		translate([-CD,0,Skirt_t+Offset]) rotate([0,180,0]) {
+			// Wire path
+		translate([0,0,-Overlap]) {
+			rotate([0,0,BoltArc_a/(nBolts-1)/2]) translate([-Bolt_BCr,0,0]) {
+				cylinder(d=6,h=Skirt_t+Overlap*2);
+				hull(){
+					translate([0,0,Skirt_t/2]) sphere(d=6,$fn=18);
+					rotate([0,0,-BoltArc_a/(nBolts-1)/2]) translate([30,0,Skirt_t/2]) sphere(d=6,$fn=18);
+				}
+			}
+			rotate([0,0,-BoltArc_a/(nBolts-1)/2]) translate([-Bolt_BCr,0,0]){
+				cylinder(d=6,h=Skirt_t+Overlap*2);
+				hull(){
+					translate([0,0,Skirt_t/2]) sphere(d=6,$fn=18);
+					rotate([0,0,BoltArc_a/(nBolts-1)/2]) translate([30,0,Skirt_t/2]) sphere(d=6,$fn=18);
+				}
+			}
+				}
+			
+			hull() for (j=[0:nBolts-1]) rotate([0,0,BoltArc_a/(nBolts-1)*j-BoltArc_a/2])
+				translate([-Bolt_BCr,0,Skirt_t]) cylinder(r=Bolt4Inset+2+IDXtra,h=Skirt_t);
+		}
 	} // difference
 } // DogLeg
 
