@@ -47,6 +47,33 @@ GM4008CommU_a=360/GM4008_nPolePairs*2;
 GM4008CommV_a=360/GM4008_nPolePairs/3+360/GM4008_nPolePairs*10;
 GM4008CommW_a=360/GM4008_nPolePairs/3*2+360/GM4008_nPolePairs*0;
 
+WT_OD=8; // Wire Tube OD
+
+RingATeeth=61;
+RingBTeeth=60;
+GearAPitch=260;
+GearBPitch=265.5325;
+Pressure_a=28;
+RingGearClearance=0.5;
+Gear_w=5;
+GearBacklash=0.2;
+twist=0;
+
+nPlanets=5;
+PlanetATeeth=13;
+PlanetBTeeth=13;
+GearClearance=0.4;
+sBearing_OD=5;
+PlanetAToothOffset_a=360/PlanetATeeth/nPlanets;
+PlanetBToothOffset_a=360/PlanetBTeeth/nPlanets;
+
+
+PlanetA_Center=GearAPitch*RingATeeth/360-GearAPitch*PlanetATeeth/360;
+//PlanetB_Center=GearBPitch*RingBTeeth/360-GearBPitch*PlanetBTeeth/360;
+//echo(PlanetA_Center=PlanetA_Center);
+//echo(PlanetB_Center=PlanetB_Center);
+
+
 module GimbalMotor4008(){
 	color("Gray")
 			difference(){
@@ -55,32 +82,17 @@ module GimbalMotor4008(){
 			} // difference
 } // GimbalMotor5208
 
-GimbalMotor4008();
+//GimbalMotor4008();
 
 GM4008MP_h=5; // Mounting Plate thickness
 
-module GM4008MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
-	Spline_d=GM4008_Spline_d;
-	nSplines=GM4008_nSplines;
+module GM4008CommutatorDisk(CommDisk_h=1.5){
 	nPolePairs=GM4008_nPolePairs;
-	CommDisk_h=1.5;
 	nNotchStep=30;
 	
-	WireTube_d=WT_OD+1;
-	
 	difference(){
-		union(){
-			cylinder(d=GM4008RBC2_d+Bolt4Inset*2,h=2.5);
-			cylinder(d=Spline_d+5,h=GM4008MP_h);
-			
-			if (HasCommutatorDisk==true) cylinder(d=GM4008Comm_d,h=CommDisk_h);
-		} // union
+		cylinder(d=GM4008Comm_d,h=CommDisk_h);			
 		
-		translate([0,0,-Overlap]) rotate([0,0,45]) SplineHole(d=Spline_d,l=GM4008MP_h+Overlap*2,nSplines=nSplines,Spline_w=30,Gap=IDXtra,Key=false);
-		
-		for (j=[0:3]) rotate([0,0,90*j]) translate([GM4008RBC2_d/2,0,3.5]) Bolt4ButtonHeadHole();
-			
-		if (HasCommutatorDisk==true) 
 			for (j=[0:nPolePairs]) rotate([0,0,360/nPolePairs*j])
 				for (k=[0:nNotchStep-2]) hull() {
 					rotate([0,0,180/nPolePairs/nNotchStep*k]){
@@ -96,25 +108,50 @@ module GM4008MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
 					} // hull
 	} // difference
 	
-	// motor
-	if ($preview==true && ShowMotor==true) rotate([180,0,0]) GimbalMotor4008();
-		
 	// Commutation sensor positions
 	if ($preview==true) 
 	for (j=[0:2]) rotate([0,0,360/nPolePairs/3*j]) translate([GM4008Comm_d/2+1,0,0]) cylinder(d=2,h=2);
+} // GM4008CommutatorDisk
+
+//GM4008CommutatorDisk();
+
+module GM4008MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
+	Spline_d=GM4008_Spline_d;
+	nSplines=GM4008_nSplines;
+	nPolePairs=GM4008_nPolePairs;
+	CommDisk_h=1.5;
+	nNotchStep=30;
+	Hub_h=2.5;
+	
+	WireTube_d=WT_OD+1;
+	
+	difference(){
+		union(){
+			cylinder(d=GM4008RBC2_d+Bolt4Inset*2,h=Hub_h);
+			//cylinder(d=Spline_d+5,h=GM4008MP_h);
+			
+			if (HasCommutatorDisk==true) GM4008CommutatorDisk();
+		} // union
+		
+		//translate([0,0,-Overlap]) rotate([0,0,45]) SplineHole(d=Spline_d,l=GM4008MP_h+Overlap*2,nSplines=nSplines,Spline_w=30,Gap=IDXtra,Key=false);
+		
+		translate([0,0,-Overlap]) cylinder(d=WireTube_d, h=Hub_h+Overlap*2);
+		for (j=[0:3]) rotate([0,0,90*j]) translate([GM4008RBC2_d/2,0,3.5]) Bolt4ButtonHeadHole();
+			
+		
+	} // difference
+	
+	// motor
+	if ($preview==true && ShowMotor==true) rotate([180,0,0]) GimbalMotor4008();
+		
 } // GM4008MountingPlate
 
-//GM4008MountingPlate(HasCommutatorDisk=true);
+GM4008MountingPlate(HasCommutatorDisk=false);
 
-RingATeeth=61;
-GearAPitch=260;
-Pressure_a=28;
-RingGearClearance=0.5;
-Gear_w=5;
-GearBacklash=0.2;
-twist=0;
 
-ring_gear(number_of_teeth=RingATeeth,
+
+module RingA(){
+	ring_gear(number_of_teeth=RingATeeth,
 		circular_pitch=GearAPitch, diametral_pitch=false,
 		pressure_angle=Pressure_a,
 		clearance = RingGearClearance,
@@ -125,12 +162,25 @@ ring_gear(number_of_teeth=RingATeeth,
 		twist=twist/RingATeeth,
 		involute_facets=0, // 1 = triangle, default is 5
 		flat=false);
+} // RingA
 
-nPlanets=5;
-PlanetATeeth=13;
-GearClearance=0.4;
-sBearing_OD=5;
-PlanetToothOffset_a=360/PlanetATeeth/nPlanets;
+//RingA();
+
+module RingB(){
+	ring_gear(number_of_teeth=RingBTeeth,
+		circular_pitch=GearBPitch, diametral_pitch=false,
+		pressure_angle=Pressure_a,
+		clearance = RingGearClearance,
+		gear_thickness=Gear_w,
+		rim_thickness=Gear_w,
+		rim_width=2,
+		backlash=GearBacklash,
+		twist=twist/RingBTeeth,
+		involute_facets=0, // 1 = triangle, default is 5
+		flat=false);
+} // RingB
+
+//translate([0,0,Gear_w+1]) RingB();
 
 module Planet(){
 	
@@ -151,10 +201,23 @@ module Planet(){
 				flat=false);
 } // Planet
 
-for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j])
-translate([GearAPitch*RingATeeth/360-GearAPitch*PlanetATeeth/360,0,0]) rotate([0,0,-PlanetToothOffset_a*j]) rotate([0,0,180/PlanetATeeth]) Planet();
+RingATeethPerPlanet=RingATeeth/nPlanets; // 12.2t
+RingBTeethPerPlanet=RingBTeeth/nPlanets;
+//echo(RingATeethPerPlanet=RingATeethPerPlanet);
+PlanetADegPerTooth=360/PlanetATeeth; // 27.69
+PlanetBDegPerTooth=360/PlanetBTeeth;
+//echo(RingATeethPerPlanet*PlanetADegPerTooth);
+PlanetADegPerPlanet=RingATeethPerPlanet*PlanetADegPerTooth;
+PlanetBDegPerPlanet=RingBTeethPerPlanet*PlanetBDegPerTooth;
+//echo(DegPerPlanet=DegPerPlanet);
+PlanetOffset_a=PlanetADegPerPlanet-PlanetBDegPerPlanet;
+
+//for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j])
+//	translate([PlanetA_Center,0,0])  rotate([0,0,-PlanetADegPerPlanet*j+180/PlanetATeeth]) Planet();
 
 
+//for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j])
+//	translate([PlanetA_Center,0,Gear_w+1]) rotate([0,0,-PlanetADegPerPlanet*j+PlanetOffset_a*j+180/PlanetBTeeth]) Planet();
 
 
 
