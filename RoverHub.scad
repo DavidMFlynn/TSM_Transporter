@@ -49,19 +49,19 @@ GM4008CommW_a=360/GM4008_nPolePairs/3*2+360/GM4008_nPolePairs*0;
 
 WT_OD=8; // Wire Tube OD
 
-RingATeeth=61;
-RingBTeeth=60;
-GearAPitch=260;
-GearBPitch=265.5325;
-Pressure_a=28;
+RingATeeth=75;
+RingBTeeth=70;
+GearAPitch=280;
+GearBPitch=300;
+Pressure_a=22;
 RingGearClearance=0.5;
 Gear_w=5;
 GearBacklash=0.2;
 twist=0;
 
 nPlanets=5;
-PlanetATeeth=13;
-PlanetBTeeth=13;
+PlanetATeeth=20;
+PlanetBTeeth=20;
 GearClearance=0.4;
 sBearing_OD=5;
 PlanetAToothOffset_a=360/PlanetATeeth/nPlanets;
@@ -82,7 +82,7 @@ module GimbalMotor4008(){
 			} // difference
 } // GimbalMotor5208
 
-//GimbalMotor4008();
+GimbalMotor4008();
 
 GM4008MP_h=5; // Mounting Plate thickness
 
@@ -146,9 +146,14 @@ module GM4008MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
 		
 } // GM4008MountingPlate
 
-GM4008MountingPlate(HasCommutatorDisk=false);
+//GM4008MountingPlate(HasCommutatorDisk=false);
 
+// OnePieceInnerRace(BallCircle_d=100,	Race_ID=50,	Ball_d=9.525, Race_w=10, PreLoadAdj=0.00, VOffset=0.00, BI=false, myFn=360);
+// OnePieceOuterRace(BallCircle_d=60, Race_OD=75, Ball_d=9.525, Race_w=10, PreLoadAdj=0.00, VOffset=0.00, BI=false, myFn=360);
 
+Ball_d=3/8*25.4;
+BC_d=GearAPitch*RingATeeth/180+GearAPitch/16+Ball_d;
+Race_w=10;
 
 module RingA(){
 	ring_gear(number_of_teeth=RingATeeth,
@@ -162,9 +167,11 @@ module RingA(){
 		twist=twist/RingATeeth,
 		involute_facets=0, // 1 = triangle, default is 5
 		flat=false);
+	
+	OnePieceInnerRace(BallCircle_d=BC_d, Race_ID=BC_d-Ball_d-6,	Ball_d=Ball_d, Race_w=Race_w, PreLoadAdj=0.00, VOffset=0.00, BI=true, myFn=$preview? 360:90);
 } // RingA
 
-//RingA();
+RingA();
 
 module RingB(){
 	ring_gear(number_of_teeth=RingBTeeth,
@@ -178,6 +185,8 @@ module RingB(){
 		twist=twist/RingBTeeth,
 		involute_facets=0, // 1 = triangle, default is 5
 		flat=false);
+	
+	OnePieceOuterRace(BallCircle_d=BC_d, Race_OD=BC_d+Ball_d+6, Ball_d=Ball_d, Race_w=Race_w, PreLoadAdj=0.00, VOffset=0.00, BI=true, myFn=$preview? 360:90);
 } // RingB
 
 //translate([0,0,Gear_w+1]) RingB();
@@ -212,8 +221,8 @@ PlanetBDegPerPlanet=RingBTeethPerPlanet*PlanetBDegPerTooth;
 //echo(DegPerPlanet=DegPerPlanet);
 PlanetOffset_a=PlanetADegPerPlanet-PlanetBDegPerPlanet;
 
-//for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j])
-//	translate([PlanetA_Center,0,0])  rotate([0,0,-PlanetADegPerPlanet*j+180/PlanetATeeth]) Planet();
+for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j])
+	translate([PlanetA_Center,0,0])  rotate([0,0,-PlanetADegPerPlanet*j+180/PlanetATeeth]) Planet();
 
 
 //for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j])
