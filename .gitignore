@@ -1,1 +1,2 @@
-*.gcode
+**/*.gcode
+**/.DS_Store
