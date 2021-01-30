@@ -211,13 +211,13 @@ echo("Ring B PD error =",Ring_B_cpd-RingBTeeth*GearBPitch/180);
 /**/
 
 /*
-// big bearing 1/2 x 1-1/8 x 5/16
+// big bearing R8ZZ 1/2 x 1-1/8 x 5/16
 Bearing_OD=0.750*25.4; //1.125*25.4;
 Bearing_ID=0.500*25.4;
 Bearing_w=5/32*25.4; //0.3125*25.4;
 /**/
 
-// big bearing 1/2 x 3/4 x 5/32
+// big bearing R1212ZZ 1/2 x 3/4 x 5/32
 Bearing_OD=0.750*25.4;
 Bearing_ID=0.500*25.4;
 Bearing_w=4; // rounded
@@ -541,6 +541,9 @@ module GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
 
 PC_Hub_h=Bearing_w+1.5;
 
+//echo(PC_BC_d=PC_BC_d);
+//echo(GearAPitch*nTeeth_Sun/180*2);
+
 module PlanetCarrierOuter(Shaft_d=Tube_OD+IDXtra){
 	Hub_h=PC_Hub_h;
 	
@@ -597,6 +600,7 @@ module PlanetCarrierSpacer(Shaft_d=Tube_OD+IDXtra){
 
 //translate([0,0,Gear_w/2+0.5-PC_Axil_L/2]) PlanetCarrierSpacer();
 
+
 module SunGear(){
 	difference(){
 		gear(number_of_teeth=nTeeth_Sun,
@@ -608,7 +612,7 @@ module SunGear(){
 			rim_width=5,
 			hub_thickness=Gear_w,
 			hub_diameter=15,
-			bore_diameter=sBearing_OD-1,
+			bore_diameter=Tube_OD-1,
 			circles=0,
 			backlash=GearBacklash,
 			twist=twist/nTeeth_Sun,
@@ -628,6 +632,9 @@ module SunGear(){
 				cylinder(d=30,h=2);
 				translate([0,0,-Overlap]) cylinder(d2=27,d1=20.25,h=2+Overlap*2);
 			}// difference
+			
+		// bore
+		translate([0,0,-Overlap]) cylinder(d=Tube_OD+IDXtra,h=Gear_w+Overlap*2);
 	}// difference
 } // SunGear
 	
