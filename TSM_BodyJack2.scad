@@ -6,7 +6,7 @@
 // Filename: TSM_BodyJack2.scad
 // By: David M. Flynn
 // Created: 10/16/2019
-// Revision: 1.2 1/25/2021
+// Revision: 1.2.1  1/31/2021
 // Units: mm
 // *************************************************
 //  ***** Notes *****
@@ -19,6 +19,7 @@
 // 	AS5047D encoder 7 pole pairs.
 // *************************************************
 //  ***** History ******
+// 1.2.1  1/31/2021 Increased backlash and clearance.
 // 1.2   1/25/2021 Copied from TSM_BodyJack.scad, straight gears, smaller bearing and sun gear.
 // 1.1.8 7/16/2020 InnerPlanetCarrier:Shifted bearing up 1mm. Helical gear version added.
 // 1.1.7 7/11/2020 RingABearing() holes.
@@ -51,16 +52,12 @@
 // RingA_EncoderDisk(PPR=70); // Pulses per rotation / 8 = n.25, must end in ".25" or ".75", 90° appart
 // HomeSwitchMount();
 // HallSwitchMount();
-// RingA_Stop(HasSkirt=false, HasStop=true, nSensors=0); // shortened to 24.5mm 12/20/2019
+// RingA_Stop(HasSkirt=true, HasStop=false, nSensors=0); 
 // RingA_Stop(HasSkirt=true, HasStop=true, nSensors=1); // use skirt in dirty environments
 // RingA_Stop(HasSkirt=true, HasStop=false, nSensors=2); // for continuous rotation
-// ScrewMountRingB(HasSkirt=false); // Fixed ring. flange mount version.
-// ScrewMountRingB(HasSkirt=true); // use skirt is dirty environments
 // rotate([180,0,]) InnerPlanetBearing();
 //
-//  ***** Brushed motor *****
-// RingCSpacer(HasSkirt=true);
-// rotate([180,0,0]) RoundRingC(HasSkirt=true); // print w/ support for motor screws
+// RingB(HasSkirt=true);
 //
 //  ***** Brushless Gimbal Motor w/ Encoder
 // RingCSpacerGM(HasSkirt=true); // Plain for sensored motor
@@ -72,9 +69,9 @@
 //  ***** Planet carrier parts
 // PlanetCarrierOuter();
 // rotate([180,0,0]) PlanetCarrierSpacer();
-// rotate([180,0,0]) Planet();
-// rotate([180,0,0]) Planet(O_a=PlanetToothOffset_a); // Planet A ccw 1/3 tooth
-// rotate([180,0,0]) Planet(O_a=PlanetToothOffset_a*2); // Planet B ccw 2/3 tooth
+// Planet();
+// Planet(O_a=PlanetToothOffset_a); // Planet A ccw 1/3 tooth
+// Planet(O_a=PlanetToothOffset_a*2); // Planet B ccw 2/3 tooth
 // SunGear();
 //
 // GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=false); // commutation disc
@@ -116,9 +113,9 @@ Overlap=0.05;
 IDXtra=0.2;
 Bolt4Inset=4;
 
-GearBacklash=0.35; // this needs to be adjusted for the filament/printer used, 0.2 to 0.4 recommended
-GearClearance=0.2; // moves hub in on planets
-RingGearClearance=0.2; // moves teeth back on ring gears
+GearBacklash=0.45; // this needs to be adjusted for the filament/printer used, 0.2 to 0.4 recommended
+GearClearance=0.3; // moves hub in on planets
+RingGearClearance=0.3; // moves teeth back on ring gears
 BearingPreload=-0.35; // easy to back drive, -0.5 is too loose printed @ 0.2mm
 
 // 16:1 ratio with symetrical planet gears, could be 24:1 (Ring B = 46 teeth)
@@ -158,13 +155,13 @@ echo(RingA_cr=RingA_cr);
 
 
 //*
-// 135:1 w/ sun gear
+// 184:1 w/ sun gear
 GearAPitch=280;
+nTeeth_Sun=15;
+PlanetATeeth=15;
 RingATeeth=45; // output gear
 GearBPitch=270.9677419354839;
 RingBTeeth=46;
-nTeeth_Sun=15;
-PlanetATeeth=15;
 PlanetBTeeth=15;
 
 PlanetToothOffset_a=360/PlanetBTeeth/nPlanets;
@@ -348,30 +345,7 @@ module ShowBodyJackGM(Rot_a=180/RingATeeth,HasSkirt=true){
 //translate([0,0,Gear_w]) ShowBodyJackGM(HasSkirt=false);
 //translate([0,0,Gear_w]) ShowBodyJackGM(HasSkirt=true);
 
-module ShowBodyJack(Rot_a=180/RingATeeth,HasSkirt=true){
-	translate([0,0,-14.5]) rotate([180,0,0]) RingABearing();
-	rotate([0,0,Rot_a]) RingA();
-	
-	translate([0,0,-14.5]){ 
-		RingA_Stop(HasSkirt=HasSkirt, HasStop=true, nSensors=1);
-		rotate([0,0,22.5]) translate([-50,0,15]) rotate([0,-90,0]) rotate([0,0,-90]) HomeSwitchMount();
-	}
-	
-	translate([0,0,Gear_w+1])  ScrewMountRingB(HasSkirt=HasSkirt);
-	
-	translate([0,0,58-21.5-9]) RingCSpacer(HasSkirt=HasSkirt);
-	translate([0,0,58]) rotate([180,0,22.5]) RoundRingC(HasSkirt=HasSkirt);
-	
-	if (HasSkirt==false) ShowPlanetCarrier();
-	
-	translate([0,0,-24]) rotate([180,0,0]) ShowLifter();
-} // ShowBodyJack
 
-//rotate([90,0,0]) ShowBodyJack(Rot_a=20,HasSkirt=true);
-//translate([0,0,-110]) rotate([90,0,0]) ShowBodyJack(Rot_a=20,HasSkirt=true);
-// rotate([0,-90,0]) ShowBodyJack(Rot_a=0,HasSkirt=true);
-//translate([0,0,50-16]) PlanetCarrierDrivePulley();
-//ShowBodyJack(Rot_a=20,HasSkirt=false);
 
 // *********************************************************************************************
 //  ***** Planet Carrier Parts *****
@@ -418,7 +392,7 @@ module ShowPlanetCarrier(){
 	/**/
 	translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+Overlap]) PlanetCarrierOuter();
 	translate([0,0,Gear_w/2+0.5-PC_Axil_L/2]) PlanetCarrierSpacer();
-	translate([0,0,Gear_w/2+0.5-PC_Axil_L/2-Overlap]) rotate([180,0,0]) PlanetCarrierOuter();
+	//translate([0,0,Gear_w/2+0.5-PC_Axil_L/2-Overlap]) rotate([180,0,0]) PlanetCarrierOuter();
 } // ShowPlanetCarrier
 
 //ShowPlanetCarrier();
@@ -1157,7 +1131,7 @@ module RingB(HasSkirt=false){
 			translate([RingC_BC_d/2,0,Gear_w]) Bolt4Hole(depth=Gear_w);
 	} // difference
 	
-} // ScrewMountRingB
+} // RingB
 
 //translate([0,0,Gear_w+1]) RingB(HasSkirt=true);
 //RingB(HasSkirt=true);
@@ -1462,7 +1436,7 @@ module InnerPlanetBearing(){
 				translate([RingB_OD/2,0,Skirt_h-BoltBossB_h])
 						cylinder(d=Bolt4Inset*2+2,h=BoltBossB_h);
 				translate([RingC_BC_d/2,0,Skirt_h-BoltBossB_h]) cylinder(d=Bolt4Inset*2,h=BoltBossB_h);
-				translate([(RingB_OD+RingB_OD_Xtra)/2,0,2]) sphere(d=4,$fn=12);
+				translate([(RingB_OD+RingB_OD_Xtra)/2,0,3]) sphere(d=6,$fn=12);
 			} // hull
 		} // union
 		
