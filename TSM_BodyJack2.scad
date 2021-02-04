@@ -238,7 +238,7 @@ Ball_d=5/16 * 25.4;
 
 WT_OD=5/16 * 25.4;
 
-twist=0; // was 200
+twist=200; // was 200
 
 RingA_OD=RingATeeth*GearAPitch/180+GearAPitch/60;
 RingA_Bearing_BallCircle=84; // was RingA_OD+Ball_d;
@@ -391,12 +391,12 @@ module ShowPlanetCarrier(){
 			translate([0,0,11+Overlap]) rotate([180,0,0]) GM5208MountingPlate(HasCommutatorDisk=false, ShowMotor=false);}
 	
 	/**/
-	translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+Overlap]) PlanetCarrierOuter();
-	translate([0,0,Gear_w/2+0.5-PC_Axil_L/2]) PlanetCarrierSpacer();
+	//translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+Overlap]) PlanetCarrierOuter();
+	//translate([0,0,Gear_w/2+0.5-PC_Axil_L/2]) PlanetCarrierSpacer();
 	//translate([0,0,Gear_w/2+0.5-PC_Axil_L/2-Overlap]) rotate([180,0,0]) PlanetCarrierOuter();
 } // ShowPlanetCarrier
 
-//ShowPlanetCarrier();
+// ShowPlanetCarrier();
 
 module Spacer(Len=2){
 	difference(){
@@ -589,25 +589,28 @@ module PlanetCarrierSpacer(Shaft_d=Tube_OD+IDXtra){
 
 
 module SunGear(){
+	SunGear_w=Gear_w;
+	SunGearTwist=-twist/nTeeth_Sun*(SunGear_w/Gear_w);
+	
 	difference(){
 		gear(number_of_teeth=nTeeth_Sun,
 			circular_pitch=GearAPitch, diametral_pitch=false,
 			pressure_angle=Pressure_a,
 			clearance = GearClearance,
-			gear_thickness=Gear_w,
-			rim_thickness=Gear_w,
+			gear_thickness=SunGear_w,
+			rim_thickness=SunGear_w,
 			rim_width=5,
-			hub_thickness=Gear_w,
+			hub_thickness=SunGear_w,
 			hub_diameter=15,
 			bore_diameter=Tube_OD-1,
 			circles=0,
 			backlash=GearBacklash,
-			twist=twist/nTeeth_Sun,
+			twist=SunGearTwist,
 			involute_facets=0,
 			flat=false);
 
 		// top
-		translate([0,0,Gear_w-2+Overlap])
+		translate([0,0,SunGear_w-2+Overlap])
 			difference(){
 				cylinder(d=30,h=2);
 				translate([0,0,-Overlap]) cylinder(d1=27,d2=20.25,h=2+Overlap*2);
@@ -621,7 +624,7 @@ module SunGear(){
 			}// difference
 			
 		// bore
-		translate([0,0,-Overlap]) cylinder(d=Tube_OD+IDXtra,h=Gear_w+Overlap*2);
+		translate([0,0,-Overlap]) cylinder(d=Tube_OD+IDXtra,h=SunGear_w+Overlap*2);
 	}// difference
 } // SunGear
 	
@@ -977,17 +980,20 @@ module RingA(HasStop=true){
 	nSpokes=7;
 	EncDiscFaceOffset=12; // "A" bearing face to encoder disc face.
 	BearingFaceOffset=Gear_w/2+1+PC_Hub_h+Bearing_w+2; // Center of Ring A Gear to bearing face.
+	
+	RingAGear_w=BearingFaceOffset-RingA_Bearing_Race_w+Gear_w/2;
+	RingATwist=twist/RingATeeth*(RingAGear_w/Gear_w);
 
 	translate([0,0,-BearingFaceOffset+RingA_Bearing_Race_w-Overlap])
 		ring_gear(number_of_teeth=RingATeeth,
 			circular_pitch=GearAPitch, diametral_pitch=false,
 			pressure_angle=Pressure_a,
 			clearance = RingGearClearance,
-			gear_thickness=BearingFaceOffset-RingA_Bearing_Race_w+Gear_w/2,
-			rim_thickness=BearingFaceOffset-RingA_Bearing_Race_w+Gear_w/2,
+			gear_thickness=RingAGear_w,
+			rim_thickness=RingAGear_w,
 			rim_width=2,
 			backlash=GearBacklash,
-			twist=twist/RingATeeth,
+			twist=RingATwist,
 			involute_facets=0, // 1 = triangle, default is 5
 			flat=false);
 		
