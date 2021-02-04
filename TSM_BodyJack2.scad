@@ -6,7 +6,7 @@
 // Filename: TSM_BodyJack2.scad
 // By: David M. Flynn
 // Created: 10/16/2019
-// Revision: 1.2.1  1/31/2021
+// Revision: 1.2.2  2/3/2021
 // Units: mm
 // *************************************************
 //  ***** Notes *****
@@ -19,13 +19,14 @@
 // 	AS5047D encoder 7 pole pairs.
 // *************************************************
 //  ***** History ******
+// 1.2.2  2/3/2021  Spacers!
 // 1.2.1  1/31/2021 Increased backlash and clearance.
-// 1.2   1/25/2021 Copied from TSM_BodyJack.scad, straight gears, smaller bearing and sun gear.
-// 1.1.8 7/16/2020 InnerPlanetCarrier:Shifted bearing up 1mm. Helical gear version added.
-// 1.1.7 7/11/2020 RingABearing() holes.
-// 1.1.6 6/30/2020 New version: LifterLockCover2.
-// 1.1.5 6/13/2020 Shortened RingA_Stop to 24.3, Added clearance to ring gear teeth, moving teeth out by 0.2mm.
-// 1.1.4 1/25/2020 Standardizing dimensions. 
+// 1.2   1/25/2021  Copied from TSM_BodyJack.scad, straight gears, smaller bearing and sun gear.
+// 1.1.8 7/16/2020  InnerPlanetCarrier:Shifted bearing up 1mm. Helical gear version added.
+// 1.1.7 7/11/2020  RingABearing() holes.
+// 1.1.6 6/30/2020  New version: LifterLockCover2.
+// 1.1.5 6/13/2020  Shortened RingA_Stop to 24.3, Added clearance to ring gear teeth, moving teeth out by 0.2mm.
+// 1.1.4 1/25/2020  Standardizing dimensions. 
 // 1.1.3 1/8/2020   Fixes for GM5208 motor.
 // 1.1.2 12/29/2019 Motor mount w/ adjustable timing. 
 // 1.1.1 12/28/2019 Added GM4008 motor variant. 
@@ -397,6 +398,18 @@ module ShowPlanetCarrier(){
 
 //ShowPlanetCarrier();
 
+module Spacer(Len=2){
+	difference(){
+		cylinder(d=Tube_OD+4, h=Len);
+		
+		translate([0,0,-Overlap]) cylinder(d=Tube_OD+IDXtra,h=Len+Overlap*2);
+	} // difference
+	
+} // Spacer
+
+// Spacer(Len=2);
+// Spacer(Len=4);
+
 module GimbalMotor5208(){
 	color("Gray")
 			difference(){
@@ -616,6 +629,10 @@ module SunGear(){
 
 module Planet(O_a=0){
 	
+	Cone_s=19.75;
+	Cone_l=26.5;
+	BearingXTra=0.4;
+	
 	difference(){
 		union(){ // not Harring Bone Gears
 			translate([0,0,-Gear_w/2])
@@ -640,14 +657,14 @@ module Planet(O_a=0){
 				translate([0,0,Gear_w-2+Overlap])
 				difference(){
 					cylinder(d=30,h=2);
-					translate([0,0,-Overlap]) cylinder(d1=26.5,d2=19.75,h=2+Overlap*2);
+					translate([0,0,-Overlap]) cylinder(d1=Cone_l,d2=Cone_s,h=2+Overlap*2);
 				} // difference
 				
 				// bottom
 				translate([0,0,-Overlap])
 				difference(){
 					cylinder(d=30,h=2);
-					translate([0,0,-Overlap]) cylinder(d2=26.5,d1=19.75,h=2+Overlap*2);
+					translate([0,0,-Overlap]) cylinder(d2=Cone_l,d1=Cone_s,h=2+Overlap*2);
 				} // difference
 				
 			} // difference
@@ -673,14 +690,14 @@ module Planet(O_a=0){
 				translate([0,0,Gear_w-2+Overlap])
 					difference(){
 						cylinder(d=30,h=2);
-						translate([0,0,-Overlap]) cylinder(d1=27,d2=20.25,h=2+Overlap*2);
+						translate([0,0,-Overlap]) cylinder(d1=Cone_l,d2=Cone_s,h=2+Overlap*2);
 					}// difference
 					
 				// bottom
 				translate([0,0,-Overlap])
 					difference(){
 						cylinder(d=30,h=2);
-						translate([0,0,-Overlap]) cylinder(d2=27,d1=20.25,h=2+Overlap*2);
+						translate([0,0,-Overlap]) cylinder(d2=Cone_l,d1=Cone_s,h=2+Overlap*2);
 					}// difference
 			}// difference
 		}
@@ -688,8 +705,8 @@ module Planet(O_a=0){
 		if (O_a!=0) 
 			rotate([0,0,O_a]) translate([-8.5,0,Gear_w*1.5]) cylinder(d=2,h=2);
 
-		translate([0,0,-Gear_w/2-Overlap]) cylinder(d=sBearing_OD,h=sBearing_w+Overlap);
-		translate([0,0,Gear_w+Gear_w/2+1-sBearing_w]) cylinder(d=sBearing_OD,h=sBearing_w+Overlap);
+		translate([0,0,-Gear_w/2-Overlap]) cylinder(d=sBearing_OD,h=sBearing_w+BearingXTra+Overlap);
+		translate([0,0,Gear_w+Gear_w/2+1-sBearing_w-BearingXTra]) cylinder(d=sBearing_OD,h=sBearing_w+BearingXTra+Overlap);
 	} // difference
 } // Planet
 
