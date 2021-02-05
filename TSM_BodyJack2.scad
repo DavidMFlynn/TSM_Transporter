@@ -788,7 +788,10 @@ module RingA_Stop(HasSkirt=false, HasStop=true, nSensors=2){
 	PostToRingB_h=15.5;
 	
 	module OptoMountPlate(Z=20){
-		translate([0,-20,0]) cube([4,40,Z]);
+		hull(){
+			translate([2.5,-20,0]) cube([2,40,Z]);
+			translate([0,-12,0]) cube([4,24,Z]);
+		} // hull
 	} // OptoMount
 	
 	module OptoMountHoles(){
@@ -835,7 +838,7 @@ module RingA_Stop(HasSkirt=false, HasStop=true, nSensors=2){
 		
 		// Optical sensor mount
 		if (nSensors>0)
-			rotate([0,0,22.5]) translate([-EncoderSw_r-Overlap,0,0]) OptoMountHoles();
+			rotate([0,0,22.5]) translate([-EncoderSw_r-3-Overlap,0,27]) rotate([0,180,0]) HallOptoMountHoles(); //OptoMountHoles();
 		if (nSensors==2) rotate([0,0,-22.5]) 
 			translate([-EncoderSw_r-Overlap,0,0]) OptoMountHoles();
 			
@@ -847,65 +850,31 @@ module RingA_Stop(HasSkirt=false, HasStop=true, nSensors=2){
 		}
 	} // difference
 	
+	//Stop_z=-5.5;
+	
 	if (HasStop==true)
 	// hard stop
-	rotate([0,0,22.5])
-	difference(){
-		union(){
+		rotate([0,0,22.5]){
+			// gusset
 			hull(){
 				translate([RingA_Major_OD/2+7,-14,0]) cylinder(d=3,h=1);
 				translate([RingA_Major_OD/2+7,14,0]) cylinder(d=3,h=1);
-				translate([RingA_Major_OD/2+7,-2,10]) cylinder(d=3,h=1);
-				translate([RingA_Major_OD/2+7,2,10]) cylinder(d=3,h=1);
-			}
-			
-			hull(){
-				translate([RingA_Major_OD/2+5,0,5]) cylinder(d=8,h=6);
-				translate([RingA_Major_OD/2+7,0,5]) cylinder(d=8,h=6);
-				translate([RingA_Major_OD/2+9,0,0]) cylinder(d=8,h=1);
+				translate([RingA_Major_OD/2+7,-3,PostToRingB_h-11]) cylinder(d=3,h=1);
+				translate([RingA_Major_OD/2+7,3,PostToRingB_h-11]) cylinder(d=3,h=1);
 			} // hull
-		} // union
-		
-		translate([50,0,-15]) cylinder(d=RingA_Major_OD-4,h=16);
-	} // difference
+			// stop
+			hull(){
+				translate([RingA_Major_OD/2+1,0,0]) scale([0.2,1,1]) cylinder(d=8,h=PostToRingB_h-10);
+				translate([RingA_Major_OD/2+7,0,0]) scale([0.2,1,1]) cylinder(d=8,h=PostToRingB_h-10);
+				//translate([RingA_Major_OD/2+9,0,0]) scale([0.3,1,1]) #cylinder(d=8,h=1);
+			} // hull
+		} // if
 	
 } // RingA_Stop
 
-// translate([0,0,-Gear_w/2-1-PC_Hub_h-Bearing_w-2-Overlap+RingA_Bearing_Race_w]) RingA_Stop(HasSkirt=true, HasStop=false, nSensors=0);
+// translate([0,0,-Gear_w/2-1-PC_Hub_h-Bearing_w-2-Overlap+RingA_Bearing_Race_w]) RingA_Stop(HasSkirt=true, HasStop=true, nSensors=1);
 //translate([0,0,-Gear_w/2-1-PC_Hub_h-Bearing_w-2-Overlap*2+RingA_Bearing_Race_w]) rotate([180,0,0]) RingABearing();
 
-module SwitchHoles(T=3){
-	X=5.42+IDXtra;
-	Y=4.53+IDXtra;
-	Y1=5.5;
-	Y2=13.4;
-	
-	translate([0,0,T]) Bolt4Hole();
-	translate([-X/2,Y1-Y/2,-Overlap]) cube([X,Y,T+Overlap*2]);
-	translate([-X/2,Y2-Y/2,-Overlap]) cube([X,Y,T+Overlap*2]);
-} // SwitchHoles
-
-
-module HomeSwitchMount(){
-	BoltOffset_X=7.5;
-	BoltOffset_Y=5;
-	X=BoltOffset_X*2+Bolt4Inset*2;
-	Y=BoltOffset_Y*2+Bolt4Inset*2+1;
-	T=3;
-	
-	difference(){
-		translate([-X/2,-Y/2-2,0]) cube([X,Y+2,T]);
-		
-		translate([-BoltOffset_X,-BoltOffset_Y,T]) Bolt4ClearHole();
-		translate([-BoltOffset_X,BoltOffset_Y,T]) Bolt4ClearHole();
-		translate([BoltOffset_X,-BoltOffset_Y,T]) Bolt4ClearHole();
-		translate([BoltOffset_X,BoltOffset_Y,T]) Bolt4ClearHole();
-
-		translate([0,-BoltOffset_Y-2.5,0]) SwitchHoles(T);
-	} // difference
-} // HomeSwitchMount
-
-//rotate([0,0,22.5]) translate([-50,0,15]) rotate([0,-90,0]) rotate([0,0,-90]) HomeSwitchMount();
 
 /*
 RingA_Stop(HasSkirt=false, HasStop=true, nSensors=2);
@@ -916,69 +885,10 @@ translate([0,0,Gear_w/2+6+2]) RingA_HomeFinderDisk();
 //translate([0,0,60]) rotate([180,0,0]) RoundRingC();
 /**/
 
-module RingA_EncoderDisk(PPR=100){
-	Thickness=1.5;
-	
-	OuterBC_r=EncDisk_d/2-1.5;
-	OuterBC_Hole_d=OuterBC_r*PI/PPR;
-	InnerBC_r=EncDisk_d/2-4;
-	InnerBC_Hole_d=InnerBC_r*PI/PPR;
-	
-	difference(){
-		cylinder(d=EncDisk_d,h=Thickness);
-		
-		for (j=[0:PPR-1]) rotate([0,0,360/PPR*j]){
-			
-			hull(){
-			translate([OuterBC_r,0,-Overlap]) {
-				translate([0,OuterBC_Hole_d/2-0.5,0]) cylinder(d=1,h=Thickness+Overlap*2,$fn=18);
-				translate([0,-OuterBC_Hole_d/2+0.5,0]) cylinder(d=1,h=Thickness+Overlap*2,$fn=18);
-				}
-				
-			translate([InnerBC_r,0,-Overlap]) {
-				translate([0,InnerBC_Hole_d/2-0.5,0]) cylinder(d=1,h=Thickness+Overlap*2,$fn=18);
-				translate([0,-InnerBC_Hole_d/2+0.5,0]) cylinder(d=1,h=Thickness+Overlap*2,$fn=18);		
-				}
-			} // hull	
-		} // for
-		
-		// center hole
-		translate([0,0,-Overlap]) cylinder(d=RingA_Major_OD-2+IDXtra,h=Thickness+Overlap*2);
-	} // difference
-	
-	if ($preview==true){
-			rotate([0,0,45]) translate([0,EncDisk_d/2+1,0]) cylinder(d=1,h=1);
-			translate([0,EncDisk_d/2+1,0]) cylinder(d=1,h=1);
-		}
-} // RingA_EncoderDisk
-
-//translate([0,0,Gear_w/2+6+2+Overlap]) RingA_EncoderDisk(PPR=70);
-
-module RingA_HomeFinderDisk(){
-	Thickness=1.5;
-	
-	difference(){
-		cylinder(d=RingA_Major_OD+10,h=Thickness);
-		
-		// on 180°, off 180°
-		difference(){
-			translate([-RingA_Major_OD/2-10,0,-Overlap]) cube([RingA_Major_OD+20,RingA_Major_OD+20,Thickness+Overlap*2]);
-			translate([0,0,-Overlap*2]) cylinder(d=RingA_Major_OD+4,h=Thickness+Overlap*4);
-		} // difference
-		
-		// center hole
-		translate([0,0,-Overlap]) cylinder(d=RingA_Major_OD-2+IDXtra,h=Thickness+Overlap*2);
-	} // difference
-	
-} // RingA_HomeFinderDisk
-
-//translate([0,0,Gear_w/2+6+2+Overlap]) RingA_HomeFinderDisk();
-//translate([0,0,Gear_w/2+Overlap]) RingA_HomeFinderDisk();
-
 
 module RingA(HasStop=true){
 	nSpokes=7;
-	EncDiscFaceOffset=12; // "A" bearing face to encoder disc face.
+	EncDiscFaceOffset=12.6; // "A" bearing face to encoder disc face.
 	BearingFaceOffset=Gear_w/2+1+PC_Hub_h+Bearing_w+2; // Center of Ring A Gear to bearing face.
 	
 	RingAGear_w=BearingFaceOffset-RingA_Bearing_Race_w+Gear_w/2;
@@ -1055,23 +965,94 @@ module RingA(HasStop=true){
 	} // difference
 	
 	// hard stop
+	Stop_z=-0.5-5.5;
 	if (HasStop==true)
 		difference(){
 			hull(){
-				translate([RingA_Major_OD/2+2,0,-8]) cylinder(d=8,h=4);
-				translate([RingA_Major_OD/2-2,0,-8]) cylinder(d=8,h=4);
-				translate([RingA_Major_OD/2-4,0,-15]) cylinder(d=4,h=1);
+				translate([RingA_Major_OD/2+2,0,Stop_z]) scale([0.2,1,1]) cylinder(d=8,h=4);
+				translate([RingA_Major_OD/2-2,0,Stop_z]) cylinder(d=8,h=4);
+				translate([RingA_Major_OD/2-4,0,Stop_z-5]) cylinder(d=4,h=1);
 			} // hull
 			
-			translate([0,0,-15]) cylinder(d=RingA_Major_OD-4,h=16);
+			translate([0,0,Stop_z-6]) cylinder(d=RingA_Major_OD-4,h=16);
 		} // difference
 	
 } // RingA
 
-// rotate([0,0,180/RingATeeth]) RingA(HasStop=false);
+// rotate([0,0,180/RingATeeth+7]) RingA(HasStop=true);
 // translate([0,0,Gear_w/2+0.5-PC_Axil_L/2-Overlap]) rotate([180,0,0]) PlanetCarrierOuter();
 
 // translate([0,0,-Gear_w/2-1-PC_Hub_h-Bearing_w-2-Overlap+RingA_Bearing_Race_w]) rotate([180,0,0]) RingABearing();
+
+module RingA_HomeFinderDisk(){
+	Thickness=1.5;
+	
+	difference(){
+		cylinder(d=RingA_Major_OD+10,h=Thickness);
+		
+		// on 180°, off 180°
+		difference(){
+			translate([-RingA_Major_OD/2-10,0,-Overlap]) cube([RingA_Major_OD+20,RingA_Major_OD+20,Thickness+Overlap*2]);
+			translate([0,0,-Overlap*2]) cylinder(d=RingA_Major_OD+4,h=Thickness+Overlap*4);
+		} // difference
+		
+		// center hole
+		translate([0,0,-Overlap]) cylinder(d=RingA_Major_OD-2+IDXtra*2,h=Thickness+Overlap*2);
+	} // difference
+	
+} // RingA_HomeFinderDisk
+
+//translate([0,0,Gear_w/2-1.9+Overlap]) RingA_HomeFinderDisk();
+
+
+module RingA_EncoderDisk(PPR=100){
+	Thickness=1.5;
+	
+	OuterBC_r=EncDisk_d/2-1.5;
+	OuterBC_Hole_d=OuterBC_r*PI/PPR;
+	InnerBC_r=EncDisk_d/2-4;
+	InnerBC_Hole_d=InnerBC_r*PI/PPR;
+	
+	difference(){
+		cylinder(d=EncDisk_d,h=Thickness);
+		
+		for (j=[0:PPR-1]) rotate([0,0,360/PPR*j]){
+			
+			hull(){
+			translate([OuterBC_r,0,-Overlap]) {
+				translate([0,OuterBC_Hole_d/2-0.5,0]) cylinder(d=1,h=Thickness+Overlap*2,$fn=18);
+				translate([0,-OuterBC_Hole_d/2+0.5,0]) cylinder(d=1,h=Thickness+Overlap*2,$fn=18);
+				}
+				
+			translate([InnerBC_r,0,-Overlap]) {
+				translate([0,InnerBC_Hole_d/2-0.5,0]) cylinder(d=1,h=Thickness+Overlap*2,$fn=18);
+				translate([0,-InnerBC_Hole_d/2+0.5,0]) cylinder(d=1,h=Thickness+Overlap*2,$fn=18);		
+				}
+			} // hull	
+		} // for
+		
+		// center hole
+		translate([0,0,-Overlap]) cylinder(d=RingA_Major_OD-2+IDXtra,h=Thickness+Overlap*2);
+	} // difference
+	
+	if ($preview==true){
+			rotate([0,0,45]) translate([0,EncDisk_d/2+1,0]) cylinder(d=1,h=1);
+			translate([0,EncDisk_d/2+1,0]) cylinder(d=1,h=1);
+		}
+} // RingA_EncoderDisk
+
+//translate([0,0,Gear_w/2+6+2+Overlap]) RingA_EncoderDisk(PPR=70);
+
+module SwitchHoles(T=3){
+	X=5.42+IDXtra;
+	Y=4.53+IDXtra;
+	Y1=5.5;
+	Y2=13.4;
+	
+	translate([0,0,T]) Bolt4Hole();
+	translate([-X/2,Y1-Y/2,-Overlap]) cube([X,Y,T+Overlap*2]);
+	translate([-X/2,Y2-Y/2,-Overlap]) cube([X,Y,T+Overlap*2]);
+} // SwitchHoles
 
 // ***********************************************************************************************
 //  ***** Ring B, Stationary ring gear *****
@@ -1208,12 +1189,11 @@ module ShowGM5208Module(){
 
 //ShowGM5208Module();
 
-module HallSwitchMount(){
+module HallSwitchMount(T=3){
 	BoltOffset_X=6;
 	BoltOffset_Y=5;
 	X=BoltOffset_X*2+Bolt4Inset*2;
 	Y=BoltOffset_Y*2+Bolt4Inset*2+1;
-	T=3;
 	
 	difference(){
 		hull(){
@@ -1232,7 +1212,7 @@ module HallSwitchMount(){
 	} // difference
 } // HallSwitchMount
 
-//HallSwitchMount();
+// HallSwitchMount();
 
 	module HallOptoMountPlate(Z=20,Label="W"){
 		Width=20;
@@ -1260,6 +1240,8 @@ module HallSwitchMount(){
 		translate([0,-Bolt_Y,20]) rotate([0,90,0]) Bolt4Hole(depth=20);
 		translate([0,Bolt_Y,20]) rotate([0,90,0]) Bolt4Hole(depth=20);
 	} // HallOptoMountHoles
+	
+//	HallOptoMountHoles();
 	
 RingC_BC_GM4008Twist_a=-2.0;
 RingC_BC_GM5208Twist_a=-2.0;
