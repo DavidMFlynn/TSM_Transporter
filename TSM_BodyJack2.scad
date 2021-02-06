@@ -408,6 +408,7 @@ module Spacer(Len=2){
 } // Spacer
 
 // Spacer(Len=2);
+// Spacer(Len=2.7);
 // Spacer(Len=4);
 
 module GimbalMotor5208(){
@@ -794,16 +795,6 @@ module RingA_Stop(HasSkirt=false, HasStop=true, nSensors=2){
 		} // hull
 	} // OptoMount
 	
-	module OptoMountHoles(){
-		hull(){
-			translate([0,0,8]) rotate([0,90,0]) cylinder(d=7,h=6);
-			translate([0,0,25]) rotate([0,90,0]) cylinder(d=7,h=6);
-		} // hull
-		translate([0,-7.5,10]) rotate([0,-90,0]) Bolt4Hole();
-		translate([0,7.5,10]) rotate([0,-90,0]) Bolt4Hole();
-		translate([0,-7.5,20]) rotate([0,-90,0]) Bolt4Hole();
-		translate([0,7.5,20]) rotate([0,-90,0]) Bolt4Hole();
-	} // OptoMount
 	
 	difference(){
 		union(){
@@ -834,13 +825,13 @@ module RingA_Stop(HasSkirt=false, HasStop=true, nSensors=2){
 		} // union
 		
 		// lower inside
-		translate([0,0,-Overlap]) cylinder(d=RingA_Major_OD+8,h=RingABearingMountingRing_t+Overlap*2);
+		translate([0,0,-Overlap]) cylinder(d=EncDisk_d+0.5,h=RingABearingMountingRing_t+Overlap*2);
 		
 		// Optical sensor mount
 		if (nSensors>0)
-			rotate([0,0,22.5]) translate([-EncoderSw_r-3-Overlap,0,27]) rotate([0,180,0]) HallOptoMountHoles(); //OptoMountHoles();
+			rotate([0,0,22.5]) translate([-EncoderSw_r-3-Overlap,0,0])  rotate([180,180,0]) HallOptoMountHoles(Disk_CL=PostToRingB_h-3); 
 		if (nSensors==2) rotate([0,0,-22.5]) 
-			translate([-EncoderSw_r-Overlap,0,0]) OptoMountHoles();
+			translate([-EncoderSw_r-Overlap,0,0]) rotate([180,180,0]) HallOptoMountHoles(Disk_CL=PostToRingB_h-3);
 			
 		// bolts
 		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]){
@@ -874,7 +865,6 @@ module RingA_Stop(HasSkirt=false, HasStop=true, nSensors=2){
 
 // translate([0,0,-Gear_w/2-1-PC_Hub_h-Bearing_w-2-Overlap+RingA_Bearing_Race_w]) RingA_Stop(HasSkirt=true, HasStop=true, nSensors=1);
 //translate([0,0,-Gear_w/2-1-PC_Hub_h-Bearing_w-2-Overlap*2+RingA_Bearing_Race_w]) rotate([180,0,0]) RingABearing();
-
 
 /*
 RingA_Stop(HasSkirt=false, HasStop=true, nSensors=2);
@@ -988,7 +978,7 @@ module RingA_HomeFinderDisk(){
 	Thickness=1.5;
 	
 	difference(){
-		cylinder(d=RingA_Major_OD+10,h=Thickness);
+		cylinder(d=EncDisk_d,h=Thickness);
 		
 		// on 180°, off 180°
 		difference(){
@@ -1002,7 +992,7 @@ module RingA_HomeFinderDisk(){
 	
 } // RingA_HomeFinderDisk
 
-//translate([0,0,Gear_w/2-1.9+Overlap]) RingA_HomeFinderDisk();
+// translate([0,0,Gear_w/2-1.9+Overlap]) RingA_HomeFinderDisk();
 
 
 module RingA_EncoderDisk(PPR=100){
@@ -1090,10 +1080,17 @@ module RingB_Gear(){
 
 //translate([0,0,Gear_w+16]) RingB_Gear();
 
-module RingB(HasSkirt=false){
+module RingB(HasSkirt=false, nSensors=0){
 	nBolts=8;
 
 	RingB_Gear();
+	
+	module OptoMountPlate(Z=20){
+		hull(){
+			translate([2.5,-20,0]) cube([4,40,Z]);
+			translate([0,-12,0]) cube([4,24,Z]);
+		} // hull
+	} // OptoMount
 	
 	translate([0,0,-Gear_w/2])
 	difference(){
@@ -1121,8 +1118,21 @@ module RingB(HasSkirt=false){
 					
 					translate([0,0,-Overlap]) cylinder(d1=RingB_BC_d-4,d2=RingB_OD+RingB_OD_Xtra-4,h=Gear_w+Overlap*2);
 				} // difference
+				
+			// Optical sensor mount
+			if (nSensors>0)
+				rotate([0,0,22.5]) translate([-EncoderSw_r,0,0]) OptoMountPlate(Z=Gear_w/2);
+			if (nSensors==2) rotate([0,0,-22.5]) 
+				translate([-EncoderSw_r,0,0]) OptoMountPlate(Z=Gear_w/2);
 		} // union
 		
+		// Optical sensor mount
+		if (nSensors>0)
+			rotate([0,0,22.5]) translate([-EncoderSw_r-5-Overlap,0,0])  rotate([180,180,0]) HallOptoMountHoles(Disk_CL=-3); 
+		if (nSensors==2) rotate([0,0,-22.5]) 
+			translate([-EncoderSw_r-5-Overlap,0,0]) rotate([180,180,0]) HallOptoMountHoles(Disk_CL=-3);
+
+
 		// remove inside
 		translate([0,0,-Overlap]) cylinder(d=RingB_OD,h=Gear_w+Overlap*2);
 		
@@ -1137,7 +1147,7 @@ module RingB(HasSkirt=false){
 	
 } // RingB
 
-//translate([0,0,Gear_w+1]) RingB(HasSkirt=true);
+//translate([0,0,Gear_w+1]) RingB(HasSkirt=true, nSensors=1);
 //RingB(HasSkirt=true);
 //translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+Overlap]) PlanetCarrierOuter();
 
@@ -1229,16 +1239,16 @@ module HallSwitchMount(T=3){
 		} // difference
 	} // HallOptoMountPlate
 	
-	module HallOptoMountHoles(){
+	module HallOptoMountHoles(Disk_CL=13){
 		Bolt_Y=6;
 		hull(){
-			translate([+Overlap,0,22]) rotate([0,-90,0]) cylinder(d=7,h=12+Overlap);
-			translate([-12,-3.5,6.5]) cube([12+Overlap,7,Overlap]); //cylinder(d=7,h=12);
+			translate([+Overlap,0,Disk_CL+9]) rotate([0,-90,0]) cylinder(d=7,h=12+Overlap);
+			translate([-12,-3.5,Disk_CL-6.5]) cube([12+Overlap,7,Overlap]); //cylinder(d=7,h=12);
 		} // hull
-		translate([0,-Bolt_Y,10]) rotate([0,90,0]) Bolt4Hole(depth=20);
-		translate([0,Bolt_Y,10]) rotate([0,90,0]) Bolt4Hole(depth=20);
-		translate([0,-Bolt_Y,20]) rotate([0,90,0]) Bolt4Hole(depth=20);
-		translate([0,Bolt_Y,20]) rotate([0,90,0]) Bolt4Hole(depth=20);
+		translate([0,-Bolt_Y,Disk_CL-3]) rotate([0,90,0]) Bolt4Hole(depth=20);
+		translate([0,Bolt_Y,Disk_CL-3]) rotate([0,90,0]) Bolt4Hole(depth=20);
+		translate([0,-Bolt_Y,Disk_CL+7]) rotate([0,90,0]) Bolt4Hole(depth=20);
+		translate([0,Bolt_Y,Disk_CL+7]) rotate([0,90,0]) Bolt4Hole(depth=20);
 	} // HallOptoMountHoles
 	
 //	HallOptoMountHoles();
