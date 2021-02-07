@@ -709,8 +709,9 @@ module Planet(O_a=0){
 		if (O_a!=0) 
 			rotate([0,0,O_a]) translate([-8.5,0,Gear_w*1.5]) cylinder(d=2,h=2);
 
-		translate([0,0,-Gear_w/2-Overlap]) cylinder(d=sBearing_OD,h=sBearing_w+BearingXTra+Overlap);
-		translate([0,0,Gear_w+Gear_w/2+1-sBearing_w-BearingXTra]) cylinder(d=sBearing_OD,h=sBearing_w+BearingXTra+Overlap);
+		// Bearings
+		translate([0,0,-Gear_w/2-Overlap]) cylinder(d=sBearing_OD+IDXtra,h=sBearing_w+BearingXTra+Overlap);
+		translate([0,0,Gear_w+Gear_w/2+1-sBearing_w-BearingXTra]) cylinder(d=sBearing_OD+IDXtra,h=sBearing_w+BearingXTra+Overlap);
 	} // difference
 } // Planet
 
