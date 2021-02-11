@@ -313,11 +313,9 @@ module ShowBodyJackGM(Rot_a=180/RingATeeth,HasSkirt=true){
 	translate([0,0,-14.5]){ 
 		RingA_Stop(HasSkirt=HasSkirt, HasStop=false, nSensors=2);
 		translate([0,0,16.5]) RingA_EncoderDisk(PPR=70); 
-		rotate([0,0,22.5]) translate([-50,0,15]) rotate([0,-90,0]) rotate([0,0,-90]) HomeSwitchMount();
-		rotate([0,0,22.5-45]) translate([-50,0,15]) rotate([0,-90,0]) rotate([0,0,-90]) HomeSwitchMount();
 	}
 	
-	translate([0,0,Gear_w+1])  ScrewMountRingB(HasSkirt=HasSkirt);
+	translate([0,0,Gear_w+1])  RingB(HasSkirt=HasSkirt);
 	
 	
 	if (HasSkirt==false) ShowPlanetCarrier(GMVersion=true);
@@ -384,6 +382,44 @@ module ShowPlanetCarrier(){
 	
 	for (j=[0:nPlanets-1]) rotate([0,0,-360/nPlanets*j]) translate([-PC_BC_d/2,0,0]) rotate([0,0,0]) Planet(O_a=PlanetToothOffset_a*j);
 		
+	//*
+	
+	translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+Overlap]){
+			//PlanetCarrierInnerGimbalMotor();
+			translate([0,0,11+Overlap]) rotate([180,0,0]) GM5208MountingPlate(HasCommutatorDisk=false, ShowMotor=false);}
+	
+	/**/
+	translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+Overlap]) PlanetCarrierOuter();
+	translate([0,0,Gear_w/2+0.5-PC_Axil_L/2]) PlanetCarrierSpacer();
+	translate([0,0,Gear_w/2+0.5-PC_Axil_L/2-Overlap]) rotate([180,0,0]) PlanetCarrierOuter();
+} // ShowPlanetCarrier
+
+// ShowPlanetCarrier();
+
+module ShowPlanetCarrierEXP(){
+    EXP_Xa=25;
+    EXP_Ya=0;
+    
+	P_a=(RingATeeth/nPlanets)*(360/PlanetATeeth);
+    
+	translate([0,0,85]) rotate([EXP_Xa,EXP_Ya,0]) color("LightBlue")
+        SplineShaft(d=GM5208_Spline_d,l=4,nSplines=GM5208_nSplines,Spline_w=30,Hole=12.7+IDXtra,Key=false);
+    translate([0,0,80]) rotate([EXP_Xa,EXP_Ya,0]) color("LightBlue") Spacer(Len=3);
+    
+    translate([-80,0,70]) rotate([EXP_Xa,EXP_Ya,0]) color("Tan") InnerPlanetBearing();
+    translate([80,0,55]) rotate([EXP_Xa,EXP_Ya,0]) color("Tan") RingB(HasSkirt=true);
+    translate([80,0,0]) rotate([EXP_Xa,EXP_Ya,0]) color("Tan") RingA();
+    
+    translate([-80,0,0]) rotate([EXP_Xa,EXP_Ya,0]) color("Tan")
+        RingA_Stop(HasSkirt=true, HasStop=false, nSensors=1); // Drive wheel using motor commutation for position
+    translate([-80,0,-10]) rotate([EXP_Xa,EXP_Ya,0]) color("Tan") rotate([180,0,0]) RingABearing();
+
+    
+	translate([0,0,65]) rotate([EXP_Xa,EXP_Ya,0]) color("LightBlue") Spacer(Len=2);
+	
+	for (j=[0:nPlanets-1]) translate([0,0,25]) rotate([EXP_Xa,EXP_Ya,0]) rotate([0,0,-360/nPlanets*j]) translate([-PC_BC_d/2,0,0])
+      color("Green")  Planet(O_a=PlanetToothOffset_a*j);
+		
 	/*
 	
 	translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+Overlap]){
@@ -391,12 +427,17 @@ module ShowPlanetCarrier(){
 			translate([0,0,11+Overlap]) rotate([180,0,0]) GM5208MountingPlate(HasCommutatorDisk=false, ShowMotor=false);}
 	
 	/**/
-	//translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+Overlap]) PlanetCarrierOuter();
-	//translate([0,0,Gear_w/2+0.5-PC_Axil_L/2]) PlanetCarrierSpacer();
-	//translate([0,0,Gear_w/2+0.5-PC_Axil_L/2-Overlap]) rotate([180,0,0]) PlanetCarrierOuter();
-} // ShowPlanetCarrier
+	translate([0,0,Gear_w/2+0.5+PC_Axil_L/2+Overlap+35]) rotate([EXP_Xa,EXP_Ya,0]) color("Gray") PlanetCarrierOuter();
+	translate([0,0,Gear_w/2+0.5-PC_Axil_L/2+25]) rotate([EXP_Xa,EXP_Ya,0]) color("Gray") PlanetCarrierSpacer();
+    
+    translate([0,0,-Gear_w/2+5]) rotate([EXP_Xa,EXP_Ya,0]) color("Green") SunGear();
+    
+	translate([0,0,Gear_w/2+0.5-PC_Axil_L/2-Overlap]) rotate([EXP_Xa,EXP_Ya,0]) rotate([180,0,0]) color("Gray") PlanetCarrierOuter();
+    
+    translate([0,0,-20]) rotate([EXP_Xa,EXP_Ya,0]) color("LightBlue") Spacer(Len=2);
+} // ShowPlanetCarrierEXP
 
-// ShowPlanetCarrier();
+ShowPlanetCarrierEXP();
 
 module Spacer(Len=2){
 	difference(){
@@ -1048,9 +1089,76 @@ module SwitchHoles(T=3){
 // ***********************************************************************************************
 //  ***** Ring B, Stationary ring gear *****
 // ***********************************************************************************************
-//  ***** STL for 48:1 GM4008 *****
+//  ***** STL for GM4008/GM5208 *****
+// rotate([180,0,0]) InnerPlanetBearing();
 // RingB(HasSkirt=true);
 // ***********************************************************************************************
+
+module InnerPlanetBearing(){
+	// 7/16/2020 Shifted bearing up 1mm
+	nBolts=8;
+	BoltBossB_h=6;
+	Skirt_h=PC_Hub_h+Bearing_w+2;
+	Skirt_ID=GM5208Comm_d+1.5;
+	
+	difference(){
+		union(){
+			cylinder(d=RingB_OD+RingB_OD_Xtra,h=Skirt_h);
+			
+			// Ring B bolt bosses
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
+				translate([RingB_OD/2,0,0])
+						cylinder(d=Bolt4Inset*2+2,h=Skirt_h);
+				translate([RingC_BC_d/2,0,0]) cylinder(d=Bolt4Inset*2,h=Skirt_h);
+			} // hull
+			
+			// Ring C bolt bosses
+			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j+22.5]) hull(){
+				translate([RingB_OD/2,0,Skirt_h-BoltBossB_h])
+						cylinder(d=Bolt4Inset*2+2,h=BoltBossB_h);
+				translate([RingC_BC_d/2,0,Skirt_h-BoltBossB_h]) cylinder(d=Bolt4Inset*2,h=BoltBossB_h);
+				translate([(RingB_OD+RingB_OD_Xtra)/2,0,3]) sphere(d=6,$fn=12);
+			} // hull
+		} // union
+		
+		// Bolts to Ring B
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,BoltBossB_h])
+				Bolt4HeadHole(lHead=Skirt_h);
+
+		// Bolts to Rinc C, Motor
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j+22.5]) translate([RingC_BC_d/2,0,Skirt_h])
+				Bolt4Hole(depth=8);
+		
+		// remove inside
+		translate([0,0,-Overlap]) cylinder(d=Skirt_ID,h=Skirt_h+Overlap*2);
+	} // difference
+	
+	nSpokes=7;
+	
+	// Planet carrier bearing mount
+	
+	difference(){
+		union(){
+			 translate([0,0,Skirt_h-(Bearing_w+1)]) cylinder(d=Bearing_OD+6,h=Bearing_w+1);
+			
+			for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j]) hull(){
+					translate([Bearing_OD/2+3,0,Skirt_h-(Bearing_w+1)]) rotate([0,0,45]) cylinder(d=2,h=Bearing_w+1,$fn=4);
+					translate([RingB_OD/2,0,Skirt_h-(Bearing_w+2)]) rotate([0,0,45]) cylinder(d=2,h=Bearing_w+2,$fn=4);
+				} // hull
+			
+		} // union
+		//Bearing_OD=1.125*25.4;
+		//Bearing_ID=0.500*25.4;
+		//Bearing_w=0.3125*25.4;
+
+		translate([0,0,Skirt_h-2]) cylinder(d=Bearing_OD-1,h=3);
+		translate([0,0,Skirt_h-(Bearing_w+1)-Overlap]) cylinder(d=Bearing_OD,h=Bearing_w+Overlap*2);
+		
+	} // difference
+		
+} // InnerPlanetBearing
+
+//translate([0,0,Gear_w*1.5+1.0+Overlap])  InnerPlanetBearing();
 
 module RingB_Gear(){
 	// Stationary Ring Gear
@@ -1161,7 +1269,6 @@ module RingB(HasSkirt=false, nSensors=0){
 // rotate([180,0,0])RingCMtrMountGM5208Com();
 // RingCCoverGM5208Com();
 // RingCSpacerGM5208Com();
-// rotate([180,0,0]) InnerPlanetBearing();
 //
 // HallSwitchMount(); // print 3
 // ****************************************************************************************************
@@ -1170,7 +1277,6 @@ module RingB(HasSkirt=false, nSensors=0){
 // rotate([180,0,0])RingCMtrMountGM4008Com();
 // RingCCoverGM4008Com();
 // RingCSpacerGM4008Com();
-// rotate([180,0,0]) InnerPlanetBearing();
 //
 // HallSwitchMount(); // print 3
 // ****************************************************************************************************
@@ -1180,7 +1286,7 @@ module TopAssy4008(){
 	translate([0,0,36]) RingCMtrMountGM4008Com();
 	translate([0,0,36])  RingCCoverGM4008Com();
 	RingCSpacerGM4008Com();
-	translate([0,0,-16]) InnerPlanetBearing();
+	
 } // TopAssy4008
 
 //TopAssy4008();
@@ -1428,72 +1534,6 @@ module RingCSpacerGM4008Com(){
 } // RingCSpacerGM4008Com
 
 //RingCSpacerGM4008Com();
-	
-module InnerPlanetBearing(){
-	// 7/16/2020 Shifted bearing up 1mm
-	nBolts=8;
-	BoltBossB_h=6;
-	Skirt_h=PC_Hub_h+Bearing_w+2;
-	Skirt_ID=GM5208Comm_d+1.5;
-	
-	difference(){
-		union(){
-			cylinder(d=RingB_OD+RingB_OD_Xtra,h=Skirt_h);
-			
-			// Ring B bolt bosses
-			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) hull(){
-				translate([RingB_OD/2,0,0])
-						cylinder(d=Bolt4Inset*2+2,h=Skirt_h);
-				translate([RingC_BC_d/2,0,0]) cylinder(d=Bolt4Inset*2,h=Skirt_h);
-			} // hull
-			
-			// Ring C bolt bosses
-			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j+22.5]) hull(){
-				translate([RingB_OD/2,0,Skirt_h-BoltBossB_h])
-						cylinder(d=Bolt4Inset*2+2,h=BoltBossB_h);
-				translate([RingC_BC_d/2,0,Skirt_h-BoltBossB_h]) cylinder(d=Bolt4Inset*2,h=BoltBossB_h);
-				translate([(RingB_OD+RingB_OD_Xtra)/2,0,3]) sphere(d=6,$fn=12);
-			} // hull
-		} // union
-		
-		// Bolts to Ring B
-		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([RingC_BC_d/2,0,BoltBossB_h])
-				Bolt4HeadHole(lHead=Skirt_h);
-
-		// Bolts to Rinc C, Motor
-		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j+22.5]) translate([RingC_BC_d/2,0,Skirt_h])
-				Bolt4Hole(depth=8);
-		
-		// remove inside
-		translate([0,0,-Overlap]) cylinder(d=Skirt_ID,h=Skirt_h+Overlap*2);
-	} // difference
-	
-	nSpokes=7;
-	
-	// Planet carrier bearing mount
-	
-	difference(){
-		union(){
-			 translate([0,0,Skirt_h-(Bearing_w+1)]) cylinder(d=Bearing_OD+6,h=Bearing_w+1);
-			
-			for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j]) hull(){
-					translate([Bearing_OD/2+3,0,Skirt_h-(Bearing_w+1)]) rotate([0,0,45]) cylinder(d=2,h=Bearing_w+1,$fn=4);
-					translate([RingB_OD/2,0,Skirt_h-(Bearing_w+2)]) rotate([0,0,45]) cylinder(d=2,h=Bearing_w+2,$fn=4);
-				} // hull
-			
-		} // union
-		//Bearing_OD=1.125*25.4;
-		//Bearing_ID=0.500*25.4;
-		//Bearing_w=0.3125*25.4;
-
-		translate([0,0,Skirt_h-2]) cylinder(d=Bearing_OD-1,h=3);
-		translate([0,0,Skirt_h-(Bearing_w+1)-Overlap]) cylinder(d=Bearing_OD,h=Bearing_w+Overlap*2);
-		
-	} // difference
-		
-} // InnerPlanetBearing
-
-//translate([0,0,Gear_w*1.5+1.0+Overlap])  InnerPlanetBearing();
 
 module RingCSpacerGM5208Com(){
 	nBolts=8;
