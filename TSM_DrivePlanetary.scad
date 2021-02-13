@@ -28,6 +28,7 @@
 // rotate([180,0,0]) MotorSleeve();
 // InnerPlanetCarrier();
 // rotate([180,0,0]) EncoderDisc();
+// EncoderDisc(HasEnc=false); // drive ring only
 //
 // RingBSpacer(); // add to RingB
 // RingB(); // Stator, FC1
@@ -286,7 +287,7 @@ module EncoderDisc(HasEnc=true){ // aka Motor spline, the motor pushes on this p
 		union(){
 			// Bolt bosses
 			for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*(j+0.5)]) hull(){
-				translate([-DrvMtr_OD/2,0,0]) cylinder(d=9,h=Enc_h);
+				translate([-DrvMtr_OD/2,0,0]) cylinder(d=12,h=Enc_h);
 				translate([-DrvMtr_OD/2-4-5,0,0]) cylinder(d=8,h=Enc_h);
 			}
 				
@@ -309,7 +310,7 @@ module EncoderDisc(HasEnc=true){ // aka Motor spline, the motor pushes on this p
 		for (j=[0:5]) rotate([0,0,60*j+10]) translate([MotorBolt_BC_d/2,0,-Overlap]) 
 			hull(){
 				cylinder(d=8,h=Enc_h+Overlap+2);
-				translate([2.5,0,0]) scale([0.4,1,1]) #cylinder(d=8,h=Enc_h+Overlap+2);
+				translate([2.5,0,0]) scale([0.4,1,1]) cylinder(d=8,h=Enc_h+Overlap+2);
 			} // hull
 		
 		// Encoder holes
@@ -460,7 +461,7 @@ module MotorSleeve(){
 	InnerTrackSpocketBolt_BC=RingA_Bearing_OD/2+1.5;
 
 
-module RingA(HasGear=true){
+module RingA(HasGear=true, BodyOnly=false){
 	
 	if (HasGear==true){
 
@@ -520,8 +521,10 @@ module RingA(HasGear=true){
 		} // hull
 	} // union
 	
+	if (BodyOnly!=true)
 		translate([0,0,21-Overlap]) cylinder(d=RingA_Bearing_OD-1,h=RingB_Bearing_Race_w+Overlap*2);
 	
+	if (BodyOnly!=true)
 	for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*(j+0.5)])
 			translate([InnerTrackSpocketBolt_BC,0,21+RingB_Bearing_Race_w]) Bolt4Hole();
 	
@@ -531,23 +534,61 @@ module RingA(HasGear=true){
 				translate([0,0,21]) cylinder(d=RingA_Bearing_OD-8,h=Overlap*2,$fn=$preview? 60:360);
 			} // hull
 			
+		if (BodyOnly!=true)
 			translate([0,0,-Overlap]) cylinder(d=RingA_Gear_OD,h=20+Overlap*2,$fn=90);
 			
-		translate([0,0,-Overlap]) cylinder(d=RingA_Gear_OD-1,h=20);
+		// center hole
+		if (BodyOnly!=true)
+			translate([0,0,-Overlap]) cylinder(d=RingA_Gear_OD-1,h=20);
 		
+		if (BodyOnly!=true)
 		for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j]) translate([-RingA_Gear_OD/2-4,0,0])
 			rotate([180,0,0]) Bolt4Hole(depth=Boss_h+1);
 	} // difference
 	
-	
+	if (BodyOnly!=true)
 	translate([0,0,11]) rotate([0,0,18])
 		OnePieceOuterRace(BallCircle_d=RingB_Bering_BallCircle, Race_OD=RingA_Bearing_OD, Ball_d=Ball_d, 
 			Race_w=RingB_Bearing_Race_w, PreLoadAdj=BearingPreload, VOffset=0.00, BI=true, myFn=$preview? 60:720);
 } // RingA
 
  //RingA(HasGear=true);
-// RingA(HasGear=false);
+// RingA(HasGear=false, BodyOnly=true);
 
+module RevOuterSprocket(ShowTeeth=$preview){
+	Sprocket_h=7.0;
+	FrontXtra=4;
+	DustShield_T=3;
+	
+	// Track teeth
+	difference(){
+		rotate([-90,0,0])
+			ToothHoldingDisk(nTeeth=nTrackTeeth, Thickness=Sprocket_h, FrontXtra=FrontXtra, ShowTeeth=ShowTeeth)
+				Bolt4Hole();
+		
+		translate([0,0,-Sprocket_h-Overlap]) cylinder(d=RingATeeth*GearAPitch/180+6,h=Sprocket_h+FrontXtra+Overlap*2,$fn=$preview? 90:360);
+		
+		for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j]) translate([-RingA_Gear_OD/2-4,0,-Sprocket_h])
+			rotate([180,0,0]) Bolt4ButtonHeadHole(depth=FrontXtra+Sprocket_h);
+		
+		// -Sprocket_h+11 = bottom surface
+		translate([0,0,-Sprocket_h+11+5]) scale(1.01) RingA(HasGear=false, BodyOnly=true);
+	} // difference
+	
+	// Dist shield
+	difference(){
+		translate([0,0,-Sprocket_h]) cylinder(d=RingATeeth*GearAPitch/180+7,h=DustShield_T,$fn=$preview? 90:360);
+		
+		// Gear teeth clearance
+		translate([0,0,-Sprocket_h+2]) cylinder(d=RingATeeth*GearAPitch/180+4,h=DustShield_T+Overlap*2,$fn=$preview? 90:360);
+		
+		// Thru hole
+		translate([0,0,-Sprocket_h-Overlap]) cylinder(d=RingATeeth*GearAPitch/180-9,h=DustShield_T+Overlap*2,$fn=$preview? 90:360);
+	} // difference
+	
+} // RevOuterSprocket
+	
+//translate([0,0,-10-5]) rotate([180,0,0]) RevOuterSprocket(ShowTeeth=true);
 
 module OuterTrackSprocket(ShowTeeth=$preview){
 	Sprocket_h=5.0;
@@ -575,15 +616,15 @@ module InnerTrackSprocket(ShowTeeth=$preview){
 	FrontXtra=5.0;
 	
 	difference(){
-		translate([0,0,-5]) rotate([-90,0,0])
+		translate([0,0,-FrontXtra]) rotate([-90,0,0])
 			ToothHoldingDisk(nTeeth=nTrackTeeth, Thickness=Sprocket_h, FrontXtra=FrontXtra, ShowTeeth=ShowTeeth)
 				Bolt4Hole();
 		
-		translate([0,0,-Sprocket_h-5-Overlap]) cylinder(d=BSkirt_OD+1,h=Sprocket_h+FrontXtra+Overlap*2);
+		translate([0,0,-Sprocket_h-FrontXtra-Overlap]) cylinder(d=BSkirt_OD+1,h=Sprocket_h+FrontXtra+Overlap*2);
 		
 		// Bolts
-		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([BSkirt_OD/2+5,0,0])
-			Bolt4ClearHole();
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([BSkirt_OD/2+5,0,-1])
+			Bolt4HeadHole();
 	} // difference
 } // InnerTrackSprocket
 	
@@ -654,7 +695,7 @@ module InnerSprocketMount(SpacerHeight=6){
 	} // difference
 } // InnerSprocketMount
 
-//translate([0,0,-10]) InnerSprocketMount(SpacerHeight=14);
+//translate([0,0,-10]) InnerSprocketMount(SpacerHeight=8);
 
 BSkirtBC_d=BSkirt_OD-Bolt4Inset*2;
 

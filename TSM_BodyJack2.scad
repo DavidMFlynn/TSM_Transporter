@@ -6,19 +6,23 @@
 // Filename: TSM_BodyJack2.scad
 // By: David M. Flynn
 // Created: 10/16/2019
-// Revision: 1.2.2  2/3/2021
+// Revision: 1.2.3  2/13/2021
 // Units: mm
 // *************************************************
 //  ***** Notes *****
+// This is a 183:1 ratio compound planetary drive w/ sun gear. 
+// Motor has 11 pole pairs for 66 counts per rotation of the motor, yielding 12,078 counts per rotation.
 // Caution: Changing Ring gear OD part way thru printing will make things not fit.
 //   Possible fix: Set bolt circles as constants.
 // Can be built with 300° or continuous rotation.
 // Can have home switch or quadrature encoder on Ring A. 
-// Can be 16:1 or 48:1 reduction. 
 // Variant:  Gimbal motor GBM5208H-200T (60mm Dia. x 23mm, 0.038Nm Torque) from robotshop.com?
 // 	AS5047D encoder 7 pole pairs.
+//
 // *************************************************
 //  ***** History ******
+//
+// 1.2.3  2/13/2021 Added Com alignment tool and minor changes.
 // 1.2.2  2/3/2021  Spacers!
 // 1.2.1  1/31/2021 Increased backlash and clearance.
 // 1.2   1/25/2021  Copied from TSM_BodyJack.scad, straight gears, smaller bearing and sun gear.
@@ -350,7 +354,6 @@ module ShowBodyJackGM(Rot_a=180/RingATeeth,HasSkirt=true){
 //  ***** Planet Carrier Parts *****
 // *********************************************************************************************
 //  ***** STL for 48:1 w/ 5208 motor *****
-// GM5208MountingPlate(HasCommutatorDisk=true); // Commutator
 // SplineShaft(d=GM5208_Spline_d,l=4,nSplines=GM5208_nSplines,Spline_w=30,Hole=12.7+IDXtra,Key=false);
 // PlanetCarrierSpacer();
 // rotate([180,0,0]) Planet(O_a=0);
@@ -365,7 +368,6 @@ module ShowBodyJackGM(Rot_a=180/RingATeeth,HasSkirt=true){
 // PlanetCarrierOuter(); // print 2
 // *********************************************************************************************
 //  ***** STL for 48:1 w/ 4008 motor *****
-// GM4008MountingPlate(HasCommutatorDisk=true); // Commutator
 // SplineShaft(d=GM4008_Spline_d,l=4,nSplines=GM4008_nSplines,Spline_w=30,Hole=12.7+IDXtra,Key=false);
 // PlanetCarrierSpacer();
 // rotate([180,0,0]) Planet(O_a=0);
@@ -437,7 +439,7 @@ module ShowPlanetCarrierEXP(){
     translate([0,0,-20]) rotate([EXP_Xa,EXP_Ya,0]) color("LightBlue") Spacer(Len=2);
 } // ShowPlanetCarrierEXP
 
-ShowPlanetCarrierEXP();
+//ShowPlanetCarrierEXP();
 
 module Spacer(Len=2){
 	difference(){
@@ -469,104 +471,6 @@ module GimbalMotor4008(){
 } // GimbalMotor5208
 
 //GimbalMotor4008();
-
-GM4008MP_h=5; // Mounting Plate thickness
-
-module GM4008MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
-	Spline_d=GM4008_Spline_d;
-	nSplines=GM4008_nSplines;
-	nPolePairs=GM4008_nPolePairs;
-	CommDisk_h=1.5;
-	nNotchStep=30;
-	
-	WireTube_d=WT_OD+1;
-	
-	difference(){
-		union(){
-			cylinder(d=GM4008RBC2_d+Bolt4Inset*2,h=2.5);
-			cylinder(d=Spline_d+5,h=GM4008MP_h);
-			
-			if (HasCommutatorDisk==true) cylinder(d=GM4008Comm_d,h=CommDisk_h);
-		} // union
-		
-		translate([0,0,-Overlap]) rotate([0,0,45]) SplineHole(d=Spline_d,l=GM4008MP_h+Overlap*2,nSplines=nSplines,Spline_w=30,Gap=IDXtra,Key=false);
-		
-		for (j=[0:3]) rotate([0,0,90*j]) translate([GM4008RBC2_d/2,0,3.5]) Bolt4ButtonHeadHole();
-			
-		if (HasCommutatorDisk==true) 
-			for (j=[0:nPolePairs]) rotate([0,0,360/nPolePairs*j])
-				for (k=[0:nNotchStep-2]) hull() {
-					rotate([0,0,180/nPolePairs/nNotchStep*k]){
-						translate([GM4008Comm_d/2-3,0.5,-Overlap]) 
-							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);
-						translate([GM4008Comm_d/2-2,0.5,-Overlap]) 
-							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);}
-					rotate([0,0,180/nPolePairs/nNotchStep*k+1]){
-						translate([GM4008Comm_d/2-3,-0.5,-Overlap]) 
-							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);
-						translate([GM4008Comm_d/2-2,-0.5,-Overlap]) 
-							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);}
-					} // hull
-	} // difference
-	
-	// motor
-	if ($preview==true && ShowMotor==true) rotate([180,0,0]) GimbalMotor4008();
-		
-	// Commutation sensor positions
-	if ($preview==true) 
-	for (j=[0:2]) rotate([0,0,360/nPolePairs/3*j]) translate([GM4008Comm_d/2+1,0,0]) cylinder(d=2,h=2);
-} // GM4008MountingPlate
-
-//GM4008MountingPlate(HasCommutatorDisk=true);
-
-GM5208MP_h=5; // Mounting Plate thickness
-
-module GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
-	Spline_d=GM5208_Spline_d;
-	nSplines=GM5208_nSplines;
-	nPolePairs=GM5208_nPolePairs;
-	CommDisk_h=1.5;
-	nNotchStep=30;
-	
-	difference(){
-		union(){
-			cylinder(d=GM5208RBC2_d+Bolt4Inset*2,h=2.5);
-			cylinder(d=Spline_d+5,h=5);
-			
-			if (HasCommutatorDisk==true) cylinder(d=GM5208Comm_d,h=CommDisk_h);
-		} // union
-		
-		translate([0,0,-Overlap]) rotate([0,0,45]) SplineHole(d=Spline_d,l=GM4008MP_h+Overlap*2,nSplines=nSplines,Spline_w=30,Gap=IDXtra*2,Key=false);
-		
-		//translate([0,0,-Overlap]) SplineHole(d=Spline_d,l=7,nSplines=nSplines,Spline_w=30,Gap=IDXtra,Key=false);
-		
-		for (j=[0:3]) rotate([0,0,90*j]) translate([GM5208RBC2_d/2,0,3.5]) Bolt4ButtonHeadHole();
-			
-		if (HasCommutatorDisk==true) 
-			for (j=[0:nPolePairs]) rotate([0,0,360/nPolePairs*j])
-				for (k=[0:nNotchStep-2]) hull() {
-					rotate([0,0,180/nPolePairs/nNotchStep*k]){
-						translate([GM5208Comm_d/2-3,0.5,-Overlap]) 
-							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);
-						translate([GM5208Comm_d/2-2,0.5,-Overlap]) 
-							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);}
-					rotate([0,0,180/nPolePairs/nNotchStep*k+1]){
-						translate([GM5208Comm_d/2-3,-0.5,-Overlap]) 
-							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);
-						translate([GM5208Comm_d/2-2,-0.5,-Overlap]) 
-							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);}
-					} // hull
-	} // difference
-	
-	// motor
-	if ($preview==true && ShowMotor==true) rotate([180,0,0]) GimbalMotor5208();
-		
-	// Commutation sensor positions
-	if ($preview==true) 
-	for (j=[0:2]) rotate([0,0,360/nPolePairs/3*j]) translate([GM5208Comm_d/2+1,0,0]) cylinder(d=2,h=2);
-} // GM5208MountingPlate
-
-//translate([0,0,8+Overlap]) rotate([180,0,0]) GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=false);
 
 PC_Hub_h=Bearing_w+1.5;
 
@@ -1266,9 +1170,12 @@ module RingB(HasSkirt=false, nSensors=0){
 // ****************************************************************************************************
 //  ***** STL for 48:1 GM5208 *****
 // RingCGMCover();
+// CommutatorAlignmentTool();
 // rotate([180,0,0])RingCMtrMountGM5208Com();
 // RingCCoverGM5208Com();
 // RingCSpacerGM5208Com();
+//
+// GM5208MountingPlate(HasCommutatorDisk=true); // Commutator, simulates hall switches
 //
 // HallSwitchMount(); // print 3
 // ****************************************************************************************************
@@ -1277,6 +1184,8 @@ module RingB(HasSkirt=false, nSensors=0){
 // rotate([180,0,0])RingCMtrMountGM4008Com();
 // RingCCoverGM4008Com();
 // RingCSpacerGM4008Com();
+//
+// GM4008MountingPlate(HasCommutatorDisk=true); // Commutator, simulates hall switches
 //
 // HallSwitchMount(); // print 3
 // ****************************************************************************************************
@@ -1458,6 +1367,8 @@ module RingCGMCover(){
 
 //translate([0,0,7]) RingCGMCover();
 
+PC_InnerGM4008_h=3;
+
 module RingCSpacerGM4008Com(){
 	nBolts=8;
 	BoltBossB_h=6;
@@ -1535,10 +1446,20 @@ module RingCSpacerGM4008Com(){
 
 //RingCSpacerGM4008Com();
 
+PC_InnerGM5208_h=3;
+
+module CommutatorAlignmentTool(){
+	
+	rotate([0,0,45]) SplineShaft(d=GM5208_Spline_d+IDXtra*2,l=7,nSplines=GM5208_nSplines,Spline_w=30,Hole=12.7+IDXtra,Key=false);
+	
+} // CommutatorAlignmentTool
+
+//CommutatorAlignmentTool();
+
 module RingCSpacerGM5208Com(){
 	nBolts=8;
 	BoltBossB_h=6;
-	Spacer_h=GM5208MP_h+PC_InnerGM5208_h+GM5208_h+0.5; // xtra 0.5 is a little extra space
+	Spacer_h=GM5208MP_h+GM5208_h+PC_InnerGM5208_h+0.5; // xtra 0.5 is a little extra space
 	//echo(Spacer_h=Spacer_h);
 	//echo(GM5208_h=GM5208_h);
 	Encoder_z=Spacer_h-GM5208_h-13.4; // hole pattern offest from top, adjusted -0.8 1/8/2020
@@ -1610,7 +1531,7 @@ module RingCSpacerGM5208Com(){
 	}
 } // RingCSpacerGM5208Com
 
-//RingCSpacerGM5208Com();
+// RingCSpacerGM5208Com();
 
 //rotate([0,0,360/nPolePairs*3]) translate([GM5208_d/2+7,0,11]) 
 	//rotate([0,0,-90]) rotate([-90,0,0]) HallSwitchMount();
@@ -1759,6 +1680,107 @@ module RingCCoverGM5208Com(){
 } // RingCCoverGM5208Com
 
 //RingCCoverGM5208Com();
+
+
+
+GM4008MP_h=5; // Mounting Plate thickness
+
+module GM4008MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
+	Spline_d=GM4008_Spline_d;
+	nSplines=GM4008_nSplines;
+	nPolePairs=GM4008_nPolePairs;
+	CommDisk_h=1.5;
+	nNotchStep=30;
+	
+	WireTube_d=WT_OD+1;
+	
+	difference(){
+		union(){
+			cylinder(d=GM4008RBC2_d+Bolt4Inset*2,h=2.5);
+			cylinder(d=Spline_d+5,h=GM4008MP_h);
+			
+			if (HasCommutatorDisk==true) cylinder(d=GM4008Comm_d,h=CommDisk_h);
+		} // union
+		
+		translate([0,0,-Overlap]) rotate([0,0,45]) SplineHole(d=Spline_d,l=GM4008MP_h+Overlap*2,nSplines=nSplines,Spline_w=30,Gap=IDXtra,Key=false);
+		
+		for (j=[0:3]) rotate([0,0,90*j]) translate([GM4008RBC2_d/2,0,3.5]) Bolt4ButtonHeadHole();
+			
+		if (HasCommutatorDisk==true) 
+			for (j=[0:nPolePairs]) rotate([0,0,360/nPolePairs*j])
+				for (k=[0:nNotchStep-2]) hull() {
+					rotate([0,0,180/nPolePairs/nNotchStep*k]){
+						translate([GM4008Comm_d/2-3,0.5,-Overlap]) 
+							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);
+						translate([GM4008Comm_d/2-2,0.5,-Overlap]) 
+							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);}
+					rotate([0,0,180/nPolePairs/nNotchStep*k+1]){
+						translate([GM4008Comm_d/2-3,-0.5,-Overlap]) 
+							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);
+						translate([GM4008Comm_d/2-2,-0.5,-Overlap]) 
+							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);}
+					} // hull
+	} // difference
+	
+	// motor
+	if ($preview==true && ShowMotor==true) rotate([180,0,0]) GimbalMotor4008();
+		
+	// Commutation sensor positions
+	if ($preview==true) 
+	for (j=[0:2]) rotate([0,0,360/nPolePairs/3*j]) translate([GM4008Comm_d/2+1,0,0]) cylinder(d=2,h=2);
+} // GM4008MountingPlate
+
+//GM4008MountingPlate(HasCommutatorDisk=true);
+
+GM5208MP_h=7; // Mounting Plate thickness
+
+module GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
+	Spline_d=GM5208_Spline_d;
+	nSplines=GM5208_nSplines;
+	nPolePairs=GM5208_nPolePairs;
+	CommDisk_h=1.5;
+	nNotchStep=30;
+	
+	difference(){
+		union(){
+			cylinder(d=GM5208RBC2_d+Bolt4Inset*2+2,h=4.5);
+			cylinder(d=Spline_d+5,h=GM5208MP_h); // spline hub
+			
+			if (HasCommutatorDisk==true) cylinder(d=GM5208Comm_d,h=CommDisk_h);
+		} // union
+		
+		translate([0,0,-Overlap]) rotate([0,0,45]) SplineHole(d=Spline_d,l=GM5208MP_h+Overlap*2,nSplines=nSplines,Spline_w=30,Gap=IDXtra*2,Key=false);
+		
+		//translate([0,0,-Overlap]) SplineHole(d=Spline_d,l=7,nSplines=nSplines,Spline_w=30,Gap=IDXtra,Key=false);
+		
+		for (j=[0:3]) rotate([0,0,90*j]) translate([GM5208RBC2_d/2,0,3.5]) Bolt4ButtonHeadHole();
+			
+		if (HasCommutatorDisk==true) 
+			for (j=[0:nPolePairs]) rotate([0,0,360/nPolePairs*j])
+				for (k=[0:nNotchStep-2]) hull() {
+					rotate([0,0,180/nPolePairs/nNotchStep*k]){
+						translate([GM5208Comm_d/2-3,0.5,-Overlap]) 
+							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);
+						translate([GM5208Comm_d/2-2,0.5,-Overlap]) 
+							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);}
+					rotate([0,0,180/nPolePairs/nNotchStep*k+1]){
+						translate([GM5208Comm_d/2-3,-0.5,-Overlap]) 
+							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);
+						translate([GM5208Comm_d/2-2,-0.5,-Overlap]) 
+							cylinder(d=1,h=CommDisk_h+Overlap*2,$fn=12);}
+					} // hull
+	} // difference
+	
+	// motor
+	if ($preview==true && ShowMotor==true) rotate([180,0,0]) GimbalMotor5208();
+		
+	// Commutation sensor positions
+	if ($preview==true) 
+	for (j=[0:2]) rotate([0,0,360/nPolePairs/3*j]) translate([GM5208Comm_d/2+1,0,0]) cylinder(d=2,h=2);
+} // GM5208MountingPlate
+
+//translate([0,0,8+Overlap]) rotate([180,0,0]) GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=false);
+
 
 // ****************************************************************************************************
 //  ***** Ring C, Motor mount, encoder mount and end bearing support *****
