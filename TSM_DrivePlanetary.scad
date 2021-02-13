@@ -4,10 +4,11 @@
 // Filename: TSM_DrivePlanetary.scad
 // By: David M. Flynn
 // Created: 10/1/2019
-// Revision: 1.0.0 6/7/2020
+// Revision: 1.0.1 2/12/2021
 // Units: mm
 // *************************************************
 //  ***** History ******
+// 1.0.1 2/12/2021 Moved spockets inboard.
 // 1.0.0 6/7/2020 Added Idle version
 // 0.9.9 11/16/2019 Encoder mount.
 // 0.9.8 11/8/2019 Added RingB spacer and encoder mount. Added 5mm and Enc to RingB.
@@ -278,7 +279,7 @@ Enc_d=100;
 nEncoderPulses=floor((Enc_d-8)*PI/4);
 //echo(nEncoderPulses=nEncoderPulses);
 
-module EncoderDisc(){
+module EncoderDisc(HasEnc=true){ // aka Motor spline, the motor pushes on this part.
 	Boss_h=6;
 	
 	difference(){
@@ -292,8 +293,9 @@ module EncoderDisc(){
 			cylinder(d=Mtr_End_OD,h=Enc_h,$fn=$preview? 60:360);
 			
 			 // encoder disc
+			if (HasEnc==true){
 			translate([0,0,Enc_h-2]) cylinder(d=Enc_d-14,h=2,$fn=$preview? 60:360);
-			translate([0,0,Enc_h-1]) cylinder(d=Enc_d,h=1,$fn=$preview? 60:360);
+			translate([0,0,Enc_h-1]) cylinder(d=Enc_d,h=1,$fn=$preview? 60:360);}
 		} // union
 	
 		// Motor sleve/spacer bolts
@@ -305,15 +307,19 @@ module EncoderDisc(){
 		// motor end
 		cylinder(d1=60.85,d2=61.35,h=12.7);
 		for (j=[0:5]) rotate([0,0,60*j+10]) translate([MotorBolt_BC_d/2,0,-Overlap]) 
-			cylinder(d=8,h=Enc_h+Overlap+2);
+			hull(){
+				cylinder(d=8,h=Enc_h+Overlap+2);
+				translate([2.5,0,0]) scale([0.4,1,1]) #cylinder(d=8,h=Enc_h+Overlap+2);
+			} // hull
 		
 		// Encoder holes
+		if (HasEnc==true)
 		for (j=[0:nEncoderPulses-1]) rotate([0,0,360/nEncoderPulses*j]) translate([-Enc_d/2+2,-1,Enc_h-1-Overlap])
 			cube([4,2,2]);
 	} // difference
 } // EncoderDisc
 
-//translate([0,0,5+Overlap]) EncoderDisc();
+// translate([0,0,5+Overlap]) EncoderDisc(HasEnc=false);
 
 module EncoderMount(){
 	
@@ -544,12 +550,13 @@ module RingA(HasGear=true){
 
 
 module OuterTrackSprocket(ShowTeeth=$preview){
-	Sprocket_h=5;
+	Sprocket_h=5.0;
+	FrontXtra=4;
 	
 	// Track teeth
 	difference(){
 		rotate([-90,0,0])
-			ToothHoldingDisk(nTeeth=nTrackTeeth,Thickness=Sprocket_h,ShowTeeth=ShowTeeth)
+			ToothHoldingDisk(nTeeth=nTrackTeeth, Thickness=Sprocket_h, FrontXtra=FrontXtra, ShowTeeth=ShowTeeth)
 				Bolt4Hole();
 		
 		translate([0,0,-Sprocket_h-Overlap]) cylinder(d=RingATeeth*GearAPitch/180+6,h=8,$fn=$preview? 90:360);
@@ -564,13 +571,15 @@ module OuterTrackSprocket(ShowTeeth=$preview){
 
 module InnerTrackSprocket(ShowTeeth=$preview){
 	nBolts=nTrackTeeth/2;
+	Sprocket_h=5.0;
+	FrontXtra=5.0;
 	
 	difference(){
 		translate([0,0,-5]) rotate([-90,0,0])
-			ToothHoldingDisk(nTeeth=nTrackTeeth,Thickness=5,ShowTeeth=ShowTeeth)
+			ToothHoldingDisk(nTeeth=nTrackTeeth, Thickness=Sprocket_h, FrontXtra=FrontXtra, ShowTeeth=ShowTeeth)
 				Bolt4Hole();
 		
-		translate([0,0,-10-Overlap]) cylinder(d=BSkirt_OD+1,h=8);
+		translate([0,0,-Sprocket_h-5-Overlap]) cylinder(d=BSkirt_OD+1,h=Sprocket_h+FrontXtra+Overlap*2);
 		
 		// Bolts
 		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([BSkirt_OD/2+5,0,0])
@@ -607,6 +616,7 @@ module InnerSprocketMountSpacer(Height=6){
 module InnerSprocketMount(SpacerHeight=6){
 	nBolts=nTrackTeeth/2;
 	Height=13;
+	RingABoltInset=8-SpacerHeight;
 	
 	difference(){
 		union(){
@@ -630,8 +640,8 @@ module InnerSprocketMount(SpacerHeight=6){
 		} // union
 		
 		// Bolts to connect to Ring A
-		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*(j+0.5)]) translate([InnerTrackSpocketBolt_BC,0,7])
-			Bolt4HeadHole(depth=Height+SpacerHeight);
+		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*(j+0.5)]) translate([InnerTrackSpocketBolt_BC,0,RingABoltInset])
+			Bolt4HeadHole(depth=Height+SpacerHeight, lHead=12+SpacerHeight);
 		
 		// Bolts to connect to Spocket
 		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j]) translate([BSkirt_OD/2+5,0,Height])
@@ -644,7 +654,7 @@ module InnerSprocketMount(SpacerHeight=6){
 	} // difference
 } // InnerSprocketMount
 
-//translate([0,0,-10]) InnerSprocketMount(SpacerHeight=6);
+//translate([0,0,-10]) InnerSprocketMount(SpacerHeight=14);
 
 BSkirtBC_d=BSkirt_OD-Bolt4Inset*2;
 

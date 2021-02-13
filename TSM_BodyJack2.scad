@@ -156,7 +156,7 @@ echo(RingA_cr=RingA_cr);
 
 
 //*
-// 184:1 w/ sun gear
+// 183:1 w/ sun gear
 GearAPitch=280;
 nTeeth_Sun=15;
 PlanetATeeth=15;
@@ -227,7 +227,7 @@ sBearing_ID=6;
 sBearing_w=5;
 /**/
 
-// little bearing 6.35 x 12.7 x 4.7
+// little bearing R188ZZ 6.35mm ID x 12.7mm OD x 4.7mm Thick
 sBearing_OD=12.7;
 sBearing_ID=6.35;
 sBearing_w=4.7;
