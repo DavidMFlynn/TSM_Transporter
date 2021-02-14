@@ -556,8 +556,8 @@ module RingA(HasGear=true, BodyOnly=false){
 // RingA(HasGear=false, BodyOnly=true);
 
 module RevOuterSprocket(ShowTeeth=$preview){
-	Sprocket_h=7.0;
-	FrontXtra=4;
+	Sprocket_h=6.5;
+	FrontXtra=3.1;
 	DustShield_T=3;
 	
 	// Track teeth
@@ -569,10 +569,10 @@ module RevOuterSprocket(ShowTeeth=$preview){
 		translate([0,0,-Sprocket_h-Overlap]) cylinder(d=RingATeeth*GearAPitch/180+6,h=Sprocket_h+FrontXtra+Overlap*2,$fn=$preview? 90:360);
 		
 		for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j]) translate([-RingA_Gear_OD/2-4,0,-Sprocket_h])
-			rotate([180,0,0]) Bolt4ButtonHeadHole(depth=FrontXtra+Sprocket_h);
+			rotate([180,0,0]) Bolt4ClearHole(depth=FrontXtra+Sprocket_h); //Bolt4ButtonHeadHole(depth=FrontXtra+Sprocket_h);
 		
-		// -Sprocket_h+11 = bottom surface
-		translate([0,0,-Sprocket_h+11+5]) scale(1.01) RingA(HasGear=false, BodyOnly=true);
+		// -Sprocket_h+10.10 = bottom surface
+		translate([0,0,-Sprocket_h+10.10+3]) scale(1.01) RingA(HasGear=false, BodyOnly=true);
 	} // difference
 	
 	// Dist shield
@@ -588,7 +588,8 @@ module RevOuterSprocket(ShowTeeth=$preview){
 	
 } // RevOuterSprocket
 	
-//translate([0,0,-10-5]) rotate([180,0,0]) RevOuterSprocket(ShowTeeth=true);
+//translate([0,0,-10-5]) rotate([180,0,0]) 
+RevOuterSprocket(ShowTeeth=false);
 
 module OuterTrackSprocket(ShowTeeth=$preview){
 	Sprocket_h=5.0;
@@ -695,7 +696,7 @@ module InnerSprocketMount(SpacerHeight=6){
 	} // difference
 } // InnerSprocketMount
 
-//translate([0,0,-10]) InnerSprocketMount(SpacerHeight=8);
+//translate([0,0,-10]) InnerSprocketMount(SpacerHeight=14);
 
 BSkirtBC_d=BSkirt_OD-Bolt4Inset*2;
 
