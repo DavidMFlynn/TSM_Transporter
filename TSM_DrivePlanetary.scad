@@ -4,10 +4,11 @@
 // Filename: TSM_DrivePlanetary.scad
 // By: David M. Flynn
 // Created: 10/1/2019
-// Revision: 1.0.1 2/12/2021
+// Revision: 1.0.2 2/14/2021
 // Units: mm
 // *************************************************
 //  ***** History ******
+// 1.0.2 2/14/2021 Adjusted Idle spocket.
 // 1.0.1 2/12/2021 Moved spockets inboard.
 // 1.0.0 6/7/2020 Added Idle version
 // 0.9.9 11/16/2019 Encoder mount.
@@ -503,7 +504,7 @@ module RingA(HasGear=true, BodyOnly=false){
 			// connect bearing to base
 			hull(){
 				cylinder(d=RingA_Gear_OD+2,h=Overlap,$fn=$preview? 60:360);
-				translate([0,0,21]) cylinder(d=RingA_Bearing_OD,h=Overlap,$fn=$preview? 60:360);
+				translate([0,0,21]) cylinder(d=RingA_Bearing_OD,h=Overlap,$fn=$preview? 90:360);
 			} // hull
 			
 		for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*(j+0.5)]) hull(){
@@ -522,7 +523,7 @@ module RingA(HasGear=true, BodyOnly=false){
 	} // union
 	
 	if (BodyOnly!=true)
-		translate([0,0,21-Overlap]) cylinder(d=RingA_Bearing_OD-1,h=RingB_Bearing_Race_w+Overlap*2);
+		translate([0,0,21-Overlap]) cylinder(d=RingA_Bearing_OD-1,h=RingB_Bearing_Race_w+Overlap*2,$fn=$preview? 90:360);
 	
 	if (BodyOnly!=true)
 	for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*(j+0.5)])
@@ -530,16 +531,16 @@ module RingA(HasGear=true, BodyOnly=false){
 	
 		// connect bearing to base
 			hull(){
-				translate([0,0,20]) cylinder(d=RingA_Gear_OD,h=Overlap,$fn=$preview? 60:360);
-				translate([0,0,21]) cylinder(d=RingA_Bearing_OD-8,h=Overlap*2,$fn=$preview? 60:360);
+				translate([0,0,20]) cylinder(d=RingA_Gear_OD,h=Overlap,$fn=$preview? 90:360);
+				translate([0,0,21]) cylinder(d=RingA_Bearing_OD-8,h=Overlap*2,$fn=$preview? 90:360);
 			} // hull
 			
 		if (BodyOnly!=true)
-			translate([0,0,-Overlap]) cylinder(d=RingA_Gear_OD,h=20+Overlap*2,$fn=90);
+			translate([0,0,-Overlap]) cylinder(d=RingA_Gear_OD,h=20+Overlap*2,$fn=$preview? 90:360);
 			
 		// center hole
 		if (BodyOnly!=true)
-			translate([0,0,-Overlap]) cylinder(d=RingA_Gear_OD-1,h=20);
+			translate([0,0,-Overlap]) cylinder(d=RingA_Gear_OD-1,h=20,$fn=$preview? 90:360);
 		
 		if (BodyOnly!=true)
 		for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j]) translate([-RingA_Gear_OD/2-4,0,0])
@@ -549,13 +550,14 @@ module RingA(HasGear=true, BodyOnly=false){
 	if (BodyOnly!=true)
 	translate([0,0,11]) rotate([0,0,18])
 		OnePieceOuterRace(BallCircle_d=RingB_Bering_BallCircle, Race_OD=RingA_Bearing_OD, Ball_d=Ball_d, 
-			Race_w=RingB_Bearing_Race_w, PreLoadAdj=BearingPreload, VOffset=0.00, BI=true, myFn=$preview? 60:720);
+			Race_w=RingB_Bearing_Race_w, PreLoadAdj=BearingPreload, VOffset=0.00, BI=true, myFn=$preview? 90:720);
 } // RingA
 
  //RingA(HasGear=true);
+ //RingA(HasGear=false, BodyOnly=false);
 // RingA(HasGear=false, BodyOnly=true);
 
-module RevOuterSprocket(ShowTeeth=$preview){
+module RevOuterSprocket(ShowTeeth=$preview, IsIdleEnd=false){
 	Sprocket_h=6.5;
 	FrontXtra=3.1;
 	DustShield_T=3;
@@ -566,7 +568,12 @@ module RevOuterSprocket(ShowTeeth=$preview){
 			ToothHoldingDisk(nTeeth=nTrackTeeth, Thickness=Sprocket_h, FrontXtra=FrontXtra, ShowTeeth=ShowTeeth)
 				Bolt4Hole();
 		
-		translate([0,0,-Sprocket_h-Overlap]) cylinder(d=RingATeeth*GearAPitch/180+6,h=Sprocket_h+FrontXtra+Overlap*2,$fn=$preview? 90:360);
+		// center hole 
+		if (IsIdleEnd==true){
+			translate([0,0,-Sprocket_h-Overlap]) cylinder(d=RingA_Gear_OD-3,h=Sprocket_h+FrontXtra+Overlap*2,$fn=$preview? 90:360);
+		} else {
+			translate([0,0,-Sprocket_h-Overlap]) cylinder(d=RingATeeth*GearAPitch/180+6,h=Sprocket_h+FrontXtra+Overlap*2,$fn=$preview? 90:360);
+		}
 		
 		for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j]) translate([-RingA_Gear_OD/2-4,0,-Sprocket_h])
 			rotate([180,0,0]) Bolt4ClearHole(depth=FrontXtra+Sprocket_h); //Bolt4ButtonHeadHole(depth=FrontXtra+Sprocket_h);
@@ -576,6 +583,7 @@ module RevOuterSprocket(ShowTeeth=$preview){
 	} // difference
 	
 	// Dist shield
+	if (IsIdleEnd==false)
 	difference(){
 		translate([0,0,-Sprocket_h]) cylinder(d=RingATeeth*GearAPitch/180+7,h=DustShield_T,$fn=$preview? 90:360);
 		
@@ -588,8 +596,8 @@ module RevOuterSprocket(ShowTeeth=$preview){
 	
 } // RevOuterSprocket
 	
-//translate([0,0,-10-5]) rotate([180,0,0]) 
-RevOuterSprocket(ShowTeeth=false);
+//translate([0,0,-7]) RevOuterSprocket(ShowTeeth=false, IsIdleEnd=false);
+//RevOuterSprocket(ShowTeeth=false, IsIdleEnd=true);
 
 module OuterTrackSprocket(ShowTeeth=$preview){
 	Sprocket_h=5.0;

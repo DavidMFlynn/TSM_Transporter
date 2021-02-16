@@ -121,7 +121,7 @@ Bolt4Inset=4;
 GearBacklash=0.45; // this needs to be adjusted for the filament/printer used, 0.2 to 0.4 recommended
 GearClearance=0.3; // moves hub in on planets
 RingGearClearance=0.3; // moves teeth back on ring gears
-BearingPreload=-0.35; // easy to back drive, -0.5 is too loose printed @ 0.2mm
+BearingPreload=0.00; // (-0.15 w/ -0.35 RingA is too loose Gray 1.00) was -0.35 too loose, easy to back drive, -0.5 is too loose printed @ 0.2mm
 
 // 16:1 ratio with symetrical planet gears, could be 24:1 (Ring B = 46 teeth)
 //  or 48:1 (Ring B = 47 teeth) with asymetrical planet gears
