@@ -124,7 +124,7 @@ module ShowPlanetCarrier(){
 		RingB();
 		translate([0,0,-10+BSkirt_h-7.75-5]) rotate([0,0,15]) EncoderMount();}
 	
-	//translate([0,0,-31]) RingA();
+	translate([0,0,-31]) RingA();
 	
 	translate([0,0,5+Overlap*2]) EncoderDisc();
 	//translate([0,0,Overlap]) InnerPlanetCarrier();
@@ -554,7 +554,7 @@ module RingA(HasGear=true, BodyOnly=false){
 } // RingA
 
  //RingA(HasGear=true);
- //RingA(HasGear=false, BodyOnly=false);
+// RingA(HasGear=false, BodyOnly=false);
 // RingA(HasGear=false, BodyOnly=true);
 
 module RevOuterSprocket(ShowTeeth=$preview, IsIdleEnd=false){
@@ -708,7 +708,7 @@ module InnerSprocketMount(SpacerHeight=6){
 
 BSkirtBC_d=BSkirt_OD-Bolt4Inset*2;
 
-module RingB(HasGear=true){
+module RingB(HasGear=true, HasEnc=false){
 	if (HasGear==true){
 	ring_gear(number_of_teeth=RingBTeeth,
 		circular_pitch=GearBPitch, diametral_pitch=false,
@@ -775,15 +775,19 @@ module RingB(HasGear=true){
 		for (j=[0:nRingBSkirtBolts-1]) rotate([0,0,360/nRingBSkirtBolts*j]) 
 				translate([BSkirtBC_d/2,0,BSkirt_h]) Bolt4Hole();
 		
+		// Encoder Mounting bolts
+		if (HasEnc==true)
 		translate([0,0,BSkirt_h-7.75-5])
 			rotate([0,0,16]) EncoderMountHoles() rotate([180,0,0])
 				translate([0,0,10]) Bolt4ButtonHeadHole();
 		
-		// wire path
+		// wire path, sprocket was moved too close the back plate for wire to exit here
+		/*
 		rotate([0,0,-16]) translate([0,0,BSkirt_h-4]) hull(){
 			rotate([-90,0,0]) cylinder(d=6,h=100);
-			translate([0,0,10]) rotate([-90,0,0]) cylinder(d=6,h=100);
-		}
+			translate([0,0,10]) rotate([-90,0,0]) cylinder(d=6,h=100);}
+		/**/
+		
 	} // difference
 	
 	//translate([0,0,-10+BSkirt_h-7.75-5]) rotate([0,0,15]) EncoderMount();

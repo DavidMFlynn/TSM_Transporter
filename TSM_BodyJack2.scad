@@ -121,7 +121,8 @@ Bolt4Inset=4;
 GearBacklash=0.45; // this needs to be adjusted for the filament/printer used, 0.2 to 0.4 recommended
 GearClearance=0.3; // moves hub in on planets
 RingGearClearance=0.3; // moves teeth back on ring gears
-BearingPreload=0.00; // (-0.15 w/ -0.35 RingA is too loose Gray 1.00) was -0.35 too loose, easy to back drive, -0.5 is too loose printed @ 0.2mm
+BearingPreload=-0.15; // (-0.15 w/ -0.35 RingA is too loose Gray 1.00) (0.00 w/ -0.35 is OK, Gray 1.00)
+// was -0.35 too loose, easy to back drive, -0.5 is too loose printed @ 0.2mm
 
 // 16:1 ratio with symetrical planet gears, could be 24:1 (Ring B = 46 teeth)
 //  or 48:1 (Ring B = 47 teeth) with asymetrical planet gears
@@ -1683,7 +1684,7 @@ module RingCCoverGM5208Com(){
 
 
 
-GM4008MP_h=5; // Mounting Plate thickness
+GM4008MP_h=8; // Mounting Plate thickness, was 5
 
 module GM4008MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
 	Spline_d=GM4008_Spline_d;
@@ -1696,7 +1697,7 @@ module GM4008MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
 	
 	difference(){
 		union(){
-			cylinder(d=GM4008RBC2_d+Bolt4Inset*2,h=2.5);
+			cylinder(d=GM4008RBC2_d+Bolt4Inset*2+2,h=4.5);
 			cylinder(d=Spline_d+5,h=GM4008MP_h);
 			
 			if (HasCommutatorDisk==true) cylinder(d=GM4008Comm_d,h=CommDisk_h);
@@ -1730,7 +1731,7 @@ module GM4008MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
 	for (j=[0:2]) rotate([0,0,360/nPolePairs/3*j]) translate([GM4008Comm_d/2+1,0,0]) cylinder(d=2,h=2);
 } // GM4008MountingPlate
 
-//GM4008MountingPlate(HasCommutatorDisk=true);
+GM4008MountingPlate(HasCommutatorDisk=true);
 
 GM5208MP_h=7; // Mounting Plate thickness
 
