@@ -4,10 +4,11 @@
 // by David M. Flynn
 // Filename: TSM_HeadLamp.scad
 // Created: 3/9/2021
-// Revision: 0.9.1  3/10/2021 Sized for small flashlight
+// Revision: 0.9.2  3/11/2021 Servo Mounts
 // Units: mm
 // **************************************
 //  ***** History *****
+// 0.9.2  3/11/2021 Servo Mounts
 // 0.9.1  3/10/2021 Sized for small flashlight, cut globe in half.
 // 0.9.0  3/9/2021 First Code
 // **************************************
@@ -21,6 +22,7 @@
  ViewHeadLampAssy(Pan_a=7,Tilt_a=2); // ±7°
 // **************************************
 
+include <SG90ServoLib.scad>
 include <CommonStuffSAEmm.scad>
 
 $fn=$preview? 36:180;
@@ -49,13 +51,13 @@ module Globe(IsFront=true){
 	ControlHornWidth=3;
 	ControlHornThickness=2.4;
 	nBolts=3;
-	Core_d=IsFront? Lamp_d:Lamp_d+1;
+	Core_d=IsFront? Lamp_d+IDXtra:Lamp_d+1;
 	
 	difference(){
 		union(){
 			sphere(d=Globe_d);
 			
-			rotate([-90,0,0]) cylinder(d=Lamp_d+Rim_Anulus*2,h=Globe_d/2-3);
+			rotate([-90,0,0]) cylinder(d=Core_d+Rim_Anulus*2,h=Globe_d/2-3);
 			
 			/*
 			// control horns
@@ -80,7 +82,7 @@ module Globe(IsFront=true){
 		
 		// core hole
 		//sphere(d=Globe_d-6);
-		rotate([-90,0,0]) cylinder(d=Core_d,h=Globe_d+Overlap*2, center=true);
+		rotate([-90,0,0]) cylinder(d=Core_d, h=Globe_d+Overlap*2, center=true);
 		
 		// control horn bolts
 		rotate([12,0,0]) translate([0,0,Globe_d/2]) Bolt4Hole();
@@ -101,20 +103,24 @@ module Globe(IsFront=true){
 module ForwardMount(){
 	CupWall_t=2;
 	Flange_t=3;
+	Flange_d=Globe_d+13;
 	
 	difference(){
 		union(){
 			sphere(d=Globe_d+CupWall_t*2);
 			// Mounting face
-			rotate([-90,0,0]) cylinder(d=Globe_d+CupWall_t*2+9,h=Flange_t);
+			rotate([-90,0,0]) cylinder(d=Flange_d,h=Flange_t);
 		} // union
 		
 		// hollow out interior
-		sphere(d=Globe_d+IDXtra*2);
+		sphere(d=Globe_d+IDXtra); // Front bearing surface
+		difference(){
+			sphere(d=Globe_d+IDXtra*3);
+			translate([0,Globe_d/2*0.4,0]) rotate([-90,0,0]) cylinder(d=Globe_d, h=Globe_d/2);
+		} // difference
 		
 		// Front opening
-		rotate([-90,0,0]) translate([0,0,-Globe_d/2]) cylinder(d1=Rim_Anulus*2, d2=Globe_d+Rim_Anulus*2, h=Globe_d+2);
-		
+		rotate([-90,0,0]) translate([0,0,-Globe_d/2]) cylinder(d1=Rim_Anulus*2, d2=Globe_d+Rim_Anulus*2, h=Globe_d+CupWall_t);
 		
 		// Remove back half
 		translate([0,-Globe_d,0]) cube([Globe_d*2,Globe_d*2,Globe_d*2],center=true);
@@ -129,8 +135,9 @@ module ForwardMount(){
 //ForwardMount();
 
 module BackFingers(){
-	CupWall_t=2;
-	Flange_t=3;
+	CupWall_t=3;
+	Flange_t=4;
+	Flange_d=Globe_d+13;
 	FingerWidth=4;
 	FingerSpread=10;
 	
@@ -138,14 +145,33 @@ module BackFingers(){
 		union(){
 			sphere(d=Globe_d+CupWall_t*2);
 			// Mounting face
-			rotate([90,0,0]) cylinder(d=Globe_d+CupWall_t*2+9,h=Flange_t);
+			rotate([90,0,0]) cylinder(d=Flange_d,h=Flange_t);
+			
+			// Servo mount
+			translate([14.5,-38,11]) rotate([0,-45,0]) cube([20,38,5]);
+			hull(){
+				translate([14.5,-3,11]) rotate([0,-45,0]) cube([20,Flange_t,5]);
+				translate([Globe_d/2+3,0,0]) rotate([90,0,0]) cylinder(d=3, h=Flange_t);
+			} // hull
+			
+			rotate([0,90,0]){
+			translate([14.5,-38,11]) rotate([0,-45,0]) cube([20,38,5]);
+			hull(){
+				translate([14.5,-3,11]) rotate([0,-45,0]) cube([20,Flange_t,5]);
+				translate([Globe_d/2+3,0,0]) rotate([90,0,0]) cylinder(d=3, h=Flange_t);
+			}} // hull
 		} // union
 		
 		// hollow out interior
-		sphere(d=Globe_d+IDXtra*2);
+		sphere(d=Globe_d+IDXtra);
+		difference(){
+			sphere(d=Globe_d+IDXtra*3);
+			translate([0,-Globe_d/2*0.4,0]) rotate([90,0,0]) cylinder(d=Globe_d, h=Globe_d/2);
+		} // difference
 		
 		// Rear opening
-		rotate([90,0,0]) translate([0,0,-Globe_d/2]) cylinder(d1=Rim_Anulus*2, d2=Globe_d+Rim_Anulus*2, h=Globe_d+2);
+		rotate([90,0,0]) translate([0,0,-Globe_d/2]) cylinder(d1=Rim_Anulus*2, d2=Globe_d-4, h=Globe_d);
+		rotate([90,0,0]) cylinder(d=28, h=Globe_d);
 		
 		translate([0,Globe_d,0]) cube([Globe_d*2,Globe_d*2,Globe_d*2],center=true);
 		hull(){
@@ -159,11 +185,20 @@ module BackFingers(){
 		
 		// Bolts
 		rotate([-90,0,0]) for (j=[0:7]) rotate([0,0,45*j+22.5]) translate([0,Globe_d/2+4,Flange_t]) Bolt4Hole();
+			
+		// Servo
+		translate([18,-26,22]) rotate([-45,0,90]) ServoSG90(TopMount=false);
+		rotate([0,90,0]) translate([18,-26,22]) rotate([-45,0,90]) ServoSG90(TopMount=false);
 	} // difference
+	
+	if ($preview==true){
+		translate([18,-26,22]) rotate([-45,0,90]) color("Red") ServoSG90(TopMount=false);
+		rotate([0,90,0]) translate([18,-26,22]) rotate([-45,0,90]) color("Red") ServoSG90(TopMount=false);
+	}
 	
 } // BackFingers
 
-//BackFingers();
+// BackFingers();
 
 
 
