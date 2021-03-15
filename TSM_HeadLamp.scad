@@ -4,13 +4,14 @@
 // by David M. Flynn
 // Filename: TSM_HeadLamp.scad
 // Created: 3/9/2021
-// Revision: 0.9.2  3/11/2021 Servo Mounts
+// Revision: 1.0.0  3/13/2021
 // Units: mm
 // **************************************
 //  ***** History *****
+// 1.0.0  3/13/2021 FC1, Added BC and difference routines
 // 0.9.2  3/11/2021 Servo Mounts
 // 0.9.1  3/10/2021 Sized for small flashlight, cut globe in half.
-// 0.9.0  3/9/2021 First Code
+// 0.9.0  3/9/2021  First Code
 // **************************************
 //  ***** for STL output *****
 // rotate([90,0,0]) Globe(IsFront=true);
@@ -18,8 +19,12 @@
 // rotate([90,0,0]) ForwardMount();
 // rotate([-90,0,0]) BackFingers();
 // **************************************
+//  ***** Routines *****
+// HeadLampBC(FrontOffset=HL_Flange_t) Bolt4HeadHole();
+// HL_Mount(); // used as difference
+// **************************************
 //  ***** for Viewing *****
- ViewHeadLampAssy(Pan_a=7,Tilt_a=2); // ±7°
+// ViewHeadLampAssy(Pan_a=7,Tilt_a=2); // ±7°
 // **************************************
 
 include <SG90ServoLib.scad>
@@ -29,10 +34,16 @@ $fn=$preview? 36:180;
 Overlap=0.05;
 IDXtra=0.2;
 
-Globe_d=40;
+// Global constants
+Globe_d=40; // Diameter of globe
+HL_CupWall_t=2; // Thickness of front mount
+HL_Cup_d=Globe_d+HL_CupWall_t*2; // Diameter of front mount
+HL_Flange_d=Globe_d+13; // Diameter of mounting flange
 
-Rim_Anulus=2;
-Lamp_d=25;
+Rim_Anulus=2; // Ring on front
+Lamp_d=25; // Diameter of flashlight, hole thru globe
+HL_Globe_nBolts=3; // Bolts to hold the globe together
+HL_Flange_t=3; // Front flange thickness
 
 module ViewHeadLampAssy(Pan_a=0,Tilt_a=0){
 	color("LightBlue") rotate([Pan_a,0,Tilt_a]){
@@ -46,11 +57,17 @@ module ViewHeadLampAssy(Pan_a=0,Tilt_a=0){
 
 // ViewHeadLampAssy(Pan_a=4,Tilt_a=2); // ±7°
 
+module HeadLampBC(FrontOffset=HL_Flange_t){	
+	rotate([-90,0,0]) for (j=[0:7]) rotate([0,0,45*j+22.5]) translate([0,Globe_d/2+4,FrontOffset]) children();
+} // HeadLampBC
+
+//HeadLampBC() Bolt4HeadHole();
+
 module Globe(IsFront=true){
 	ControlHornLen=8;
 	ControlHornWidth=3;
 	ControlHornThickness=2.4;
-	nBolts=3;
+	nBolts=HL_Globe_nBolts;
 	Core_d=IsFront? Lamp_d+IDXtra:Lamp_d+1;
 	
 	difference(){
@@ -100,10 +117,16 @@ module Globe(IsFront=true){
 //color("LightBlue") rotate([-7,0,7]) Globe(IsFront=true);
 //Globe(IsFront=false);
 
+module HL_Mount(){ // used as difference
+	sphere(d=HL_Cup_d+IDXtra*2);
+	// Mounting face
+	rotate([-90,0,0]) translate([0,0,-HL_Flange_t]) cylinder(d=HL_Flange_d+IDXtra*2,h=HL_Flange_t*2);
+} // HL_Mount
+
 module ForwardMount(){
-	CupWall_t=2;
-	Flange_t=3;
-	Flange_d=Globe_d+13;
+	CupWall_t=HL_CupWall_t;
+	Flange_t=HL_Flange_t;
+	Flange_d=HL_Flange_d;
 	
 	difference(){
 		union(){
@@ -126,7 +149,7 @@ module ForwardMount(){
 		translate([0,-Globe_d,0]) cube([Globe_d*2,Globe_d*2,Globe_d*2],center=true);
 		
 		// Bolts
-		rotate([-90,0,0]) for (j=[0:7]) rotate([0,0,45*j+22.5]) translate([0,Globe_d/2+4,Flange_t]) Bolt4ClearHole();
+		HeadLampBC(FrontOffset=HL_Flange_t) Bolt4ClearHole();
 			//Bolt4Hole();
 	} // difference
 	
@@ -137,7 +160,7 @@ module ForwardMount(){
 module BackFingers(){
 	CupWall_t=3;
 	Flange_t=4;
-	Flange_d=Globe_d+13;
+	Flange_d=HL_Flange_d;
 	FingerWidth=4;
 	FingerSpread=10;
 	
@@ -184,7 +207,7 @@ module BackFingers(){
 		} // hull
 		
 		// Bolts
-		rotate([-90,0,0]) for (j=[0:7]) rotate([0,0,45*j+22.5]) translate([0,Globe_d/2+4,Flange_t]) Bolt4Hole();
+		HeadLampBC(FrontOffset=0) Bolt4Hole();
 			
 		// Servo
 		translate([18,-26,22]) rotate([-45,0,90]) ServoSG90(TopMount=false);

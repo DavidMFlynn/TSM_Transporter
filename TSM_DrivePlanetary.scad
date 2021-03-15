@@ -4,10 +4,11 @@
 // Filename: TSM_DrivePlanetary.scad
 // By: David M. Flynn
 // Created: 10/1/2019
-// Revision: 1.0.2 2/14/2021
+// Revision: 1.0.3 3/14/2021
 // Units: mm
 // *************************************************
 //  ***** History ******
+// 1.0.3 3/14/2021 Worked on OuterSprocketDecor
 // 1.0.2 2/14/2021 Adjusted Idle spocket.
 // 1.0.1 2/12/2021 Moved spockets inboard.
 // 1.0.0 6/7/2020 Added Idle version
@@ -38,10 +39,14 @@
 // rotate([180,0,0]) RingA();
 // rotate([180,0,0]) RingA(HasGear=false);
 //
-// OuterTrackSprocket();
+// RevOuterSprocket(ShowTeeth=false, IsIdleEnd=false);
+// RevOuterSprocket(ShowTeeth=false, IsIdleEnd=true);
 // InnerTrackSprocket();
 // InnerSprocketMount(SpacerHeight=5);
 // InnerSprocketMountSpacer(); // obsolete
+//
+// Decoration
+// OuterSprocketDecor(IsIdleEnd=true);
 //
 // MountingPlate(); // for testing
 // *************************************************
@@ -557,6 +562,70 @@ module RingA(HasGear=true, BodyOnly=false){
 // RingA(HasGear=false, BodyOnly=false);
 // RingA(HasGear=false, BodyOnly=true);
 
+module OuterSprocketDecor(IsIdleEnd=true){
+	InnerDia=IsIdleEnd? RingA_Gear_OD-3:RingATeeth*GearAPitch/180+6;
+	OuterRad=TrackSurficeRad(nTeeth=nTrackTeeth)-0.5;
+	
+	difference(){
+		union(){
+			cylinder(r=OuterRad,h=2,$fn=nTrackTeeth);
+			
+			// Bolt bosses
+			for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j]) translate([-RingA_Gear_OD/2-4,0,0])
+				cylinder(d1=11,d2=8,h=4);
+			
+			for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j])
+			difference(){
+				union(){
+					translate([0,RingA_Gear_OD/2+12,3]) rotate([0,90,-8]) cylinder(d=10,h=15);
+					translate([0,RingA_Gear_OD/2+12,3]) rotate([0,90,-8]) translate([0,0,-1.5]) cylinder(d=3,h=18);
+					hull(){
+						translate([0,RingA_Gear_OD/2+12,3]) rotate([0,90,-8]) translate([0,0,-7.5]) cylinder(d=2,h=10);
+						translate([0,RingA_Gear_OD/2+12,2]) rotate([0,90,-8]) translate([0,0,-7.5]) cylinder(d=2,h=10);
+					}
+					
+					hull(){
+						translate([0,RingA_Gear_OD/2+12,2.5]) rotate([0,90,-98]) translate([0,6,3]) cylinder(d=1.2,h=5);
+						translate([0,RingA_Gear_OD/2+12,2]) rotate([0,90,-98]) translate([0,6,3]) cylinder(d=1.2,h=5);
+					}
+					
+					hull(){
+						translate([0,RingA_Gear_OD/2+4,2.5]) rotate([0,90,-8]) translate([0,0,-10]) #cylinder(d=1.2,h=27);
+						translate([0,RingA_Gear_OD/2+4,2]) rotate([0,90,-8]) translate([0,0,-10]) cylinder(d=1.2,h=27);
+					}
+					
+					translate([-10,RingA_Gear_OD/2+10,1]) cylinder(d1=12,d2=10, h=5);
+				} // union
+				
+					translate([-10,RingA_Gear_OD/2+10,2]) cylinder(d1=2,d2=9, h=5);
+			} // difference
+			
+			// inner ridge
+			cylinder(d1=InnerDia+7,d2=InnerDia+4,h=5, $fn=$preview? 90:360);
+			
+			// outer ridge
+			difference(){
+				translate([0,0,2-Overlap]) cylinder(r1=OuterRad,r2=OuterRad-2,h=3,$fn=nTrackTeeth);
+				translate([0,0,2-Overlap*2]) cylinder(r1=OuterRad-5,r2=OuterRad-3,h=3+Overlap*4,$fn=nTrackTeeth);
+			}// difference
+		} // union
+		
+		// Bolt holes
+		for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j]) translate([-RingA_Gear_OD/2-4,0,4.5])
+			Bolt4HeadHole();
+
+		// center hole 
+		translate([0,0,-Overlap]) cylinder(d=InnerDia,h=2,$fn=$preview? 90:360);
+		translate([0,0,2-Overlap]) cylinder(d1=InnerDia,d2=InnerDia+2,h=3+Overlap*2,$fn=$preview? 90:360);
+		
+		// bottom
+		translate([0,0,-10]) cylinder(r=TrackSurficeRad(nTeeth=nTrackTeeth),h=10,$fn=nTrackTeeth);
+	} // difference
+	
+} // OuterSprocketDecor
+
+OuterSprocketDecor(IsIdleEnd=true);
+
 module RevOuterSprocket(ShowTeeth=$preview, IsIdleEnd=false){
 	Sprocket_h=6.5;
 	FrontXtra=3.1;
@@ -597,7 +666,7 @@ module RevOuterSprocket(ShowTeeth=$preview, IsIdleEnd=false){
 } // RevOuterSprocket
 	
 //translate([0,0,-7]) RevOuterSprocket(ShowTeeth=false, IsIdleEnd=false);
-//RevOuterSprocket(ShowTeeth=false, IsIdleEnd=true);
+//translate([0,0,-7]) rotate([180,0,0]) RevOuterSprocket(ShowTeeth=false, IsIdleEnd=true);
 
 module OuterTrackSprocket(ShowTeeth=$preview){
 	Sprocket_h=5.0;
