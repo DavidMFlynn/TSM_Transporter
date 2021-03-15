@@ -4,10 +4,11 @@
 // by David M. Flynn
 // Filename: TSM_HeadLamp.scad
 // Created: 3/9/2021
-// Revision: 1.0.0  3/13/2021
+// Revision: 1.0.1  3/14/2021
 // Units: mm
 // **************************************
 //  ***** History *****
+// 1.0.1  3/14/2021 Lamp Power Plug.
 // 1.0.0  3/13/2021 FC1, Added BC and difference routines
 // 0.9.2  3/11/2021 Servo Mounts
 // 0.9.1  3/10/2021 Sized for small flashlight, cut globe in half.
@@ -56,6 +57,29 @@ module ViewHeadLampAssy(Pan_a=0,Tilt_a=0){
 } // ViewHeadLampAssy
 
 // ViewHeadLampAssy(Pan_a=4,Tilt_a=2); // ±7°
+
+module LampPowerPlug(){
+	LampID=17; // check this...
+	LampDepth=15;
+	
+	BackPlate_t=2;
+	
+	difference(){
+		union(){
+			cylinder(d=Lamp_d-1, h=BackPlate_t);
+			cylinder(d=LampID, h=BackPlate_t+LampDepth);
+		} // union
+		
+		//Wires
+		translate([0,0,-Overlap]) cylinder(d=3, h=BackPlate_t+LampDepth+Overlap*2);
+		translate([0,0,3]) rotate([90,0,0]) cylinder(d=3, h=LampID);
+		
+		// Sping
+		translate([0,0,BackPlate_t+LampDepth-2]) cylinder(d=6,h=4);
+	} // difference
+} // LampPowerPlug
+
+LampPowerPlug();
 
 module HeadLampBC(FrontOffset=HL_Flange_t){	
 	rotate([-90,0,0]) for (j=[0:7]) rotate([0,0,45*j+22.5]) translate([0,Globe_d/2+4,FrontOffset]) children();
