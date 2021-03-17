@@ -1,3 +1,23 @@
+// ******************************************
+// Articulated Middle Section Testing
+// Project: TSM_Transporter
+// Filename: TSM_Walls.scad
+// Created: 12/20/2019
+// Revision: 0.9.0  3/14/2021
+// Units: mm
+// ******************************************
+//  ***** Notes *****
+//
+// ******************************************
+//  ***** History *****
+// 
+// ******************************************
+//  ***** for STL output *****
+//
+// ******************************************
+
+include<CommonStuffSAEmm.scad>
+include<BearingLib.scad>
 
 $fn=$preview? 24:90;
 Overlap=0.05;
@@ -86,18 +106,24 @@ module FloorPlate(){
 
 FloorPlate();
 
+module ShowCurvedWalls(Rot_a=0){
+	color("Tan") CurvedWall(Start_a=-13, Stop_a=13, R=Wall_r-Gap*3, Z=10, T=Thickness,E1=-1,E2=-1); // center
+	
+	rotate([0,0,min(max(-Rot_a/2,-5),5)]) color("LightBlue") CurvedWall(Start_a=6, Stop_a=26, R=Wall_r-Gap*2, Z=10,
+		T=Thickness,E1=1,E2=-1,HasGrooveTail=true);
+	
+	rotate([0,0,max(min(Rot_a/2,5),-5)]) color("LightBlue") CurvedWall(Start_a=-26, Stop_a=-6, R=Wall_r-Gap*2, Z=10, 
+		T=Thickness,E1=-1,E2=1,HasGrooveTail=true);
+	
+	rotate([0,0,min(max(-Rot_a,-14.5),13)]) color("Tan") CurvedWall(Start_a=16, Stop_a=38, R=Wall_r-Gap, Z=10, 
+		T=Thickness,E1=3,E2=3,HasGrooveTail=true);
+	
+	rotate([0,0,max(min(Rot_a,14.5),-13)]) color("Tan") CurvedWall(Start_a=-38, Stop_a=-16, R=Wall_r-Gap, Z=10, 
+		T=Thickness,E1=3,E2=3,HasGrooveTail=true);
+} // CurvedWalls
 
-
-module CurvedWalls(Rot_a=0){
-CurvedWall(Start_a=-13, Stop_a=13, R=Wall_r-Gap*3, Z=10, T=Thickness,E1=-1,E2=-1); // center
-rotate([0,0,min(max(-Rot_a/2,-5),5)]) CurvedWall(Start_a=6, Stop_a=26, R=Wall_r-Gap*2, Z=10, T=Thickness,E1=1,E2=-1,HasGrooveTail=true);
-rotate([0,0,max(min(Rot_a/2,5),-5)]) CurvedWall(Start_a=-26, Stop_a=-6, R=Wall_r-Gap*2, Z=10, T=Thickness,E1=-1,E2=1,HasGrooveTail=true);
-rotate([0,0,min(max(-Rot_a,-14.5),13)]) CurvedWall(Start_a=16, Stop_a=38, R=Wall_r-Gap, Z=10, T=Thickness,E1=3,E2=3,HasGrooveTail=true);
-rotate([0,0,max(min(Rot_a,14.5),-13)]) CurvedWall(Start_a=-38, Stop_a=-16, R=Wall_r-Gap, Z=10, T=Thickness,E1=3,E2=3,HasGrooveTail=true);
-}
-
-CurvedWalls(Rot_a=Rot_a);
-mirror([1,0,0]) CurvedWalls(Rot_a=-Rot_a);
+ShowCurvedWalls(Rot_a=Rot_a);
+mirror([1,0,0]) ShowCurvedWalls(Rot_a=-Rot_a);
 
 module End1(){
 	Wall(X1=-Width/2,Y1=65,X2=-Width/2,Y2=160,Z=10,T=Thickness);
@@ -105,13 +131,19 @@ module End1(){
 	CurvedWall(Start_a=-30, Stop_a=-26, R=Wall_r, Z=10, T=Thickness,E1=0,E2=3);
 } 
 
-//translate([-Gap,Width/2*sin(22.5),0])
- rotate([0,0,Rot_a])  End1();
-mirror([0,1,0]) rotate([0,0,Rot_a]) End1();
+module ShowEndWalls(){
+	//translate([-Gap,Width/2*sin(22.5),0])
+	rotate([0,0,Rot_a])  color("LightBlue") End1();
+	mirror([0,1,0]) rotate([0,0,Rot_a]) color("LightBlue") End1();
+	
+	mirror([1,0,0]){
+		rotate([0,0,-Rot_a])  color("LightBlue") End1();
+		mirror([0,1,0]) rotate([0,0,-Rot_a]) color("LightBlue") End1();}
 
-mirror([1,0,0]){
- rotate([0,0,-Rot_a])  End1();
-mirror([0,1,0]) rotate([0,0,-Rot_a]) End1();}
+} // ShowEndWalls
+
+
+ShowEndWalls();
 
 module OuterRace(){
 	difference(){
@@ -130,3 +162,15 @@ module InnerRace(){
 } // InnerRace
 
 translate([0,0,-Race_w-FloorThickness-Overlap]) InnerRace();
+
+
+
+
+
+
+
+
+
+
+
+
