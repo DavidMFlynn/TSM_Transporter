@@ -4,10 +4,11 @@
 // Filename: TSM_DrivePlanetary.scad
 // By: David M. Flynn
 // Created: 10/1/2019
-// Revision: 1.0.3 3/14/2021
+// Revision: 1.0.4 3/16/2021
 // Units: mm
 // *************************************************
 //  ***** History ******
+// 1.0.4 3/16/2021 Drive sprocket decoration.
 // 1.0.3 3/14/2021 Worked on OuterSprocketDecor
 // 1.0.2 2/14/2021 Adjusted Idle spocket.
 // 1.0.1 2/12/2021 Moved spockets inboard.
@@ -42,7 +43,7 @@
 // RevOuterSprocket(ShowTeeth=false, IsIdleEnd=false);
 // RevOuterSprocket(ShowTeeth=false, IsIdleEnd=true);
 // InnerTrackSprocket();
-// InnerSprocketMount(SpacerHeight=5);
+// InnerSprocketMount(SpacerHeight=14-kTrackBackSpace);
 // InnerSprocketMountSpacer(); // obsolete
 //
 // Decoration
@@ -109,7 +110,7 @@ Enc_h=12.7+1; // same as motor end Plus 1mm overlap with the planet carrier
 // track sproket
 //translate([0,0,-3]) cylinder(d=118,h=2);
 twist=200;
-BSkirt_h=20+5+Enc_h+5.5+5;
+BSkirt_h=20+5+Enc_h+5.5+5-kTrackBackSpace;
 // Ring Gear + PC + Enc + motor end
 	BSkirt_OD=RingBTeeth*GearBPitch/180+5+5;
 	nRingBSkirtBolts=8;
@@ -127,11 +128,12 @@ module ShowPlanetCarrier(){
 	
 	translate([0,0,-10]) rotate([0,0,180/RingBTeeth]){
 		RingB();
-		translate([0,0,-10+BSkirt_h-7.75-5]) rotate([0,0,15]) EncoderMount();}
+		//translate([0,0,-10+BSkirt_h-7.75-5]) rotate([0,0,15]) EncoderMount();
+		}
 	
 	translate([0,0,-31]) RingA();
 	
-	translate([0,0,5+Overlap*2]) EncoderDisc();
+	translate([0,0,5+Overlap*2]) EncoderDisc(HasEnc=false);
 	//translate([0,0,Overlap]) InnerPlanetCarrier();
 	//translate([0,0,-Sleeve_l]) rotate([0,0,180/nPlanets]) MotorSleeve();
 	//translate([0,0,-Overlap]) mirror([0,0,1]) translate([0,0,1.625*25.4]) PlanetCarrier();
@@ -142,14 +144,14 @@ module ShowPlanetCarrier(){
 	
 	//translate([0,0,-31-10-5]) rotate([180,0,0]) OuterTrackSprocket();
 	
-	translate([0,0,-10]) InnerSprocketMount();
-	translate([0,0,-31+ToothSpacing-5-10]) InnerTrackSprocket();
+	translate([0,0,-4.4]) InnerSprocketMount(SpacerHeight=14-kTrackBackSpace);
+	translate([0,0,-31+ToothSpacing-5-4.3]) InnerTrackSprocket();
 	
 	//translate([0,0,29.5]) rotate([0,0,180/RingBTeeth]) rotate([180,0,0])  MountingPlate();
 	
 } // ShowPlanetCarrier
 
- // ShowPlanetCarrier();
+  ShowPlanetCarrier();
 
 module ShowPlanetCarrierExp(){
 	
@@ -418,6 +420,7 @@ module EncoderMountHoles(){
 EncoderMountHoles();
 
 Sleeve_l=1.625*25.4;
+
 module MotorSleeve(){
 	Boss_h=8;
 	
@@ -464,10 +467,12 @@ module MotorSleeve(){
 
 
 
-	InnerTrackSpocketBolt_BC=RingA_Bearing_OD/2+1.5;
+InnerTrackSpocketBolt_BC=RingA_Bearing_OD/2+1.5;
 
 
 module RingA(HasGear=true, BodyOnly=false){
+	// 3/16/2021 Added ball remoal hole, add 0.5mm clearance for RingB
+	Bearing_a=10;
 	
 	if (HasGear==true){
 
@@ -536,8 +541,8 @@ module RingA(HasGear=true, BodyOnly=false){
 	
 		// connect bearing to base
 			hull(){
-				translate([0,0,20]) cylinder(d=RingA_Gear_OD,h=Overlap,$fn=$preview? 90:360);
-				translate([0,0,21]) cylinder(d=RingA_Bearing_OD-8,h=Overlap*2,$fn=$preview? 90:360);
+				translate([0,0,19.5]) cylinder(d=RingA_Gear_OD, h=Overlap,$fn=$preview? 90:360);
+				translate([0,0,20.5]) cylinder(d=RingA_Bearing_OD-8, h=1+Overlap*2,$fn=$preview? 90:360);
 			} // hull
 			
 		if (BodyOnly!=true)
@@ -550,10 +555,13 @@ module RingA(HasGear=true, BodyOnly=false){
 		if (BodyOnly!=true)
 		for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j]) translate([-RingA_Gear_OD/2-4,0,0])
 			rotate([180,0,0]) Bolt4Hole(depth=Boss_h+1);
+		
+		// Ball Removal Hole
+		rotate([0,0,Bearing_a]) translate([0,RingB_Bering_BallCircle/2,0]) cylinder(d=3.5, h=30);
 	} // difference
 	
 	if (BodyOnly!=true)
-	translate([0,0,11]) rotate([0,0,18])
+	translate([0,0,11]) rotate([0,0,Bearing_a])
 		OnePieceOuterRace(BallCircle_d=RingB_Bering_BallCircle, Race_OD=RingA_Bearing_OD, Ball_d=Ball_d, 
 			Race_w=RingB_Bearing_Race_w, PreLoadAdj=BearingPreload, VOffset=0.00, BI=true, myFn=$preview? 90:720);
 } // RingA
@@ -563,7 +571,7 @@ module RingA(HasGear=true, BodyOnly=false){
 // RingA(HasGear=false, BodyOnly=true);
 
 module OuterSprocketDecor(IsIdleEnd=true){
-	InnerDia=IsIdleEnd? RingA_Gear_OD-3:RingATeeth*GearAPitch/180+6;
+	InnerDia=IsIdleEnd? RingA_Gear_OD-3:RingATeeth*GearAPitch/180-9;
 	OuterRad=TrackSurficeRad(nTeeth=nTrackTeeth)-0.5;
 	
 	difference(){
@@ -574,31 +582,56 @@ module OuterSprocketDecor(IsIdleEnd=true){
 			for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j]) translate([-RingA_Gear_OD/2-4,0,0])
 				cylinder(d1=11,d2=8,h=4);
 			
+			// Decorations
+			//*
 			for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j])
 			difference(){
 				union(){
 					translate([0,RingA_Gear_OD/2+12,3]) rotate([0,90,-8]) cylinder(d=10,h=15);
 					translate([0,RingA_Gear_OD/2+12,3]) rotate([0,90,-8]) translate([0,0,-1.5]) cylinder(d=3,h=18);
+					
+					// Pipes
 					hull(){
 						translate([0,RingA_Gear_OD/2+12,3]) rotate([0,90,-8]) translate([0,0,-7.5]) cylinder(d=2,h=10);
 						translate([0,RingA_Gear_OD/2+12,2]) rotate([0,90,-8]) translate([0,0,-7.5]) cylinder(d=2,h=10);
-					}
+					} // hull
 					
 					hull(){
 						translate([0,RingA_Gear_OD/2+12,2.5]) rotate([0,90,-98]) translate([0,6,3]) cylinder(d=1.2,h=5);
 						translate([0,RingA_Gear_OD/2+12,2]) rotate([0,90,-98]) translate([0,6,3]) cylinder(d=1.2,h=5);
-					}
+					} // hull
 					
 					hull(){
-						translate([0,RingA_Gear_OD/2+4,2.5]) rotate([0,90,-8]) translate([0,0,-10]) #cylinder(d=1.2,h=27);
+						translate([0,RingA_Gear_OD/2+4,2.5]) rotate([0,90,-8]) translate([0,0,-10]) cylinder(d=1.2,h=27);
 						translate([0,RingA_Gear_OD/2+4,2]) rotate([0,90,-8]) translate([0,0,-10]) cylinder(d=1.2,h=27);
-					}
+					} // hull
 					
 					translate([-10,RingA_Gear_OD/2+10,1]) cylinder(d1=12,d2=10, h=5);
+					
+					if(IsIdleEnd==false){
+						translate([-10,RingA_Gear_OD/2-1,1]) cylinder(d1=10,d2=8, h=4);
+						
+						// Pipes
+						hull(){
+							translate([-5,RingA_Gear_OD/2+7.75,2.5]) rotate([0,90,-98]) translate([0,6,3]) cylinder(d=1.2,h=6.5);
+							translate([-5,RingA_Gear_OD/2+7.75,2]) rotate([0,90,-98]) translate([0,6,3]) cylinder(d=1.2,h=6.5);
+						} // hull
+							
+						hull(){
+							translate([0,RingA_Gear_OD/2-2.5,2.5]) rotate([0,90,-8]) translate([0,0,-10]) cylinder(d=1.2,h=10.25);
+							translate([0,RingA_Gear_OD/2-2.5,2]) rotate([0,90,-8]) translate([0,0,-10]) cylinder(d=1.2,h=10.25);
+						} // hull
+						
+					} // if drive end
 				} // union
 				
-					translate([-10,RingA_Gear_OD/2+10,2]) cylinder(d1=2,d2=9, h=5);
+				translate([-10,RingA_Gear_OD/2+10,2]) cylinder(d1=2,d2=9, h=5);
+				
+				if(IsIdleEnd==false){
+						translate([-10,RingA_Gear_OD/2-1,2]) cylinder(d1=2,d2=7, h=4);
+					} // if drive end
 			} // difference
+			/**/
 			
 			// inner ridge
 			cylinder(d1=InnerDia+7,d2=InnerDia+4,h=5, $fn=$preview? 90:360);
@@ -624,7 +657,8 @@ module OuterSprocketDecor(IsIdleEnd=true){
 	
 } // OuterSprocketDecor
 
-OuterSprocketDecor(IsIdleEnd=true);
+//OuterSprocketDecor(IsIdleEnd=true);
+//OuterSprocketDecor(IsIdleEnd=false);
 
 module RevOuterSprocket(ShowTeeth=$preview, IsIdleEnd=false){
 	Sprocket_h=6.5;
@@ -773,37 +807,37 @@ module InnerSprocketMount(SpacerHeight=6){
 	} // difference
 } // InnerSprocketMount
 
-//translate([0,0,-10]) InnerSprocketMount(SpacerHeight=14);
+//translate([0,0,-10]) InnerSprocketMount(SpacerHeight=14-kTrackBackSpace);
 
 BSkirtBC_d=BSkirt_OD-Bolt4Inset*2;
 
 module RingB(HasGear=true, HasEnc=false){
 	if (HasGear==true){
-	ring_gear(number_of_teeth=RingBTeeth,
-		circular_pitch=GearBPitch, diametral_pitch=false,
-		pressure_angle=Pressure_a,
-		clearance = 0.2,
-		gear_thickness=10,
-		rim_thickness=10,
-		rim_width=2,
-		backlash=Backlash,
-		twist=twist/RingBTeeth,
-		involute_facets=0, // 1 = triangle, default is 5
-		flat=false);
-	
-	mirror([0,0,1])
-	ring_gear(number_of_teeth=RingBTeeth,
-		circular_pitch=GearBPitch, diametral_pitch=false,
-		pressure_angle=Pressure_a,
-		clearance = 0.2,
-		gear_thickness=10,
-		rim_thickness=10,
-		rim_width=2,
-		backlash=Backlash,
-		twist=twist/RingBTeeth,
-		involute_facets=0, // 1 = triangle, default is 5
-		flat=false);
-	}
+		ring_gear(number_of_teeth=RingBTeeth,
+			circular_pitch=GearBPitch, diametral_pitch=false,
+			pressure_angle=Pressure_a,
+			clearance = 0.2,
+			gear_thickness=10,
+			rim_thickness=10,
+			rim_width=2,
+			backlash=Backlash,
+			twist=twist/RingBTeeth,
+			involute_facets=0, // 1 = triangle, default is 5
+			flat=false);
+		
+		mirror([0,0,1])
+		ring_gear(number_of_teeth=RingBTeeth,
+			circular_pitch=GearBPitch, diametral_pitch=false,
+			pressure_angle=Pressure_a,
+			clearance = 0.2,
+			gear_thickness=10,
+			rim_thickness=10,
+			rim_width=2,
+			backlash=Backlash,
+			twist=twist/RingBTeeth,
+			involute_facets=0, // 1 = triangle, default is 5
+			flat=false);
+		} // if HasGear
 
 	// mount
 		
@@ -867,7 +901,7 @@ module RingB(HasGear=true, HasEnc=false){
 } // RingB
 
 //translate([0,0,21]) rotate([0,0,180/RingBTeeth]) RingB(HasGear=true);
-//RingB(HasGear=false);
+// RingB(HasGear=false);
 
 module RingBSpacer(){
 	kThickness=5;
@@ -947,101 +981,101 @@ module Planet(){
 	
 	difference(){
 		union(){
-	gear(number_of_teeth=PlanetATeeth,
-		circular_pitch=GearAPitch, diametral_pitch=false,
-		pressure_angle=Pressure_a,
-		clearance = 0.2,
-		gear_thickness=10,
-		rim_thickness=10,
-		rim_width=5,
-		hub_thickness=10,
-		hub_diameter=15,
-		bore_diameter=PlanetBearing_d-1,
-		circles=0,
-		backlash=0,
-		twist=twist/PlanetATeeth,
-		involute_facets=0,
-		flat=false);
+			gear(number_of_teeth=PlanetATeeth,
+				circular_pitch=GearAPitch, diametral_pitch=false,
+				pressure_angle=Pressure_a,
+				clearance = 0.2,
+				gear_thickness=10,
+				rim_thickness=10,
+				rim_width=5,
+				hub_thickness=10,
+				hub_diameter=15,
+				bore_diameter=PlanetBearing_d-1,
+				circles=0,
+				backlash=0,
+				twist=twist/PlanetATeeth,
+				involute_facets=0,
+				flat=false);
 	
-	mirror([0,0,1])
-	gear(number_of_teeth=PlanetATeeth,
-		circular_pitch=GearAPitch, diametral_pitch=false,
-		pressure_angle=Pressure_a,
-		clearance = 0.2,
-		gear_thickness=10,
-		rim_thickness=10,
-		rim_width=5,
-		hub_thickness=10,
-		hub_diameter=15,
-		bore_diameter=PlanetBearing_d-1,
-		circles=0,
-		backlash=0,
-		twist=twist/PlanetATeeth,
-		involute_facets=0,
-		flat=false);
+			mirror([0,0,1])
+				gear(number_of_teeth=PlanetATeeth,
+					circular_pitch=GearAPitch, diametral_pitch=false,
+					pressure_angle=Pressure_a,
+					clearance = 0.2,
+					gear_thickness=10,
+					rim_thickness=10,
+					rim_width=5,
+					hub_thickness=10,
+					hub_diameter=15,
+					bore_diameter=PlanetBearing_d-1,
+					circles=0,
+					backlash=0,
+					twist=twist/PlanetATeeth,
+					involute_facets=0,
+					flat=false);
 	
-	translate([0,0,10-Overlap]) rotate([0,0,180/PlanetATeeth-1.20])
-	gear(number_of_teeth=PlanetATeeth,
-		circular_pitch=GearAPitch, diametral_pitch=false,
-		pressure_angle=Pressure_a,
-		clearance = 0.2,
-		gear_thickness=1+Overlap*2,
-		rim_thickness=1+Overlap*2,
-		rim_width=5,
-		hub_thickness=1+Overlap*2,
-		hub_diameter=15,
-		bore_diameter=PlanetBearing_d-1,
-		circles=0,
-		backlash=0,
-		twist=20/PlanetATeeth,
-		involute_facets=0,
-		flat=false);
+			translate([0,0,10-Overlap]) rotate([0,0,180/PlanetATeeth-1.20])
+				gear(number_of_teeth=PlanetATeeth,
+					circular_pitch=GearAPitch, diametral_pitch=false,
+					pressure_angle=Pressure_a,
+					clearance = 0.2,
+					gear_thickness=1+Overlap*2,
+					rim_thickness=1+Overlap*2,
+					rim_width=5,
+					hub_thickness=1+Overlap*2,
+					hub_diameter=15,
+					bore_diameter=PlanetBearing_d-1,
+					circles=0,
+					backlash=0,
+					twist=20/PlanetATeeth,
+					involute_facets=0,
+					flat=false);
 	
-	translate([0,0,21]){
-		gear(number_of_teeth=PlanetBTeeth,
-			circular_pitch=GearBPitch, diametral_pitch=false,
-			pressure_angle=Pressure_a,
-			clearance = 0.2,
-			gear_thickness=10,
-			rim_thickness=10,
-			rim_width=5,
-			hub_thickness=10,
-			hub_diameter=15,
-			bore_diameter=PlanetBearing_d-1,
-			circles=0,
-			backlash=0,
-			twist=twist/PlanetBTeeth,
-			involute_facets=0,
-			flat=false);
+			translate([0,0,21]){
+				gear(number_of_teeth=PlanetBTeeth,
+					circular_pitch=GearBPitch, diametral_pitch=false,
+					pressure_angle=Pressure_a,
+					clearance = 0.2,
+					gear_thickness=10,
+					rim_thickness=10,
+					rim_width=5,
+					hub_thickness=10,
+					hub_diameter=15,
+					bore_diameter=PlanetBearing_d-1,
+					circles=0,
+					backlash=0,
+					twist=twist/PlanetBTeeth,
+					involute_facets=0,
+					flat=false);
 
-		mirror([0,0,1])
-			gear(number_of_teeth=PlanetBTeeth,
-			circular_pitch=GearBPitch, diametral_pitch=false,
-			pressure_angle=Pressure_a,
-			clearance = 0.2,
-			gear_thickness=10,
-			rim_thickness=10,
-			rim_width=5,
-			hub_thickness=10,
-			hub_diameter=15,
-			bore_diameter=PlanetBearing_d-1,
-			circles=0,
-			backlash=0,
-			twist=twist/PlanetBTeeth,
-			involute_facets=0,
-			flat=false);
-	}
-} // union
+			mirror([0,0,1])
+				gear(number_of_teeth=PlanetBTeeth,
+					circular_pitch=GearBPitch, diametral_pitch=false,
+					pressure_angle=Pressure_a,
+					clearance = 0.2,
+					gear_thickness=10,
+					rim_thickness=10,
+					rim_width=5,
+					hub_thickness=10,
+					hub_diameter=15,
+					bore_diameter=PlanetBearing_d-1,
+					circles=0,
+					backlash=0,
+					twist=twist/PlanetBTeeth,
+					involute_facets=0,
+					flat=false);
+			}
+		} // union
 
-	PlanetBearing_d=12.7;
-	PlanetBearing_h=6;
+		PlanetBearing_d=12.7;
+		PlanetBearing_h=6;
 
-	translate([0,0,-10-Overlap]) cylinder(d=PlanetBearing_d,h=PlanetBearing_h+Overlap);
-	translate([0,0,31-PlanetBearing_h]) cylinder(d=PlanetBearing_d,h=PlanetBearing_h+Overlap);
-} // difference
+		translate([0,0,-10-Overlap]) cylinder(d=PlanetBearing_d,h=PlanetBearing_h+Overlap);
+		translate([0,0,31-PlanetBearing_h]) cylinder(d=PlanetBearing_d,h=PlanetBearing_h+Overlap);
+	} // difference
 
 	
-}
+} // Planet
 
 //for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j]) translate([-PC_BC_d/2,0,0]) rotate([0,0,180/PlanetBTeeth]) Planet();
 
