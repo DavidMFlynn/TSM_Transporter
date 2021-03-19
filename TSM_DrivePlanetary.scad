@@ -4,10 +4,11 @@
 // Filename: TSM_DrivePlanetary.scad
 // By: David M. Flynn
 // Created: 10/1/2019
-// Revision: 1.0.4 3/16/2021
+// Revision: 1.0.5 3/18/2021
 // Units: mm
 // *************************************************
 //  ***** History ******
+// 1.0.5 3/18/2021 Added 0.9mm to inside sprocket, reduced Enc_h, Encoder/motor mount and RingB by kTrackBackSpace.
 // 1.0.4 3/16/2021 Drive sprocket decoration.
 // 1.0.3 3/14/2021 Worked on OuterSprocketDecor
 // 1.0.2 2/14/2021 Adjusted Idle spocket.
@@ -42,7 +43,7 @@
 //
 // RevOuterSprocket(ShowTeeth=false, IsIdleEnd=false);
 // RevOuterSprocket(ShowTeeth=false, IsIdleEnd=true);
-// InnerTrackSprocket();
+// InnerTrackSprocket(ShowTeeth=false);
 // InnerSprocketMount(SpacerHeight=14-kTrackBackSpace);
 // InnerSprocketMountSpacer(); // obsolete
 //
@@ -103,14 +104,14 @@ Ball_d=5/16*25.4;
 BearingPreload=-0.3;
 MotorBolt_BC_d=60;
 Mtr_End_OD=72;
-Enc_h=12.7+1; // same as motor end Plus 1mm overlap with the planet carrier
+Enc_h=12.7+1-kTrackBackSpace; // same as motor end Plus 1mm overlap with the planet carrier
 
 // motor
 //cylinder(d=DrvMtr_OD,h=2);
 // track sproket
 //translate([0,0,-3]) cylinder(d=118,h=2);
 twist=200;
-BSkirt_h=20+5+Enc_h+5.5+5-kTrackBackSpace;
+BSkirt_h=20+5+Enc_h+5.5+5;
 // Ring Gear + PC + Enc + motor end
 	BSkirt_OD=RingBTeeth*GearBPitch/180+5+5;
 	nRingBSkirtBolts=8;
@@ -151,7 +152,7 @@ module ShowPlanetCarrier(){
 	
 } // ShowPlanetCarrier
 
-  ShowPlanetCarrier();
+ // ShowPlanetCarrier();
 
 module ShowPlanetCarrierExp(){
 	
@@ -724,7 +725,7 @@ module OuterTrackSprocket(ShowTeeth=$preview){
 
 module InnerTrackSprocket(ShowTeeth=$preview){
 	nBolts=nTrackTeeth/2;
-	Sprocket_h=5.0;
+	Sprocket_h=5.9; // added 0.9mm to cover ends of bolts 3/18/2021
 	FrontXtra=5.0;
 	
 	difference(){
