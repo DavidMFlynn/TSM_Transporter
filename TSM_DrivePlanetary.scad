@@ -4,10 +4,11 @@
 // Filename: TSM_DrivePlanetary.scad
 // By: David M. Flynn
 // Created: 10/1/2019
-// Revision: 1.0.5 3/18/2021
+// Revision: 1.0.6 3/19/2021
 // Units: mm
 // *************************************************
 //  ***** History ******
+// 1.0.6 3/19/2021 Adjusted InnerSprocketMount to 17.1mm, Improved planet 0.35 backlash
 // 1.0.5 3/18/2021 Added 0.9mm to inside sprocket, reduced Enc_h, Encoder/motor mount and RingB by kTrackBackSpace.
 // 1.0.4 3/16/2021 Drive sprocket decoration.
 // 1.0.3 3/14/2021 Worked on OuterSprocketDecor
@@ -26,6 +27,7 @@
 // 0.9.0 10/1/2019 First code.
 // *************************************************
 //  ***** for STL output *****
+//
 // rotate([180,0,0]) Planet(); // print 5
 //
 // PlanetCarrier(FullCover=true); // outer
@@ -44,7 +46,7 @@
 // RevOuterSprocket(ShowTeeth=false, IsIdleEnd=false);
 // RevOuterSprocket(ShowTeeth=false, IsIdleEnd=true);
 // InnerTrackSprocket(ShowTeeth=false);
-// InnerSprocketMount(SpacerHeight=14-kTrackBackSpace);
+// InnerSprocketMount(SpacerHeight=4.1); // = 17.1 = 57 x 0.3 per layers
 // InnerSprocketMountSpacer(); // obsolete
 //
 // Decoration
@@ -81,7 +83,10 @@ PlanetATeeth=16; // 4.6875:1
 PlanetBTeeth=16; // 65.625t/Rev
 RingATeeth=80;
 RingBTeeth=75;
-Backlash=0.2;
+GearBacklash=0.35;
+GearClearance=0.3;
+Gear_w=10; // 1/2 of the harringbone
+
 
 RingA_pd=RingATeeth*GearAPitch/180;
 PC_BC_d=RingA_pd-PlanetATeeth*GearAPitch/180;
@@ -252,6 +257,9 @@ module PlanetCarrier(FullCover=true){
 //mirror([0,0,1]) translate([0,0,1.625*25.4]) PlanetCarrier();
 
 module InnerPlanetCarrier(){
+	// Combined w/ Motor connection
+	Motor_h=9;
+	
 	difference(){
 		union(){
 			// Motor sleve/spacer bolt bosses
@@ -267,18 +275,24 @@ module InnerPlanetCarrier(){
 				
 			} // hull
 			
-			cylinder(d=DrvMtr_OD+6,h=5);
-			translate([0,0,5-Overlap]) cylinder(d=DrvMtr_OD+4,h=1);
+			cylinder(d=DrvMtr_OD+14,h=Motor_h);
+			//translate([0,0,5-Overlap]) cylinder(d=DrvMtr_OD+4,h=1);
 		} // union
 		
-		translate([0,0,-Overlap]) cylinder(d=DrvMtr_OD+IDXtra,h=6+Overlap*2);
+		translate([0,0,-Overlap]) cylinder(d=DrvMtr_OD+4+IDXtra,h=Motor_h+Overlap*2);
 		
 		// Planet bolts
 		for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j]) translate([-PC_BC_d/2,0,4]) Bolt4ButtonHeadHole();
 			
-		// Motor sleve/spacer bolts
+		// bolts
 		for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*(j+0.5)]) translate([-DrvMtr_OD/2-4-5,0,6])
-			Bolt4ClearHole();
+			Bolt4HeadHole();
+		
+		for (j=[0:5]) rotate([0,0,60*j+10]) translate([MotorBolt_BC_d/2,0,-Overlap]) 
+			hull(){
+				cylinder(d=8,h=Motor_h+Overlap*2);
+				translate([2.5,0,0]) scale([0.4,1,1]) cylinder(d=8,h=Motor_h+Overlap*2);
+			} // hull
 	} // difference
 	
 } // InnerPlanetCarrier
@@ -315,7 +329,7 @@ module EncoderDisc(HasEnc=true){ // aka Motor spline, the motor pushes on this p
 		translate([0,0,-Overlap]) cylinder(d=DrvMtr_OD+4+IDXtra,h=Enc_h+Overlap*2);
 		
 		// motor end
-		cylinder(d1=60.85,d2=61.35,h=12.7);
+		//cylinder(d1=60.85,d2=61.35,h=12.7);
 		for (j=[0:5]) rotate([0,0,60*j+10]) translate([MotorBolt_BC_d/2,0,-Overlap]) 
 			hull(){
 				cylinder(d=8,h=Enc_h+Overlap+2);
@@ -481,8 +495,8 @@ module RingA(HasGear=true, BodyOnly=false){
 		circular_pitch=GearAPitch, diametral_pitch=false,
 		pressure_angle=Pressure_a,
 		clearance = 0.2,
-		gear_thickness=10,
-		rim_thickness=10,
+		gear_thickness=Gear_w,
+		rim_thickness=Gear_w,
 		rim_width=2,
 		backlash=Backlash,
 		twist=twist/RingATeeth,
@@ -494,8 +508,8 @@ module RingA(HasGear=true, BodyOnly=false){
 			circular_pitch=GearAPitch, diametral_pitch=false,
 			pressure_angle=Pressure_a,
 			clearance = 0.2,
-			gear_thickness=10,
-			rim_thickness=10,
+			gear_thickness=Gear_w,
+			rim_thickness=Gear_w,
 			rim_width=2,
 			backlash=Backlash,
 			twist=twist/RingATeeth,
@@ -504,12 +518,12 @@ module RingA(HasGear=true, BodyOnly=false){
 		} else {
 			
 			difference(){
-				translate([0,0,-10]) cylinder(d=RingA_Gear_OD+1,h=20);
-				translate([0,0,-10-Overlap]) cylinder(d=RingA_Gear_OD-3,h=20+Overlap*2);
+				translate([0,0,-Gear_w]) cylinder(d=RingA_Gear_OD+1,h=20);
+				translate([0,0,-Gear_w-Overlap]) cylinder(d=RingA_Gear_OD-3,h=20+Overlap*2);
 			}}
 	Boss_h=10;
 	
-	translate([0,0,-10])
+	translate([0,0,-Gear_w])
 	difference(){
 		union(){
 			// connect bearing to base
@@ -772,6 +786,8 @@ module InnerSprocketMount(SpacerHeight=6){
 	Height=13;
 	RingABoltInset=8-SpacerHeight;
 	
+	echo(str("Overall Height = "),Height+SpacerHeight);
+	
 	difference(){
 		union(){
 			for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*(j+0.5)]) hull(){
@@ -808,7 +824,7 @@ module InnerSprocketMount(SpacerHeight=6){
 	} // difference
 } // InnerSprocketMount
 
-//translate([0,0,-10]) InnerSprocketMount(SpacerHeight=14-kTrackBackSpace);
+//translate([0,0,-10]) InnerSprocketMount(SpacerHeight=4.1);
 
 BSkirtBC_d=BSkirt_OD-Bolt4Inset*2;
 
@@ -817,11 +833,11 @@ module RingB(HasGear=true, HasEnc=false){
 		ring_gear(number_of_teeth=RingBTeeth,
 			circular_pitch=GearBPitch, diametral_pitch=false,
 			pressure_angle=Pressure_a,
-			clearance = 0.2,
-			gear_thickness=10,
-			rim_thickness=10,
+			clearance = GearClearance,
+			gear_thickness=Gear_w,
+			rim_thickness=Gear_w,
 			rim_width=2,
-			backlash=Backlash,
+			backlash=GearBacklash,
 			twist=twist/RingBTeeth,
 			involute_facets=0, // 1 = triangle, default is 5
 			flat=false);
@@ -830,11 +846,11 @@ module RingB(HasGear=true, HasEnc=false){
 		ring_gear(number_of_teeth=RingBTeeth,
 			circular_pitch=GearBPitch, diametral_pitch=false,
 			pressure_angle=Pressure_a,
-			clearance = 0.2,
-			gear_thickness=10,
-			rim_thickness=10,
+			clearance = GearClearance,
+			gear_thickness=Gear_w,
+			rim_thickness=Gear_w,
 			rim_width=2,
-			backlash=Backlash,
+			backlash=GearBacklash,
 			twist=twist/RingBTeeth,
 			involute_facets=0, // 1 = triangle, default is 5
 			flat=false);
@@ -842,7 +858,7 @@ module RingB(HasGear=true, HasEnc=false){
 
 	// mount
 		
-	translate([0,0,-10])
+	translate([0,0,-Gear_w])
 	difference(){
 		union(){
 			for (j=[0:nRingBSkirtBolts-1]) rotate([0,0,360/nRingBSkirtBolts*j]) 
@@ -896,7 +912,7 @@ module RingB(HasGear=true, HasEnc=false){
 	
 	//translate([0,0,-10+BSkirt_h-7.75-5]) rotate([0,0,15]) EncoderMount();
 	
-	translate([0,0,-10])
+	translate([0,0,-Gear_w])
 	OnePieceInnerRace(BallCircle_d=RingB_Bering_BallCircle,	Race_ID=RingB_Bering_ID,	
 		Ball_d=Ball_d, Race_w=RingB_Bearing_Race_w, PreLoadAdj=BearingPreload, VOffset=0.00, BI=true, myFn=$preview? 60:720);
 } // RingB
@@ -977,91 +993,83 @@ module MountingPlate(){
 
 //MountingPlate();
 
+Planet_GearBacklash=0.45;
+Planet_GearClearance=0.3;
 
 module Planet(){
+	GearSpacer=1+Overlap;
+	PlanetGear_w=Gear_w;
 	
 	difference(){
 		union(){
+			// Top of planet A (extended)
 			gear(number_of_teeth=PlanetATeeth,
 				circular_pitch=GearAPitch, diametral_pitch=false,
 				pressure_angle=Pressure_a,
-				clearance = 0.2,
-				gear_thickness=10,
-				rim_thickness=10,
+				clearance = Planet_GearClearance,
+				gear_thickness=PlanetGear_w+GearSpacer,
+				rim_thickness=PlanetGear_w+GearSpacer,
 				rim_width=5,
-				hub_thickness=10,
+				hub_thickness=PlanetGear_w+GearSpacer,
 				hub_diameter=15,
 				bore_diameter=PlanetBearing_d-1,
 				circles=0,
-				backlash=0,
-				twist=twist/PlanetATeeth,
+				backlash=Planet_GearBacklash,
+				twist=twist/PlanetATeeth*((PlanetGear_w+GearSpacer)/PlanetGear_w),
 				involute_facets=0,
 				flat=false);
-	
+			
+			// Bottom of planet A
 			mirror([0,0,1])
 				gear(number_of_teeth=PlanetATeeth,
 					circular_pitch=GearAPitch, diametral_pitch=false,
 					pressure_angle=Pressure_a,
-					clearance = 0.2,
-					gear_thickness=10,
-					rim_thickness=10,
+					clearance = Planet_GearClearance,
+					gear_thickness=PlanetGear_w,
+					rim_thickness=PlanetGear_w,
 					rim_width=5,
-					hub_thickness=10,
+					hub_thickness=PlanetGear_w,
 					hub_diameter=15,
 					bore_diameter=PlanetBearing_d-1,
 					circles=0,
-					backlash=0,
+					backlash=Planet_GearBacklash,
 					twist=twist/PlanetATeeth,
 					involute_facets=0,
 					flat=false);
 	
-			translate([0,0,10-Overlap]) rotate([0,0,180/PlanetATeeth-1.20])
-				gear(number_of_teeth=PlanetATeeth,
-					circular_pitch=GearAPitch, diametral_pitch=false,
-					pressure_angle=Pressure_a,
-					clearance = 0.2,
-					gear_thickness=1+Overlap*2,
-					rim_thickness=1+Overlap*2,
-					rim_width=5,
-					hub_thickness=1+Overlap*2,
-					hub_diameter=15,
-					bore_diameter=PlanetBearing_d-1,
-					circles=0,
-					backlash=0,
-					twist=20/PlanetATeeth,
-					involute_facets=0,
-					flat=false);
-	
+
 			translate([0,0,21]){
+				// Top of planet B
 				gear(number_of_teeth=PlanetBTeeth,
 					circular_pitch=GearBPitch, diametral_pitch=false,
 					pressure_angle=Pressure_a,
-					clearance = 0.2,
-					gear_thickness=10,
-					rim_thickness=10,
+					clearance = Planet_GearClearance,
+					gear_thickness=PlanetGear_w,
+					rim_thickness=PlanetGear_w,
 					rim_width=5,
-					hub_thickness=10,
+					hub_thickness=PlanetGear_w,
 					hub_diameter=15,
 					bore_diameter=PlanetBearing_d-1,
 					circles=0,
-					backlash=0,
+					backlash=Planet_GearBacklash,
 					twist=twist/PlanetBTeeth,
 					involute_facets=0,
 					flat=false);
 
 			mirror([0,0,1])
+				// Bottom of planet B
 				gear(number_of_teeth=PlanetBTeeth,
 					circular_pitch=GearBPitch, diametral_pitch=false,
 					pressure_angle=Pressure_a,
-					clearance = 0.2,
-					gear_thickness=10,
-					rim_thickness=10,
+					clearance = Planet_GearClearance,
+					gear_thickness=PlanetGear_w,
+					rim_thickness=PlanetGear_w,
 					rim_width=5,
-					hub_thickness=10,
+					hub_thickness=PlanetGear_w,
 					hub_diameter=15,
 					bore_diameter=PlanetBearing_d-1,
 					circles=0,
-					backlash=0,
+					backlash=Planet_GearBacklash,
 					twist=twist/PlanetBTeeth,
 					involute_facets=0,
 					flat=false);
@@ -1082,10 +1090,10 @@ module Planet(){
 
 	
 
-echo("Ring A PD = ",RingA_pd);
-echo("PC BC Dia = ",PC_BC_d);
-echo("Calc'd Ring B PD = ",Ring_B_cpd/2);
-echo("Ring B PD error =",Ring_B_cpd-RingBTeeth*GearBPitch/180);
+//echo("Ring A PD = ",RingA_pd);
+//echo("PC BC Dia = ",PC_BC_d);
+//echo("Calc'd Ring B PD = ",Ring_B_cpd/2);
+//echo("Ring B PD error =",Ring_B_cpd-RingBTeeth*GearBPitch/180);
 
 
 
