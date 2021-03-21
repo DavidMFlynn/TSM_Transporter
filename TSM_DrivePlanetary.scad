@@ -30,7 +30,7 @@
 //
 // rotate([180,0,0]) Planet(); // print 5
 //
-// PlanetCarrier(FullCover=true); // outer
+// PlanetCarrier(FullCover=false); // outer
 // rotate([180,0,0]) MotorSleeve();
 // InnerPlanetCarrier();
 // rotate([180,0,0]) EncoderDisc();
@@ -40,7 +40,7 @@
 // RingB(); // Stator, FC1
 // RingB(HasGear=false);
 // EncoderMount();
-// rotate([180,0,0]) RingA();
+// rotate([180,0,0]) RingA(HasGear=true);
 // rotate([180,0,0]) RingA(HasGear=false);
 //
 // RevOuterSprocket(ShowTeeth=false, IsIdleEnd=false);
@@ -85,6 +85,8 @@ RingATeeth=80;
 RingBTeeth=75;
 GearBacklash=0.35;
 GearClearance=0.3;
+Planet_GearBacklash=0.35;
+Planet_GearClearance=0.3;
 Gear_w=10; // 1/2 of the harringbone
 
 
@@ -215,11 +217,13 @@ if ($preview==true) translate([0,0,-DrvMtr_l+4+Enc_h]) color("Red"){
 	}}
 	
 module PlanetCarrier(FullCover=true){
+	
 	difference(){
 		union(){
 			if (FullCover==true){
 				cylinder(d=RingATeeth*GearAPitch/180+4,h=1.2);
 			}
+			
 			// Motor sleve/spacer bolt bosses
 			for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*(j+0.5)]) hull(){
 				translate([-DrvMtr_OD/2-4,0,0]) cylinder(d=8,h=6);
@@ -237,10 +241,13 @@ module PlanetCarrier(FullCover=true){
 			translate([0,0,4-Overlap]) cylinder(d1=DrvMtr_OD+6,d2=DrvMtr_OD+4,h=2+Overlap);
 		} // union
 		
-		// center art
-		translate([0,0,1]) cylinder(d1=DrvMtr_OD-2,d2=DrvMtr_OD+2,h=5+Overlap);
-		
-		//translate([0,0,-Overlap]) cylinder(d=DrvMtr_OD+IDXtra,h=6+Overlap*2);
+		if (FullCover==true){
+			// center art
+			translate([0,0,1]) cylinder(d1=DrvMtr_OD-2,d2=DrvMtr_OD+2,h=5+Overlap);
+		}else{
+			translate([0,0,-Overlap]) cylinder(d=DrvMtr_OD+IDXtra,h=6+Overlap*2);
+			translate([0,0,4]) cylinder(d1=DrvMtr_OD+IDXtra, d2=DrvMtr_OD+2, h=2+Overlap);
+		}
 		
 		// Planet bolts
 		for (j=[0:nPlanets-1]) rotate([0,0,360/nPlanets*j]) translate([-PC_BC_d/2,0,4]) Bolt4ButtonHeadHole();
@@ -253,7 +260,7 @@ module PlanetCarrier(FullCover=true){
 	
 } // PlanetCarrier
 
-//PlanetCarrier();
+// PlanetCarrier(FullCover=false);
 //mirror([0,0,1]) translate([0,0,1.625*25.4]) PlanetCarrier();
 
 module InnerPlanetCarrier(){
@@ -491,31 +498,31 @@ module RingA(HasGear=true, BodyOnly=false){
 	
 	if (HasGear==true){
 
-	ring_gear(number_of_teeth=RingATeeth,
-		circular_pitch=GearAPitch, diametral_pitch=false,
-		pressure_angle=Pressure_a,
-		clearance = 0.2,
-		gear_thickness=Gear_w,
-		rim_thickness=Gear_w,
-		rim_width=2,
-		backlash=Backlash,
-		twist=twist/RingATeeth,
-		involute_facets=0, // 1 = triangle, default is 5
-		flat=false);
-	
-	mirror([0,0,1])
 		ring_gear(number_of_teeth=RingATeeth,
 			circular_pitch=GearAPitch, diametral_pitch=false,
 			pressure_angle=Pressure_a,
-			clearance = 0.2,
+			clearance = GearClearance,
 			gear_thickness=Gear_w,
 			rim_thickness=Gear_w,
 			rim_width=2,
-			backlash=Backlash,
+			backlash=GearBacklash,
 			twist=twist/RingATeeth,
 			involute_facets=0, // 1 = triangle, default is 5
 			flat=false);
-		} else {
+		
+		mirror([0,0,1])
+			ring_gear(number_of_teeth=RingATeeth,
+				circular_pitch=GearAPitch, diametral_pitch=false,
+				pressure_angle=Pressure_a,
+				clearance = GearClearance,
+				gear_thickness=Gear_w,
+				rim_thickness=Gear_w,
+				rim_width=2,
+				backlash=GearBacklash,
+				twist=twist/RingATeeth,
+				involute_facets=0, // 1 = triangle, default is 5
+				flat=false);
+	} else {
 			
 			difference(){
 				translate([0,0,-Gear_w]) cylinder(d=RingA_Gear_OD+1,h=20);
@@ -528,45 +535,47 @@ module RingA(HasGear=true, BodyOnly=false){
 		union(){
 			// connect bearing to base
 			hull(){
-				cylinder(d=RingA_Gear_OD+2,h=Overlap,$fn=$preview? 60:360);
-				translate([0,0,21]) cylinder(d=RingA_Bearing_OD,h=Overlap,$fn=$preview? 90:360);
+				cylinder(d=RingA_Gear_OD+2, h=Overlap, $fn=$preview? 60:360);
+				translate([0,0,21]) cylinder(d=RingA_Bearing_OD, h=Overlap, $fn=$preview? 90:360);
 			} // hull
 			
-		for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*(j+0.5)]) hull(){
-			translate([InnerTrackSpocketBolt_BC,0,21+RingB_Bearing_Race_w-Boss_h]) cylinder(d=8,h=Boss_h);
-			translate([InnerTrackSpocketBolt_BC,0,21+RingB_Bearing_Race_w-Boss_h]) sphere(d=8);
-			translate([RingA_Bearing_OD/2,0,21+RingB_Bearing_Race_w-Boss_h]) cylinder(d=9,h=Boss_h);
-			translate([RingA_Bearing_OD/2-10,0,21+RingB_Bearing_Race_w-Boss_h-9]) sphere(d=9);
-		} // hull
-			
-		for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j]) hull(){
-			translate([-RingA_Gear_OD/2,0,0]) cylinder(d=9,h=Boss_h+1);
-				translate([-RingA_Gear_OD/2,0,Boss_h+1]) sphere(d=9);
-				translate([-RingA_Gear_OD/2-4,0,0]) cylinder(d=8,h=Boss_h);
-				translate([-RingA_Gear_OD/2-4,0,Boss_h]) sphere(d=8);
-		} // hull
-	} // union
+			// inner bolt bosses
+			for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*(j+0.5)]) hull(){
+				translate([InnerTrackSpocketBolt_BC,0,21+RingB_Bearing_Race_w-Boss_h]) cylinder(d=8,h=Boss_h);
+				translate([InnerTrackSpocketBolt_BC,0,21+RingB_Bearing_Race_w-Boss_h]) sphere(d=8);
+				translate([RingA_Bearing_OD/2,0,21+RingB_Bearing_Race_w-Boss_h]) cylinder(d=9,h=Boss_h);
+				translate([RingA_Bearing_OD/2-10,0,21+RingB_Bearing_Race_w-Boss_h-9]) sphere(d=9);
+			} // hull
+				
+			// outer bolt bosss
+			for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j]) hull(){
+				translate([-RingA_Gear_OD/2,0,0]) cylinder(d=9,h=Boss_h+1);
+					translate([-RingA_Gear_OD/2,0,Boss_h+1]) sphere(d=9);
+					translate([-RingA_Gear_OD/2-4,0,0]) cylinder(d=8,h=Boss_h);
+					translate([-RingA_Gear_OD/2-4,0,Boss_h]) sphere(d=8);
+			} // hull
+		} // union
 	
-	if (BodyOnly!=true)
-		translate([0,0,21-Overlap]) cylinder(d=RingA_Bearing_OD-1,h=RingB_Bearing_Race_w+Overlap*2,$fn=$preview? 90:360);
+		// Bearing goes here
+		if (BodyOnly!=true)
+			translate([0,0,21-Overlap]) cylinder(d=RingA_Bearing_OD-4, h=RingB_Bearing_Race_w+Overlap*2,$fn=$preview? 90:360);
 	
-	if (BodyOnly!=true)
-	for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*(j+0.5)])
-			translate([InnerTrackSpocketBolt_BC,0,21+RingB_Bearing_Race_w]) Bolt4Hole();
+		// Inner Bolts
+		if (BodyOnly!=true)
+			for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*(j+0.5)])
+				translate([InnerTrackSpocketBolt_BC,0,21+RingB_Bearing_Race_w]) Bolt4Hole();
 	
-		// connect bearing to base
+		// Slope from gear to bearing.
 			hull(){
-				translate([0,0,19.5]) cylinder(d=RingA_Gear_OD, h=Overlap,$fn=$preview? 90:360);
-				translate([0,0,20.5]) cylinder(d=RingA_Bearing_OD-8, h=1+Overlap*2,$fn=$preview? 90:360);
+				translate([0,0,Gear_w*2+Overlap]) cylinder(d=RingA_Gear_OD, h=Overlap, $fn=$preview? 90:360);
+				translate([0,0,21]) cylinder(d=RingA_Bearing_OD-8, h=Overlap, $fn=$preview? 90:360);
 			} // hull
 			
+		// Gears are here, don't overlap with them.
 		if (BodyOnly!=true)
-			translate([0,0,-Overlap]) cylinder(d=RingA_Gear_OD,h=20+Overlap*2,$fn=$preview? 90:360);
-			
-		// center hole
-		if (BodyOnly!=true)
-			translate([0,0,-Overlap]) cylinder(d=RingA_Gear_OD-1,h=20,$fn=$preview? 90:360);
+			translate([0,0,-Overlap]) cylinder(d=RingA_Gear_OD-1, h=21+Overlap*2, $fn=$preview? 90:360);
 		
+		// Outer Bolts
 		if (BodyOnly!=true)
 		for (j=[0:nTrkSproketBolts-1]) rotate([0,0,360/nTrkSproketBolts*j]) translate([-RingA_Gear_OD/2-4,0,0])
 			rotate([180,0,0]) Bolt4Hole(depth=Boss_h+1);
@@ -575,13 +584,14 @@ module RingA(HasGear=true, BodyOnly=false){
 		rotate([0,0,Bearing_a]) translate([0,RingB_Bering_BallCircle/2,0]) cylinder(d=3.5, h=30);
 	} // difference
 	
+	// Bearing
 	if (BodyOnly!=true)
 	translate([0,0,11]) rotate([0,0,Bearing_a])
 		OnePieceOuterRace(BallCircle_d=RingB_Bering_BallCircle, Race_OD=RingA_Bearing_OD, Ball_d=Ball_d, 
 			Race_w=RingB_Bearing_Race_w, PreLoadAdj=BearingPreload, VOffset=0.00, BI=true, myFn=$preview? 90:720);
 } // RingA
 
- //RingA(HasGear=true);
+// RingA(HasGear=true);
 // RingA(HasGear=false, BodyOnly=false);
 // RingA(HasGear=false, BodyOnly=true);
 
@@ -993,8 +1003,6 @@ module MountingPlate(){
 
 //MountingPlate();
 
-Planet_GearBacklash=0.45;
-Planet_GearClearance=0.3;
 
 module Planet(){
 	GearSpacer=1+Overlap;
