@@ -81,18 +81,16 @@
 //
 // GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=false); // commutation disc
 //
-// PlanetCarrierDrivePulley(nTeeth=32); // print 2 /jack
-//
 // LifterSpline(); // Lifter Arm Assy lock on to this.
 //
 // ***** Connector Only *****
 // BallLockRing();
 //
 // ***** Lifter Arm Assy *****
-// LifterSpacer();
 // rotate([180,0,0]) LifterLock(); // locking ring
-// translate([0,0,20]) LifterLockCover(); // part of the lifter arm
-// LifterBearingCover(); 
+// LifterLockCover(nSpokes=7); // part of the lifter arm
+// FlangedBallLockRing(nSpokes=7);
+// DogLeg(CD=150,Offset=15);
 //
 // TestFixture();
 // *************************************************
@@ -1731,7 +1729,7 @@ module GM4008MountingPlate(HasCommutatorDisk=true, ShowMotor=true){
 	for (j=[0:2]) rotate([0,0,360/nPolePairs/3*j]) translate([GM4008Comm_d/2+1,0,0]) cylinder(d=2,h=2);
 } // GM4008MountingPlate
 
-GM4008MountingPlate(HasCommutatorDisk=true);
+//GM4008MountingPlate(HasCommutatorDisk=true);
 
 GM5208MP_h=7; // Mounting Plate thickness
 
@@ -1863,7 +1861,7 @@ module RingCSpacerGM(HasSkirt=false){
 // FlangedBallLockRing(nSpokes=7);
 // LifterLock(nSpokes=7); // locking ring
 //
-// LifterLockCover2(nSpokes=7); // has flange to connect to DogLeg
+// LifterLockCover(nSpokes=7); // has flange to connect to DogLeg
 // DogLeg(CD=150, Offset=15);
 // ***********************************************************************************************
 
@@ -1874,14 +1872,14 @@ module ShowLifter2(){
 	translate([0,0,-2.2]) LifterSpline();
 	FlangedBallLockRing(nSpokes=7); // OK
 	translate([0,0,6]) LifterLock(nSpokes=7); // OK
-	//translate([0,0,20]) LifterLockCover2(nSpokes=7); 
+	//translate([0,0,20]) LifterLockCover(nSpokes=7); 
 	
 	/*
 	translate([CenterDistance,0,50]) rotate([0,180,0]){
 		translate([0,0,-2.2]) LifterSpline();
 		FlangedBallLockRing(nSpokes=7); // OK
 		translate([0,0,6]) LifterLock(nSpokes=7); // OK
-		translate([0,0,20]) LifterLockCover2(nSpokes=7); 
+		translate([0,0,20]) LifterLockCover(nSpokes=7); 
 	}
 	/**/
 	
@@ -1889,35 +1887,6 @@ module ShowLifter2(){
 } // ShowLifter2
 
 //ShowLifter2();
-
-
-module LifterSpacer(nSpokes=7){
-	// old code, for single ended dog leg
-	LC_h=14;
-	Skirt_t=2;
-
-	difference(){
-		union(){
-			// Bolt bosses
-			for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j])
-					translate([RingA_Bearing_ID/2,0,0]) cylinder(d=Bolt4Inset*2,h=LC_h);
-			
-			// skirt
-			difference(){
-				cylinder(d=RingA_Bearing_ID+2.5,h=LC_h);		
-				
-				translate([0,0,-Overlap]) cylinder(d=RingA_Bearing_ID+2.5-Skirt_t*2,h=LC_h+Overlap*2);
-			} // difference
-		} // union
-		
-		// Bolts
-		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j])
-					translate([RingA_Bearing_ID/2,0,LC_h]) Bolt4ClearHole(depth=LC_h+1);
-		
-	} // difference
-} // LifterSpacer
-
-//LifterSpacer();
 
 Lock_Ball_d=3/8*25.4;
 
@@ -1982,7 +1951,7 @@ module LifterLock(nSpokes=7){
 
 Dogbone_L=90;
 
-module LifterLockCover2(nSpokes=7){
+module LifterLockCover(nSpokes=7){
 	// old
 	
 	Major_d=RingA_Bearing_BallCircle+Ball_d+4;
@@ -2078,143 +2047,10 @@ module LifterLockCover2(nSpokes=7){
 		translate([0,0,-Overlap]) cylinder(d=5/16*25.4+IDXtra,h=6);
 			
 	} // difference
-} // LifterLockCover2
-
-//LifterLockCover2(nSpokes=7);
-
-module LifterLockCover(nSpokes=7){
-	// old
-	
-	Major_d=RingA_Bearing_BallCircle+Ball_d+4;
-	LLC_h=8;
-	Skirt_t=5;
-	WirePath_w=25;
-	
-	difference(){
-		union(){
-			cylinder(d=Major_d-Bolt4Inset*2,h=2);
-			
-			translate([-Dogbone_L,0,0]){
-				// skirt
-				difference(){
-					union(){
-						cylinder(d=RingA_Bearing_ID+2.5,h=LLC_h);
-						cylinder(d=RingA_Bearing_ID-8,h=LLC_h);
-							
-					}
-					
-					translate([0,0,-Overlap]) cylinder(d=RingA_Bearing_ID+2.5-Skirt_t*2,h=LLC_h+Overlap*2);
-					
-					hull(){
-						translate([0,0,2]) cylinder(d=RingA_Bearing_ID-42,h=LLC_h+Overlap*2);
-						translate([50,0,2]) cylinder(d=RingA_Bearing_ID-42,h=LLC_h+Overlap*2);
-					} // hull
-				} // difference
-				
-				// Bolt bosses
-				for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j])
-						translate([RingA_Bearing_ID/2,0,0]) cylinder(d=Bolt4Inset*2,h=LLC_h);
-			} // translate
-			
-			//wire path
-			difference(){
-				hull(){
-					translate([15,WirePath_w/2,0]) cylinder(d=10,h=Overlap);
-					translate([15,WirePath_w/2,4]) sphere(d=8);
-					
-					translate([15,-WirePath_w/2,0]) cylinder(d=10,h=Overlap);
-					translate([15,-WirePath_w/2,4]) sphere(d=8);
-					
-					translate([-75,WirePath_w/2,0]) cylinder(d=10,h=Overlap);
-					translate([-75,WirePath_w/2,4]) sphere(d=8);
-					
-					translate([-75,-WirePath_w/2,0]) cylinder(d=10,h=Overlap);
-					translate([-75,-WirePath_w/2,4]) sphere(d=8);
-				} // hull
-				
-				hull(){
-					translate([15,WirePath_w/2,2]) cylinder(d=6,h=Overlap);
-					translate([15,WirePath_w/2,4]) sphere(d=4);
-					
-					translate([15,-WirePath_w/2,2]) cylinder(d=6,h=Overlap);
-					translate([15,-WirePath_w/2,4]) sphere(d=4);
-					
-					translate([-75,WirePath_w/2,2]) cylinder(d=6,h=Overlap);
-					translate([-75,WirePath_w/2,4]) sphere(d=4);
-					
-					translate([-75,-WirePath_w/2,2]) cylinder(d=6,h=Overlap);
-					translate([-75,-WirePath_w/2,4]) sphere(d=4);
-				} // hull
-			} // difference
-				
-			// Bolts bosses
-			for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j]) hull(){
-					translate([Major_d/2-Bolt4Inset-2,0,0]) cylinder(r=Bolt4Inset,h=LLC_h);
-					translate([Major_d/2-Bolt4Inset*2,0,0]) cylinder(r=Bolt4Inset+1,h=LLC_h);
-			}
-		} // union
-		
-		translate([-Dogbone_L,0,-Overlap]) cylinder(d=RingA_Bearing_ID+2.5-Skirt_t*2,h=LLC_h+Overlap*2);
-		
-		// Bolts
-		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j]) translate([Major_d/2-Bolt4Inset-2,0,LLC_h]) Bolt4HeadHole();
-		
-		translate([-Dogbone_L,0,0])
-		// Bolts
-		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j])
-					translate([RingA_Bearing_ID/2,0,LLC_h]) Bolt4ClearHole();
-		
-		hull(){
-			translate([15,WirePath_w/2,-Overlap]) cylinder(d=6,h=Overlap);
-			translate([15,WirePath_w/2,4]) sphere(d=4);
-			
-			translate([15,-WirePath_w/2,-Overlap]) cylinder(d=6,h=Overlap);
-			translate([15,-WirePath_w/2,4]) sphere(d=4);
-			
-			translate([-25,WirePath_w/2,-Overlap]) cylinder(d=6,h=Overlap);
-			translate([-25,WirePath_w/2,4]) sphere(d=4);
-			
-			translate([-25,-WirePath_w/2,-Overlap]) cylinder(d=6,h=Overlap);
-			translate([-25,-WirePath_w/2,4]) sphere(d=4);
-		} // hull
-			
-	} // difference
 } // LifterLockCover
 
-//translate([0,0,20]) LifterLockCover();
+//LifterLockCover(nSpokes=7);
 
-module LifterOneRing(nSpokes=7){
-	// old code
-	Skirt_h=8;
-	Skirt_t=5;
-	
-	difference(){
-		union(){
-			// skirt
-			difference(){
-				cylinder(d=RingA_Bearing_ID+2.5,h=Skirt_h);
-				
-				translate([0,0,-Overlap]) cylinder(d=RingA_Bearing_ID+2.5-Skirt_t*2,h=Skirt_h+Overlap*2);
-				
-				hull(){
-					translate([0,0,2]) cylinder(d=RingA_Bearing_ID-12-Skirt_t*2,h=Skirt_h+Overlap*2);
-					translate([50,0,2]) cylinder(d=RingA_Bearing_ID-12-Skirt_t*2,h=Skirt_h+Overlap*2);
-				} // hull
-			} // difference
-			
-			// Bolt bosses
-			for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j])
-					translate([RingA_Bearing_ID/2,0,0]) cylinder(d=Bolt4Inset*2,h=Skirt_h);
-			
-		} // union
-		
-		// Bolts
-		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j])
-					translate([RingA_Bearing_ID/2,0,Skirt_h]) Bolt4ClearHole();
-	} // difference
-} // LifterOneRing
-
-//translate([-90,0,20]) LifterOneRing();
 
 module BallLockRing(nSpokes=7){
 	// only the ring, can be used stand alone or combines with dog leg. 
@@ -2276,11 +2112,13 @@ module DogLeg(CD=150, Offset=30){
 				for (j=[0:nBolts-1]) rotate([0,0,BoltArc_a/(nBolts-1)*j-BoltArc_a/2])
 					translate([-Bolt_BCr,0,0]){ 
 						cylinder(r=Bolt4Inset+2,h=Skirt_t);
-						rotate([0,0,-(BoltArc_a/(nBolts-1)*j-BoltArc_a/2)])
-						translate([-Bolt4Inset*3,0,0]) cylinder(r=Bolt4Inset+2,h=Skirt_t);
+						
+						//rotate([0,0,-(BoltArc_a/(nBolts-1)*j-BoltArc_a/2)])
+							//translate([-Bolt4Inset,0,0]) cylinder(r=Bolt4Inset+2,h=Skirt_t);
 					}
 			} // hull
 			
+			// Remove end facing lock.
 			translate([0,0,-Overlap]) cylinder(r=Bolt_BCr-Bolt4Inset-2,h=Skirt_t+Overlap*2);
 			
 		} // difference
@@ -2298,20 +2136,27 @@ module DogLeg(CD=150, Offset=30){
 			translate([-CD,0,Skirt_t+Offset]) rotate([0,180,0]) End();
 			
 			// connector
+			difference(){
 			hull(){
+				
 				for (j=[0:nBolts-1]) rotate([0,0,BoltArc_a/(nBolts-1)*j-BoltArc_a/2])
 					translate([-Bolt_BCr,0,0])
-						rotate([0,0,-(BoltArc_a/(nBolts-1)*j-BoltArc_a/2)])
-						translate([-Bolt4Inset*2,0,0]) cylinder(r=Bolt4Inset+2,h=Skirt_t);
+							rotate([0,0,-(BoltArc_a/(nBolts-1)*j-BoltArc_a/2)])
+								cylinder(r=Bolt4Inset+2,h=Skirt_t-3);
 					
 					
 				translate([-CD,0,Skirt_t+Offset]) rotate([0,180,0]) 
-				for (j=[0:nBolts-1]) rotate([0,0,BoltArc_a/(nBolts-1)*j-BoltArc_a/2])
-					translate([-Bolt_BCr,0,0])
-						rotate([0,0,-(BoltArc_a/(nBolts-1)*j-BoltArc_a/2)])
-						translate([-Bolt4Inset*2,0,0]) cylinder(r=Bolt4Inset+2,h=Skirt_t);
+					for (j=[0:nBolts-1]) rotate([0,0,BoltArc_a/(nBolts-1)*j-BoltArc_a/2])
+						translate([-Bolt_BCr,0,0])
+							rotate([0,0,-(BoltArc_a/(nBolts-1)*j-BoltArc_a/2)])
+								cylinder(r=Bolt4Inset+2,h=Skirt_t-3);
 					
 			} // hull
+				// Remove end facing lock.
+				translate([0,0,-Overlap]) cylinder(r=Bolt_BCr, h=Skirt_t+Overlap*2);
+				translate([-CD,0,Skirt_t+Offset]) rotate([0,180,0]) 
+					translate([0,0,-Overlap]) cylinder(r=Bolt_BCr, h=Skirt_t+Overlap*2);
+			} // difference
 		
 		} // union
 		
@@ -2337,11 +2182,13 @@ module DogLeg(CD=150, Offset=30){
 			
 		hull(){
 			rotate([0,0,BoltArc_a/(nBolts-1)/2]) translate([-Bolt_BCr,0,Skirt_t/2]) sphere(d=6,$fn=18);
-			translate([-CD,0,Skirt_t+Offset]) rotate([0,180,0]) rotate([0,0,BoltArc_a/(nBolts-1)/2]) translate([-Bolt_BCr,0,Skirt_t/2]) sphere(d=6,$fn=18);
+			translate([-CD,0,Skirt_t+Offset]) rotate([0,180,0]) rotate([0,0,BoltArc_a/(nBolts-1)/2])
+				translate([-Bolt_BCr,0,Skirt_t/2]) sphere(d=6,$fn=18);
 		}
 		hull(){
 			rotate([0,0,-BoltArc_a/(nBolts-1)/2]) translate([-Bolt_BCr,0,Skirt_t/2]) sphere(d=6,$fn=18);
-			translate([-CD,0,Skirt_t+Offset]) rotate([0,180,0]) rotate([0,0,-BoltArc_a/(nBolts-1)/2]) translate([-Bolt_BCr,0,Skirt_t/2]) sphere(d=6,$fn=18);
+			translate([-CD,0,Skirt_t+Offset]) rotate([0,180,0]) rotate([0,0,-BoltArc_a/(nBolts-1)/2]) 
+				translate([-Bolt_BCr,0,Skirt_t/2]) sphere(d=6,$fn=18);
 		}
 			
 		hull() for (j=[0:nBolts-1]) rotate([0,0,BoltArc_a/(nBolts-1)*j-BoltArc_a/2])
@@ -2372,7 +2219,7 @@ module DogLeg(CD=150, Offset=30){
 	} // difference
 } // DogLeg
 
-//DogLeg(CD=150,Offset=15);
+//translate([0,0,5]) DogLeg(CD=150,Offset=15);
 
 module FlangedBallLockRing(nSpokes=7){
 	
@@ -2403,82 +2250,6 @@ module FlangedBallLockRing(nSpokes=7){
 } // FlangedBallLockRing
 
 //FlangedBallLockRing(nSpokes=7);
-
-
-module LifterDogLeg(nSpokes=7){
-	// old flat version
-	Spline_h=20;
-	Lock_Ball_Circle_d=RingA_Bearing_ID+Lock_Ball_d;
-	Major_d=RingA_Bearing_BallCircle+Ball_d+4;
-	LLC_h=6;
-	Skirt_t=5;
-	
-	difference(){
-		union(){
-			cylinder(d=Major_d,h=Spline_h);
-			
-			translate([-Dogbone_L,0,0]){
-				// skirt
-				difference(){
-					union(){
-						cylinder(d=RingA_Bearing_ID+2.5,h=LLC_h);
-						hull(){
-							cylinder(d=RingA_Bearing_ID,h=5);
-							translate([Dogbone_L,0,0]) cylinder(d=RingA_Bearing_ID,h=5);
-						} // hull
-					} // union
-					
-					translate([0,0,2]) cylinder(d=RingA_Bearing_ID+2.5-Skirt_t*2,h=LLC_h+Overlap*2);
-					
-				} // difference
-				
-				// Bolt bosses
-				for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j])
-						translate([RingA_Bearing_ID/2,0,0]) cylinder(d=Bolt4Inset*2,h=LLC_h);
-			} // translate
-		} // union
-		
-		translate([-Dogbone_L,0,0])
-		// Bolts
-		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j])
-					translate([RingA_Bearing_ID/2,0,0]) rotate([180,0,0]) Bolt4HeadHole();
-		
-		translate([0,0,-Overlap]) SplineHole(d=RingA_Bearing_ID+Bolt4Inset*2,l=Spline_h+Overlap*2,nSplines=nSpokes,Spline_w=25,Gap=IDXtra,Key=true);
-		
-		// lock ring
-		difference(){
-			translate([0,0,Spline_h/2-Lock_Ball_d/2-IDXtra]) cylinder(d=Major_d+Overlap,h=Spline_h);
-			
-			translate([0,0,Spline_h/2-Lock_Ball_d/2-IDXtra-Overlap])
-				cylinder(d=Lock_Ball_Circle_d+Lock_Ball_d-2,h=Spline_h+Overlap*2);
-			
-			// Bolts bosses
-			for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j]) hull(){
-					translate([Major_d/2-Bolt4Inset-2,0,-Overlap]) cylinder(r=Bolt4Inset,h=Spline_h+Overlap*4);
-					translate([Major_d/2-Bolt4Inset*2,0,-Overlap]) cylinder(r=Bolt4Inset+1,h=Spline_h+Overlap*4);
-			}
-		} // difference
-		
-		// Bolts
-		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j]) translate([Major_d/2-Bolt4Inset-2,0,Spline_h]) Bolt4Hole();
-		
-		// Ball detents
-		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*(j+0.5)]) hull(){
-			translate([Lock_Ball_Circle_d/2,0,Spline_h/2]) sphere(d=Lock_Ball_d+IDXtra, $fn=$preview? 18:90);
-			translate([Lock_Ball_Circle_d/2,0,Spline_h/2]) rotate([0,90,0]) cylinder(d=Lock_Ball_d+IDXtra,h=15, $fn=$preview? 18:90);
-		} // hull
-	} // difference
-	
-	// Balls
-	if ($preview==true)
-	for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*(j+0.5)])
-			translate([Lock_Ball_Circle_d/2,0,Spline_h/2]) color("Red") sphere(d=Lock_Ball_d, $fn=18);
-} // LifterDogLeg
-
-//translate([0,0,2+Overlap]) LifterDogLeg();
-
-//LifterDogLeg();
-//translate([100,0,30]) rotate([0,180,0]) LifterBearingCover(); 
 
 module LifterWireTubeSupport(nSpokes=7){
 	WireTube_d=5/16*25.4;
@@ -2535,87 +2306,9 @@ module LifterSpline(nSpokes=7){
 	
 } // LifterSpline
 
-//translate([0,0,-2.2]) LifterSpline();
+//translate([0,0,-2.2]) LifterSpline(nSpokes=7);
 
-module LifterBearingCover(nSpokes=7){
-	// old code
-	
-	difference(){
-		union(){
-			// bearing cover
-			difference(){
-				cylinder(d=RingA_Bearing_BallCircle+Ball_d+4,h=2);
-				translate([0,0,-Overlap]) cylinder(d=RingA_Bearing_BallCircle-Ball_d-8,h=2+Overlap*2);
-			} // difference
-			
-			// Bolt bosses
-			for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j])
-					translate([RingA_Bearing_ID/2,0,0]) cylinder(d=Bolt4Inset*2,h=2);
-		} // union
-		
-		// Bolts
-		for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j])
-					translate([RingA_Bearing_ID/2,0,2]) Bolt4ClearHole();
-	} // difference
-} // LifterBearingCover
 
-//translate([0,0,-2.2]) 
-//LifterBearingCover();
-
-module LifterRing(nSpokes=7){
-	// old version, 2 round lobes
-	
-	Skirt_h=6;
-	Skirt_t=5;
-	
-	difference(){
-		union(){
-			
-			// skirt
-			difference(){
-				union(){
-					cylinder(d=RingA_Bearing_ID+2.5,h=Skirt_h);
-					difference(){
-						translate([50,0,0]) cylinder(d=RingA_Bearing_ID+2.5,h=Skirt_h);
-						translate([50,0,2]) cylinder(d=RingA_Bearing_ID+2.5-Skirt_t*2,h=Skirt_h);
-					} // difference
-					
-					hull(){
-						cylinder(d=RingA_Bearing_ID-8,h=Skirt_h);
-						translate([50,0,0]) cylinder(d=RingA_Bearing_ID-8,h=Skirt_h);
-					} // hull
-				}
-				
-				translate([0,0,-Overlap]) cylinder(d=RingA_Bearing_ID+2.5-Skirt_t*2,h=Skirt_h+Overlap*2);
-				translate([50,0,2]) cylinder(d=RingA_Bearing_ID+2.5-Skirt_t*2,h=Skirt_h+Overlap*2);
-				hull(){
-					translate([0,0,2]) cylinder(d=RingA_Bearing_ID-12-Skirt_t*2,h=Skirt_h+Overlap*2);
-					translate([50,0,2]) cylinder(d=RingA_Bearing_ID-12-Skirt_t*2,h=Skirt_h+Overlap*2);
-				} // hull
-			} // difference
-			
-			// Bolt bosses
-			for (j=[0:nSpokes-1]) rotate([0,0,360/nSpokes*j])
-					translate([RingA_Bearing_ID/2,0,0]) cylinder(d=Bolt4Inset*2,h=Skirt_h);
-			
-			translate([50,0,0]) rotate([0,0,180])
-			for (j=[0:nSpokes-2]) rotate([0,0,360/nSpokes*(j+1)])
-					translate([RingA_Bearing_ID/2,0,0]) cylinder(d=Bolt4Inset*2,h=Skirt_h);
-			
-		} // union
-		
-		// Bolts
-		for (j=[0:nSpokes-4]) rotate([0,0,360/nSpokes*(j+2)])
-					translate([RingA_Bearing_ID/2,0,Skirt_h]) Bolt4ClearHole();
-		
-		for (j=[0:nSpokes-5]) rotate([0,0,360/nSpokes*(j+6)])
-					translate([RingA_Bearing_ID/2,0,Skirt_h]) Bolt4HeadHole();
-		
-		translate([50,0,0]) rotate([0,0,180])
-		for (j=[0:nSpokes-4]) rotate([0,0,360/nSpokes*(j+2)])
-					translate([RingA_Bearing_ID/2,0,0]) rotate([180,0,0]) Bolt4HeadHole();
-	} // difference
-} // LifterRing
 
 //translate([0,0,-RingA_Bearing_Race_w-0.5]) RingABearing();
 //translate([0,0,-Gear_w/2-RingA_Bearing_Race_w-6-Overlap*2]) rotate([180,0,0]) RingA();
