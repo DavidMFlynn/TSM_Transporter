@@ -77,9 +77,14 @@ module LockingDisk(ShowBallRetracted=true){
 	
 }// LockingDisk
 
+module ShowStopPin(){
+	rotate([0,0,58]) translate([0,ControlShaft_d/2+LockMagnet_d/2+2.5,-2])
+		color("Red") cylinder(d=StopPin_d, h=LockMagnet_h+4);
+} // ShowStopPin
+
 module StopPinHole(XtraLen=5){
 	rotate([0,0,58])
-	translate([0,ControlShaft_d/2+LockMagnet_d/2+2.5,-2-XtraLen]) cylinder(d=StopPin_d+IDXtra, h=LockMagnet_h+4+XtraLen);
+	translate([0,ControlShaft_d/2+LockMagnet_d/2+2.5,-2-XtraLen]) cylinder(d=StopPin_d+IDXtra, h=LockMagnet_h+4.2+XtraLen);
 } // StopPinHole
 
 /*
@@ -180,7 +185,8 @@ module Lock(ShowBall=true, ShowBallRetracted=true){
 	}
 	
 	translate([-Ball_d/2-1-LockMagnet_h,0,Ball_d+LockingPin_t/2-2]) rotate([0,90,0])
-		translate([-LockingDiskOffset_x,0,-LockMagnet_h-Overlap]) #StopPinHole(XtraLen=5);
+		translate([-LockingDiskOffset_x,0,-LockMagnet_h-Overlap]){ #StopPinHole(XtraLen=5);
+			ShowStopPin();}
 	
 	translate([-Ball_d/2-1-LockMagnet_h,0,Ball_d+LockingPin_t/2-2]) rotate([0,90,0]) 
 		translate([-LockingDiskOffset_x,0,-LockMagnet_h-Overlap]) LockingDisk(ShowBallRetracted=ShowBallRetracted);
