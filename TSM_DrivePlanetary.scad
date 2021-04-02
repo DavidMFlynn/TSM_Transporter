@@ -4,10 +4,25 @@
 // Filename: TSM_DrivePlanetary.scad
 // By: David M. Flynn
 // Created: 10/1/2019
-// Revision: 1.0.6 3/19/2021
+// Revision: 1.0.7 4/1/2021
 // Units: mm
 // *************************************************
+//  ***** Notes *****
+// Motor is a 90mm BLDC skate board wheel
+//  w/ the tire removed, machined to 58.35mm Dia.
+//
+// The axil for the planet gear consists of:
+//   #4-40 x 1/4" Dia. x 1" Stand-off
+//   #4-40 x 1/4" Dia. x 5/8" Stand-off
+//   #4-40 x 1/2" stud
+//
+// Balls for bearing are 5/16" acetel balls.
+// All screws are #4-40
+//
+// *************************************************
 //  ***** History ******
+//
+// 1.0.7 4/1/2021  Trimmed ends of planet gear.
 // 1.0.6 3/19/2021 Adjusted InnerSprocketMount to 17.1mm, Improved planet 0.35 backlash
 // 1.0.5 3/18/2021 Added 0.9mm to inside sprocket, reduced Enc_h, Encoder/motor mount and RingB by kTrackBackSpace.
 // 1.0.4 3/16/2021 Drive sprocket decoration.
@@ -25,6 +40,7 @@
 // 0.9.2 10/3/2019 Worked on ring A.
 // 0.9.1 10/2/2019 Added planet carriers and encoder.
 // 0.9.0 10/1/2019 First code.
+//
 // *************************************************
 //  ***** for STL output *****
 //
@@ -1007,6 +1023,9 @@ module MountingPlate(){
 module Planet(){
 	GearSpacer=1+Overlap;
 	PlanetGear_w=Gear_w;
+	EndTrim=0.3;
+	
+	//echo(str("Planet Height = ",PlanetGear_w+GearSpacer+PlanetGear_w*3-0.6));
 	
 	difference(){
 		union(){
@@ -1046,7 +1065,7 @@ module Planet(){
 					flat=false);
 	
 
-			translate([0,0,21]){
+			translate([0,0,PlanetGear_w*2+GearSpacer]){
 				// Top of planet B
 				gear(number_of_teeth=PlanetBTeeth,
 					circular_pitch=GearBPitch, diametral_pitch=false,
@@ -1064,7 +1083,7 @@ module Planet(){
 					involute_facets=0,
 					flat=false);
 
-			mirror([0,0,1])
+			mirror([0,0,GearSpacer])
 				// Bottom of planet B
 				gear(number_of_teeth=PlanetBTeeth,
 					circular_pitch=GearBPitch, diametral_pitch=false,
@@ -1084,11 +1103,15 @@ module Planet(){
 			}
 		} // union
 
+		// Trim ends
+		translate([0,0,-PlanetGear_w-Overlap]) cylinder(d=40,h=EndTrim+Overlap);
+		translate([0,0,PlanetGear_w*3+GearSpacer-EndTrim]) cylinder(d=40,h=EndTrim+Overlap);
+		
 		PlanetBearing_d=12.7;
 		PlanetBearing_h=6;
 
-		translate([0,0,-10-Overlap]) cylinder(d=PlanetBearing_d,h=PlanetBearing_h+Overlap);
-		translate([0,0,31-PlanetBearing_h]) cylinder(d=PlanetBearing_d,h=PlanetBearing_h+Overlap);
+		translate([0,0,-PlanetGear_w+EndTrim-Overlap]) cylinder(d=PlanetBearing_d+IDXtra,h=PlanetBearing_h+Overlap);
+		translate([0,0,PlanetGear_w*3+GearSpacer-EndTrim-PlanetBearing_h]) cylinder(d=PlanetBearing_d+IDXtra,h=PlanetBearing_h+Overlap);
 	} // difference
 
 	
