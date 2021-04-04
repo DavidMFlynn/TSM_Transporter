@@ -4,7 +4,7 @@
 // Filename: TSM_DrivePlanetary.scad
 // By: David M. Flynn
 // Created: 10/1/2019
-// Revision: 1.0.7 4/1/2021
+// Revision: 1.0.8 4/4/2021
 // Units: mm
 // *************************************************
 //  ***** Notes *****
@@ -15,13 +15,29 @@
 //   #4-40 x 1/4" Dia. x 1" Stand-off
 //   #4-40 x 1/4" Dia. x 5/8" Stand-off
 //   #4-40 x 1/2" stud
+// Planet Carrier Bearings (10 Req.)
+//   R188ZZ 1/4" ID x 1/2" OD x 3/16" Thick
 //
 // Balls for bearing are 5/16" acetel balls.
-// All screws are #4-40
+//  55 Required
+//
+// All screws are #4-40 Torx Plus
+// 3/8" Button Head (50 Req.)
+//   10 Planet Carrier
+//   40 Sprocket Teeth
+// 3/8" Socket Head (10 Req.)
+//   10 Planet Carrier
+// 1/2" Socket Head (30 Req.)
+//   10 Outer Sprocket & Cover
+//   10 Inner Sprocket Mount
+//   10 Inner Sprocket
+// 5/8" Socket Head (8 Req.)
+//   8 Chassis Mount
 //
 // *************************************************
 //  ***** History ******
 //
+// 1.0.8 4/4/2021  Added 0.3mm to InnerSprocketMount, Hardware notes, this is FC1!
 // 1.0.7 4/1/2021  Trimmed ends of planet gear.
 // 1.0.6 3/19/2021 Adjusted InnerSprocketMount to 17.1mm, Improved planet 0.35 backlash
 // 1.0.5 3/18/2021 Added 0.9mm to inside sprocket, reduced Enc_h, Encoder/motor mount and RingB by kTrackBackSpace.
@@ -62,7 +78,7 @@
 // RevOuterSprocket(ShowTeeth=false, IsIdleEnd=false);
 // RevOuterSprocket(ShowTeeth=false, IsIdleEnd=true);
 // InnerTrackSprocket(ShowTeeth=false);
-// InnerSprocketMount(SpacerHeight=4.1); // = 17.1 = 57 x 0.3 per layers
+// InnerSprocketMount(SpacerHeight=4.4); // = 17.4 = 58 x 0.3 per layers, 17.1 was a little tight
 // InnerSprocketMountSpacer(); // obsolete
 //
 // Decoration
