@@ -233,7 +233,7 @@ sBearing_w=5;
 // little bearing R188ZZ 6.35mm ID x 12.7mm OD x 4.7mm Thick
 sBearing_OD=12.7;
 sBearing_ID=6.35;
-sBearing_w=4.7;
+sBearing_w=6;
 
 Tube_OD=12.7; // 1/2" Aluminum tubing
 
@@ -577,8 +577,9 @@ module SunGear(){
 
 module Planet(O_a=0){
 	
+	TrimValue=0.5;
 	Cone_s=19.75;
-	Cone_l=26.5;
+	Cone_l=28.5;
 	BearingXTra=0.4;
 	
 	difference(){
@@ -649,6 +650,10 @@ module Planet(O_a=0){
 					}// difference
 			}// difference
 		}
+		
+		//Trim Ends
+		translate([0,0,-Gear_w/2-Overlap]) cylinder(d=Cone_l,h=TrimValue);
+		translate([0,0,Gear_w*1.5+1-TrimValue]) cylinder(d=Cone_l,h=TrimValue+Overlap);
 
 		if (O_a!=0) 
 			rotate([0,0,O_a]) translate([-8.5,0,Gear_w*1.5]) cylinder(d=2,h=2);
