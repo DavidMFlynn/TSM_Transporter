@@ -49,7 +49,7 @@ module Ball(){
 ControlShaft_d=6.35;
 LockingDiskOffset_x=ControlShaft_d/2+LockMagnet_d/2+1;
 LockingDisk_d=LockingDiskOffset_x*2+LockingPin_t+1;
-echo(LockingDisk_d=LockingDisk_d);
+//echo(LockingDisk_d=LockingDisk_d);
 
 module LockingDisk(ShowBallRetracted=true){
 	Rot_a=ShowBallRetracted? 0:-90;
@@ -195,7 +195,7 @@ module Lock(ShowBall=true, ShowBallRetracted=true){
 } // Lock
 
 //translate([72.7,0,11]) rotate([0,104,0]) 
-Lock(ShowBall=true, ShowBallRetracted=false);
+//Lock(ShowBall=true, ShowBallRetracted=false);
 //Lock(ShowBall=true, ShowBallRetracted=true);
 
 module HatchComing(Width=160, Height=330, H=20){

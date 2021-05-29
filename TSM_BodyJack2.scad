@@ -351,7 +351,30 @@ module ShowBodyJackGM(Rot_a=180/RingATeeth,HasSkirt=true){
 //translate([0,0,Gear_w]) ShowBodyJackGM(HasSkirt=false);
 //translate([0,0,Gear_w]) ShowBodyJackGM(HasSkirt=true);
 
+module ShowBodyJackComplete(){
+	
+	translate([0,0,-25]) rotate([180,0,0]) LifterSpline(nSpokes=7);
+	
+	translate([0,0,-14.5]) rotate([180,0,0]) RingABearing();
+	
+	translate([0,0,-14.5])	RingA_Stop(HasSkirt=true, HasStop=false, nSensors=1);
+		
+	translate([0,0,7.1])  RingB(HasSkirt=true, nSensors=1);
+	
+	translate([0,0,7.1+6.1]) InnerPlanetBearing();
+	
+	translate([0,0,7.1+6.1+11.6]) rotate([0,0,24.5]) RingCSpacerGM5208Com();
 
+	translate([0,0,7.1+6.1+11.6+34.4]) rotate([0,0,26.5]) RingCCoverGM5208Com();
+
+	translate([0,0,7.1+6.1+11.6+40.5]) rotate([0,0,26.5]) RingCGMCover();
+
+} // ShowBodyJackComplete
+
+//BodyOAWidth=400;
+//BodyWallThickness=6;
+//translate([-BodyOAWidth/2+BodyWallThickness,0,0]) rotate([0,90,0]) translate([0,0,17.5]) ShowBodyJackComplete();
+//translate([BodyOAWidth/2-BodyWallThickness,0,0]) rotate([0,-90,0]) translate([0,0,17.5]) ShowBodyJackComplete();
 
 // *********************************************************************************************
 //  ***** Planet Carrier Parts *****
@@ -699,15 +722,37 @@ module Planet(O_a=0){
 // *************************************************************************************
 
 RingABearingMountingRing_t=3;
+RingABearingMountingRing_BC_d=104;
+RingABearingMountingRing_d=RingABearingMountingRing_BC_d+Bolt4Inset*2;
+RingABearing_nBolts=8;
+
+module RingABearingBoltCircle(){
+	for (j=[0:RingABearing_nBolts-1]) rotate([0,0,360/RingABearing_nBolts*j])
+			translate([RingABearingMountingRing_BC_d/2,0,0]) children();
+} // RingABearingBoltCircle
+
+//RingABearingBoltCircle() Bolt4HeadHole();
+
+module BodyJackMountingRing(){
+	BJMR_t=6;
+	
+	difference(){
+		cylinder(d=RingABearingMountingRing_d+4, h=BJMR_t);
+		
+		translate([0,0,-Overlap]) cylinder(d=RingA_Bearing_OD+IDXtra*2, h=BJMR_t+Overlap*2);
+		
+		translate([0,0,BJMR_t]) RingABearingBoltCircle() Bolt4HeadHole();
+	} // difference
+} // BodyJackMountingRing
+
+BodyJackMountingRing();
 
 module RingABearing(){
+	
 	OnePieceOuterRace(BallCircle_d=RingA_Bearing_BallCircle, Race_OD=RingA_Bearing_OD, Ball_d=Ball_d, 
 			Race_w=RingA_Bearing_Race_w, PreLoadAdj=BearingPreload, VOffset=0.50, BI=true, myFn=$preview? 60:720);
 	
-	
-	RingABearingMountingRing_BC_d=104;
-	RingABearingMountingRing_d=RingABearingMountingRing_BC_d+Bolt4Inset*2;
-	nBolts=8;
+	nBolts=RingABearing_nBolts;
 	
 	difference(){
 		union(){
@@ -725,15 +770,15 @@ module RingABearing(){
 		translate([0,0,-Overlap]) cylinder(d=RingA_Bearing_OD-1,h=RingABearingMountingRing_t+Overlap*2);
 		
 		// bolts
-		for (j=[0:nBolts-1]) rotate([0,0,360/nBolts*j])
-			translate([RingABearingMountingRing_BC_d/2,0,RingABearingMountingRing_t+3])
-				Bolt4ClearHole();
+		translate([0,0,RingABearingMountingRing_t]) RingABearingBoltCircle() Bolt4ClearHole();
+		
 	} // difference
 } // RingABearing
 
 //translate([15-0.5,0,0]) rotate([0,90,0]) RingABearing();
 
 //rotate([180,0,0]) RingABearing();
+//translate([0,0,-RingABearingMountingRing_t-Overlap]) RingABearing();
 
 module RingA_Stop(HasSkirt=false, HasStop=true, nSensors=2){
 	// Connects RingA bearing to RingB
@@ -1859,6 +1904,7 @@ module RingCSpacerGM(HasSkirt=false){
 
 //RingCSpacerGM(HasSkirt=true);
 //RingCSpacerGM(HasSkirt=false);
+
 
 
 // ***********************************************************************************************
