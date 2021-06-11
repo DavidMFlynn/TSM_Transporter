@@ -733,19 +733,7 @@ module RingABearingBoltCircle(){
 
 //RingABearingBoltCircle() Bolt4HeadHole();
 
-module BodyJackMountingRing(){
-	BJMR_t=6;
-	
-	difference(){
-		cylinder(d=RingABearingMountingRing_d+4, h=BJMR_t);
-		
-		translate([0,0,-Overlap]) cylinder(d=RingA_Bearing_OD+IDXtra*2, h=BJMR_t+Overlap*2);
-		
-		translate([0,0,BJMR_t]) RingABearingBoltCircle() Bolt4HeadHole();
-	} // difference
-} // BodyJackMountingRing
 
-BodyJackMountingRing();
 
 module RingABearing(){
 	
