@@ -134,15 +134,22 @@ module BJ_Mount(){
 	
 } // BJ_Mount
 
+difference(){
 BJ_Mount();
-
-/*
-for (j=[0:2]) rotate([0,0,120*j]){
-	translate([7,80,0]) rotate([X_a,Y_a,0]) translate([0,0,3]) Rod(Len=BodyOAWidth);
-	translate([-7,80,0]) rotate([X_a,-Y_a,0]) translate([0,0,3]) Rod(Len=BodyOAWidth);
+	rotate([0,0,-5]) translate([0,0,-Overlap]) cube([200,100,30]);
 }
 
-translate([0,0,BodyOAWidth]) rotate([180,0,0]) BJ_Mount();
+//*
+for (j=[0:2]) rotate([0,0,120*j]){
+	translate([7,80,0]) rotate([X_a,Y_a,0]) translate([0,0,2.2]) Rod(Len=BodyOAWidth);
+	translate([-7,80,0]) rotate([X_a,-Y_a,0]) translate([0,0,2.2]) Rod(Len=BodyOAWidth);
+}
+
+translate([0,0,BodyOAWidth]) rotate([180,0,0]) 
+difference(){
+	BJ_Mount();
+	rotate([0,0,-5]) translate([0,0,-Overlap]) cube([200,100,30]);
+}
 /**/
 
 //translate([BodyOAWidth/2-BodyWallThickness,0,0]) rotate([0,90,0]) BodyJackMountingRing();
