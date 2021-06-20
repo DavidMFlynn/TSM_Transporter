@@ -6,11 +6,11 @@
 // Filename: TSM_BodyJack2.scad
 // By: David M. Flynn
 // Created: 10/16/2019
-// Revision: 1.2.4  5/17/2021
+// Revision: 1.2.5  6/19/2021
 // Units: mm
 // *************************************************
 //  ***** Notes *****
-// This is a 183:1 ratio compound planetary drive w/ sun gear. 
+// This is a -183:1 ratio compound planetary drive w/ sun gear. Yes -183:1, the output shaft turns opposite the motor.
 // Motor has 11 pole pairs for 66 counts per rotation of the motor, yielding 12,078 counts per rotation.
 // Caution: Changing Ring gear OD part way thru printing will make things not fit.
 //   Possible fix: Set bolt circles as constants.
@@ -19,9 +19,56 @@
 // Variant:  Gimbal motor GBM5208H-200T (60mm Dia. x 23mm, 0.038Nm Torque) from robotshop.com?
 // 	AS5047D encoder 7 pole pairs.
 //
+// Hardware for GBM5208H-200T variant:
+//  Gimbal motor GBM5208H-200T (60mm Dia. x 23mm, 0.038Nm Torque)
+//  M3x6 Button Head, 4 Req.
+//  Big bearing R1212ZZ 1/2 x 3/4 x 5/32, 4 Req.
+//  Little bearing R188ZZ 6.35mm ID x 12.7mm OD x 4.7mm Thick, 6 Req.
+//  1/2" x 0.035" Wall Aluminum Tubing x 2.375"
+//  1/4" x 1" Round Stand-Off w/ #4-40 Thread, 3 Req.
+//  #4-40 x 1/4" Button Head Torx Plus (8IP), 4 Req.
+//  #4-40 x 3/8" Button Head Torx Plus (8IP), 34 Req.
+//  #4-40 x 3/8" Socket Head Torx Plus (10IP), 28 Req.
+//  #4-40 x 1/2" Socket Head Torx Plus (10IP), 8 Req.
+//  #4-40 x 5/8" Socket Head Torx Plus (10IP), 15 Req.
+//
+// 3D Printed parts, mostly motor end to spline drive end:
+//
+//  RingCGMCover();
+//  RingCMtrMountGM5208Com();
+//  RingCCoverGM5208Com();
+//  RingCSpacerGM5208Com();
+//  HallSwitchMount(); // x 3 commutation sensors
+//  GM5208MountingPlate(HasCommutatorDisk=true, ShowMotor=false); // commutation disc
+//
+// *** Planet Carrier Sub-Assemble: Assemble in this order ***
+// *** B Ring and Planet Carrier assembly should be free spinning ***
+//  SplineShaft(d=GM5208_Spline_d,l=4,nSplines=GM5208_nSplines,Spline_w=30,Hole=12.7+IDXtra,Key=false); // Glue to shaft
+//  Spacer(Len=3); // Glue to shaft
+//
+//  InnerPlanetBearing(); // w/ Big Bearing
+//  RingB(HasSkirt=true, nSensors=1);
+//  HallSwitchMount(); // home sensor
+//
+//  Spacer(Len=3);
+//  PlanetCarrierOuter(); // w/ Big Bearing
+//  PlanetCarrierSpacer();
+//  SunGear();  // Glur to shaft, once glue this assembly cannot be easily disassembled.
+//  Planet(); // w/ 2x Little Bearing + 1/4" stand-off
+//  Planet(O_a=PlanetToothOffset_a); // Planet A ccw 1/3 tooth
+//  Planet(O_a=PlanetToothOffset_a*2); // Planet B ccw 2/3 tooth
+//  PlanetCarrierOuter(); // w/ Big Bearing
+//  Spacer(Len=3);
+//
+//  RingA_Stop(HasSkirt=true, HasStop=true, nSensors=1);
+//  RingA(HasStop=true);
+//  RingABearing();
+//  LifterSpline(); // Lifter Arm Assy lock on to this.
+// 
 // *************************************************
 //  ***** History ******
 //
+// 1.2.5  6/19/2021 Added some notes.
 // 1.2.4  5/17/2021 Larger wire path in LifterLockCover.
 // 1.2.3  2/13/2021 Added Com alignment tool and minor changes.
 // 1.2.2  2/3/2021  Spacers!
@@ -63,7 +110,7 @@
 // RingA_Stop(HasSkirt=true, HasStop=false, nSensors=2); // for continuous rotation
 // rotate([180,0,]) InnerPlanetBearing();
 //
-// RingB(HasSkirt=true);
+// RingB(HasSkirt=true, nSensors=1);
 //
 //  ***** Brushless Gimbal Motor w/ Encoder
 // RingCSpacerGM(HasSkirt=true); // Plain for sensored motor
@@ -75,7 +122,11 @@
 // rotate([180,0,0]) RingCMtrMountGM5208Com();
 // RingCGMCover();
 //
+// SplineShaft(d=GM5208_Spline_d,l=4,nSplines=GM5208_nSplines,Spline_w=30,Hole=12.7+IDXtra,Key=false);
+// Spacer(Len=3);
+//
 //  ***** Planet carrier parts
+// Spacer(Len=2); // Print 2
 // PlanetCarrierOuter();
 // rotate([180,0,0]) PlanetCarrierSpacer();
 // Planet();
@@ -101,7 +152,7 @@
 //  ***** for Viewing *****
 //  ShowBodyJack(Rot_a=20,HasSkirt=true);
 //  ShowBodyJack(Rot_a=20,HasSkirt=false);
-//  ShowPlanetCarrier();
+//  ShowPlanetCarrierEXP();
 //  ShowLifter();
 //  ShowBodyJackGM(HasSkirt=true);
 //  ShowGM5208Module();
@@ -465,7 +516,7 @@ module ShowPlanetCarrierEXP(){
     translate([0,0,-20]) rotate([EXP_Xa,EXP_Ya,0]) color("LightBlue") Spacer(Len=2);
 } // ShowPlanetCarrierEXP
 
-//ShowPlanetCarrierEXP();
+// ShowPlanetCarrierEXP();
 
 module Spacer(Len=2){
 	difference(){
