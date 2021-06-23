@@ -6,7 +6,7 @@
 // Filename: TSM_BodyJack2.scad
 // By: David M. Flynn
 // Created: 10/16/2019
-// Revision: 1.2.5  6/19/2021
+// Revision: 1.2.6  6/21/2021
 // Units: mm
 // *************************************************
 //  ***** Notes *****
@@ -68,6 +68,7 @@
 // *************************************************
 //  ***** History ******
 //
+// 1.2.6  6/21/2021 Added gear reaming fixtures.
 // 1.2.5  6/19/2021 Added some notes.
 // 1.2.4  5/17/2021 Larger wire path in LifterLockCover.
 // 1.2.3  2/13/2021 Added Com alignment tool and minor changes.
@@ -146,6 +147,11 @@
 // LifterLockCover(nSpokes=7); // part of the lifter arm
 // FlangedBallLockRing(nSpokes=7);
 // DogLeg(CD=150,Offset=15);
+//
+// *** Tooling ***
+// SunGearReamingFixture();
+// PlanetGearAReamingFixture();
+// PlanetGearBReamingFixture();
 //
 // TestFixture();
 // *************************************************
@@ -653,6 +659,40 @@ module SunGear(){
 	
 //translate([0,0,-Gear_w/2]) rotate([0,0,0]) SunGear();
 
+module SunGearReamingFixture(){
+	Tool_h=20;
+	SunGear_w=Gear_w;
+	SunGearTwist=-twist/nTeeth_Sun*(SunGear_w/Gear_w);
+	
+	difference(){
+		hull(){
+			for (j=[0:5]) rotate([0,0,60*j]) translate([25,0,0]) cylinder(d=6,h=Tool_h);
+		} // hull
+		
+		translate([0,0,-Overlap]) cylinder(d=14,h=Tool_h+1);
+		
+		translate([0,0,Tool_h-11]) scale(1.05)
+			gear(number_of_teeth=nTeeth_Sun,
+				circular_pitch=GearAPitch, diametral_pitch=false,
+				pressure_angle=Pressure_a,
+				clearance = 0,
+				gear_thickness=SunGear_w,
+				rim_thickness=SunGear_w,
+				rim_width=5,
+				hub_thickness=SunGear_w,
+				hub_diameter=15,
+				bore_diameter=Tube_OD-1,
+				circles=0,
+				backlash=-0.3,
+				twist=SunGearTwist,
+				involute_facets=0,
+				flat=false);
+		
+	} // difference
+} // SunGearReamingFixture
+
+//SunGearReamingFixture();
+
 module Planet(O_a=0){
 	
 	TrimValue=0.5;
@@ -747,6 +787,71 @@ module Planet(O_a=0){
 // Planet(O_a=0);
 //cylinder(d=13,h=50);
 	
+module PlanetGearAReamingFixture(){
+	Tool_h=20;
+	
+	difference(){
+		hull(){
+			for (j=[0:5]) rotate([0,0,60*j]) translate([25,0,0]) cylinder(d=6,h=Tool_h);
+		} // hull
+		
+		translate([0,0,-Overlap]) cylinder(d=15,h=Tool_h+1);
+		
+		translate([0,0,Tool_h-11]) scale(1.05)
+			gear(number_of_teeth=PlanetATeeth,
+				circular_pitch=GearAPitch, diametral_pitch=false,
+				pressure_angle=Pressure_a,
+				clearance = 0,
+				gear_thickness=Gear_w,
+				rim_thickness=Gear_w,
+				rim_width=5,
+				hub_thickness=Gear_w+1+Overlap,
+				hub_diameter=20,
+				bore_diameter=sBearing_OD-1,
+				circles=0,
+				backlash=-0.3,
+				twist=twist/PlanetATeeth,
+				involute_facets=0,
+				flat=false);
+		
+	} // difference
+} // PlanetGearAReamingFixture
+
+//PlanetGearAReamingFixture();
+
+module PlanetGearBReamingFixture(){
+	Tool_h=20;
+	
+	difference(){
+		hull(){
+			for (j=[0:5]) rotate([0,0,60*j]) translate([25,0,0]) cylinder(d=6,h=Tool_h);
+		} // hull
+		
+		translate([0,0,-Overlap]) cylinder(d=15,h=Tool_h+1);
+		
+		translate([0,0,Tool_h-11]) scale(1.05)
+			gear(number_of_teeth=PlanetBTeeth,
+					circular_pitch=GearBPitch, diametral_pitch=false,
+					pressure_angle=Pressure_a,
+					clearance = 0,
+					gear_thickness=Gear_w,
+					rim_thickness=Gear_w,
+					rim_width=5,
+					hub_thickness=Gear_w,
+					hub_diameter=15,
+					bore_diameter=sBearing_OD-1,
+					circles=0,
+					backlash=-0.3,
+					twist=twist/PlanetBTeeth,
+					involute_facets=0,
+					flat=false);
+
+		
+	} // difference
+} // PlanetGearBReamingFixture
+
+//PlanetGearBReamingFixture();
+
 // *************************************************************************************
 //  ***** Ring A, drive ring and bearing *****
 // *************************************************************************************
